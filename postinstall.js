@@ -14,22 +14,40 @@ if (fs.existsSync(dropinsDir)) {
 // Create scripts/__dropins__ directory if not exists
 fs.mkdirSync(dropinsDir, { recursive: true });
 
-// Copy specified files from node_modules/@dropins to scripts/__dropins__
-fs.readdirSync('node_modules/@dropins', { withFileTypes: true }).forEach((file) => {
-  // Skip if package is not in package.json dependencies / skip devDependencies
-  if (!dependencies[`@dropins/${file.name}`]) {
+/**
+ * Copies every package under an npm scope into scripts/__dropins__/{packageName}.
+ * Only packages listed in package.json dependencies are included (skips devDeps / extras).
+ * @param {string} scope e.g. '@dropins' or '@ajay0641'
+ */
+function copyScopedPackages(scope) {
+  const scopeDir = path.join('node_modules', scope);
+  if (!fs.existsSync(scopeDir)) {
     return;
   }
 
-  // Skip if is not folder
-  if (!file.isDirectory()) {
-    return;
-  }
-  fs.cpSync(path.join('node_modules', '@dropins', file.name), path.join(dropinsDir, file.name), {
-    recursive: true,
-    filter: (src) => (!src.endsWith('package.json')),
+  fs.readdirSync(scopeDir, { withFileTypes: true }).forEach((file) => {
+    if (!file.isDirectory()) {
+      return;
+    }
+
+    const npmName = `${scope}/${file.name}`;
+    if (!dependencies[npmName]) {
+      return;
+    }
+
+    fs.cpSync(path.join(scopeDir, file.name), path.join(dropinsDir, file.name), {
+      recursive: true,
+      filter: (src) => (!src.endsWith('package.json')),
+    });
   });
-});
+}
+
+// Adobe drop-ins
+copyScopedPackages('@dropins');
+
+// Custom drop-ins under this project scope (add packages in package.json only;
+// they land as scripts/__dropins__/{package-name} — still add import map + block separately)
+copyScopedPackages('@ajay0641');
 
 // Other files to copy
 [

@@ -427,22 +427,21 @@
       {
         "component": "reference",
         "valueType": "string",
-        "name": "image",
-        "label": "Image",
+        "name": "promoImage",
+        "label": "Promo Image",
         "multi": false
       },
       {
-        "component": "text",
+        "component": "aem-content",
         "valueType": "string",
-        "name": "alt",
-        "label": "Alt",
-        "value": ""
+        "name": "promoImageLink",
+        "label": "Promo Image Link"
       },
       {
-        "component": "text",
-        "name": "text",
+        "component": "richtext",
+        "name": "cardText",
         "value": "",
-        "label": "Text",
+        "label": "Card Text (heading + paragraph)",
         "valueType": "string"
       }
     ]
@@ -523,6 +522,55 @@
         "name": "fragment",
         "label": "Fragment",
         "valueType": "string"
+      }
+    ]
+  },
+  {
+    "id": "tfs-product-slider",
+    "fields": [
+      {
+        "component": "text",
+        "name": "title",
+        "label": "Title",
+        "valueType": "string"
+      },
+      {
+        "component": "text",
+        "name": "phrase",
+        "label": "Search Phrase",
+        "valueType": "string",
+        "description": "Optional productSearch phrase (empty = all matching filter)"
+      },
+      {
+        "component": "text",
+        "name": "page-size",
+        "label": "Page Size",
+        "valueType": "string",
+        "value": "8",
+        "description": "Number of products to load (default 8)"
+      },
+      {
+        "component": "text",
+        "name": "current-page",
+        "label": "Current Page",
+        "valueType": "string",
+        "value": "1"
+      },
+      {
+        "component": "text",
+        "name": "attribute",
+        "label": "Attribute",
+        "valueType": "string",
+        "value": "isNew",
+        "description": "Catalog Service productSearch filter attribute. Examples: isNew, categoryIds"
+      },
+      {
+        "component": "text",
+        "name": "eq",
+        "label": "Equals",
+        "valueType": "string",
+        "value": "1",
+        "description": "Filter equality value. Examples: 1 (for isNew), 6 (for categoryIds)"
       }
     ]
   }
