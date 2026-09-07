@@ -242,20 +242,20 @@
           "model": "hero",
           "plugins": {
             "da": {
-              "rows": 1,
-              "columns": 1,
+              "rows": "auto",
+              "columns": 2,
               "fields": [
                 {
-                  "name": "image",
-                  "selector": "div>div>picture>img[src]"
+                  "name": "promoImage",
+                  "selector": "div:first-child > div:first-child img[src]"
                 },
                 {
-                  "name": "alt",
-                  "selector": "div>div>picture>img[alt]"
+                  "name": "promoImageLink",
+                  "selector": "div:first-child > div:first-child a[href]"
                 },
                 {
-                  "name": "text",
-                  "selector": "div>div>h1"
+                  "name": "cardText",
+                  "selector": "div:first-child > div:nth-child(2)"
                 }
               ]
             }
@@ -566,6 +566,16 @@
           "title": "Commerce Wishlist",
           "id": "commerce-wishlist",
           "model": "commerce-wishlist",
+          "plugins": {
+            "da": {
+              "type": "key-value-block"
+            }
+          }
+        },
+        {
+          "title": "TFS Product Slider",
+          "id": "tfs-product-slider",
+          "model": "tfs-product-slider",
           "plugins": {
             "da": {
               "type": "key-value-block"

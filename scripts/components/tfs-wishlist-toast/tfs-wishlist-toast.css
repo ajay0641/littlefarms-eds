@@ -1,0 +1,102 @@
+.tfs-wishlist-toast {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 1000;
+  width: min(420px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+.tfs-wishlist-toast:empty {
+  display: none;
+}
+
+.tfs-wishlist-toast .dropin-in-line-alert {
+  pointer-events: auto;
+  margin: 0;
+  border-radius: 8px;
+  border-width: 1px;
+  border-style: solid;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 14%);
+}
+
+.tfs-wishlist-toast .dropin-in-line-alert__content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.tfs-wishlist-toast .dropin-in-line-alert__header {
+  font-weight: 700;
+}
+
+.tfs-wishlist-toast .dropin-in-line-alert__description {
+  margin-top: 4px;
+  line-height: 1.45;
+}
+
+.tfs-wishlist-toast .dropin-in-line-alert button[data-testid='inline-alert-dismiss'] {
+  flex-shrink: 0;
+}
+
+.tfs-wishlist-toast--success .dropin-in-line-alert {
+  background-color: #edf7ed;
+  border-color: #2e7d32;
+  color: #1b5e20;
+}
+
+.tfs-wishlist-toast--success .dropin-in-line-alert svg {
+  color: #2e7d32;
+}
+
+.tfs-wishlist-toast--error .dropin-in-line-alert {
+  background-color: #fdecea;
+  border-color: #c62828;
+  color: #7f1d1d;
+}
+
+.tfs-wishlist-toast--error .dropin-in-line-alert svg {
+  color: #c62828;
+}
+
+.tfs-wishlist-toast--login .dropin-in-line-alert {
+  background-color: #fff8e6;
+  border-color: #b8860b;
+  color: #5c4a1a;
+}
+
+.tfs-wishlist-toast--login .dropin-in-line-alert svg {
+  color: #b8860b;
+}
+
+.tfs-wishlist-toast--login .dropin-in-line-alert__actions button {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+@media (max-width: 599px) {
+  .tfs-wishlist-toast {
+    top: auto;
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
+    width: auto;
+  }
+}
+
+.wishlist-auth-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgb(0 0 0 / 50%);
+}
+
+.wishlist-auth-modal #signin-form {
+  width: min(800px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+}
