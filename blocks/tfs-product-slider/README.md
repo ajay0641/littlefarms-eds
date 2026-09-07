@@ -10,14 +10,28 @@ The TFS Product Slider block renders a horizontal product carousel using the `@a
 
 | Configuration Key | Type | Default | Description | Required |
 |-------------------|------|---------|-------------|----------|
-| `title` | string | `''` | Heading above the slider | No |
+| `title` | string | `''` | Heading above the slider (centered) or in the left panel (side-title layout) | No |
 | `phrase` | string | `''` | Catalog Service search phrase | No |
+| `subtitle` | string | `''` | Enables the **side-title layout** (left panel beside the slider on a rounded card) | No |
+| `show-all-text` | string | `''` | Side-title link label (e.g. `Show all`) | No |
+| `show-all-link` | string | `''` | Side-title link target (e.g. `/best-of-little-farms`) | No |
 | `page-size` | string/number | `8` | Number of products to fetch | No |
 | `current-page` | string/number | `1` | productSearch page | No |
 | `attribute` | string | `isNew` | Catalog Service filter attribute | No |
 | `eq` | string | `1` | Filter equality value | No |
 
 Legacy keys `filter-attribute` / `filter-eq` are still supported.
+
+**Side-title layout ("Best Sellers"):** when `subtitle` (or `show-all-text`/`show-all-link`) is set, the block renders a left panel — title, subtitle, and "Show all" link — beside the product slider on a rounded white card. Omit these keys for the default centered heading layout.
+
+| tfs-product-slider | |
+| --- | --- |
+| title | Best Sellers |
+| subtitle | What our customers love! |
+| show-all-text | Show all |
+| show-all-link | /best-of-little-farms |
+| attribute | isNew |
+| eq | 1 |
 
 ### Authoring examples
 
