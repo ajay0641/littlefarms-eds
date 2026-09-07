@@ -201,39 +201,32 @@ h5,
 h6 {
   margin-top: 0.8em;
   margin-bottom: 0.25em;
-  font-family: var(--type-heading-font-family);
   font-weight: 400;
   line-height: 1.25;
   scroll-margin: 40px;
 }
 
 h1 {
-  font: var(--type-display-1-font);
   letter-spacing: var(--type-display-1-letter-spacing);
 }
 
 h2 {
-  font: var(--type-display-2-font);
   letter-spacing: var(--type-display-2-letter-spacing);
 }
 
 h3 {
-  font: var(--type-display-3-font);
   letter-spacing: var(--type-display-3-letter-spacing);
 }
 
 h4 {
-  font: var(--type-headline-1-font);
   letter-spacing: var(--type-headline-1-letter-spacing);
 }
 
 h5 {
-  font: var(--type-headline-2-strong-font);
   letter-spacing: var(--type-headline-2-strong-letter-spacing);
 }
 
 h6 {
-  font: var(--type-headline-2-default-font);
   letter-spacing: var(--type-headline-2-default-letter-spacing);
 }
 
@@ -287,7 +280,6 @@ button {
 /* links */
 a:not(.dropin-design a) {
   color: var(--color-brand-500);
-  font: var(--type-body-1-strong-font);
   letter-spacing: var(--type-body-1-strong-letter-spacing);
   text-decoration: none;
   overflow-wrap: break-word;
