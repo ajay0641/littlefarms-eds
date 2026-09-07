@@ -27,6 +27,27 @@
       },
       {
         "component": "text",
+        "name": "subtitle",
+        "label": "Subtitle",
+        "valueType": "string",
+        "description": "Optional. Enables the side-title layout (left panel beside the slider). Example: What our customers love!"
+      },
+      {
+        "component": "text",
+        "name": "show-all-text",
+        "label": "Show All Text",
+        "valueType": "string",
+        "description": "Optional side-title link label, e.g. Show all"
+      },
+      {
+        "component": "aem-content",
+        "name": "show-all-link",
+        "label": "Show All Link",
+        "valueType": "string",
+        "description": "Optional side-title link target, e.g. /best-of-little-farms"
+      },
+      {
+        "component": "text",
         "name": "page-size",
         "label": "Page Size",
         "valueType": "string",
