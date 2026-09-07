@@ -1,37 +1,164 @@
 .hero-container .hero-wrapper {
-  max-width: unset;
-  padding: 0;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 20px;
 }
 
 .hero {
-  position: relative;
-  padding: 40px 24px;
-  min-height: 300px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  align-items: start;
 }
 
-.hero h1 {
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
-  color: var(--background-color);
+/* ---- Left promo ---- */
+.hero .hero-promo {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.hero picture {
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  object-fit: cover;
-  box-sizing: border-box;
-}
-
-.hero img {
-  object-fit: cover;
+.hero .hero-promo-image img {
   width: 100%;
-  height: 100%;
+  height: auto;
+  display: block;
+  border-radius: 8px;
 }
 
+.hero .hero-promo-image a {
+  display: block;
+}
+
+.hero .hero-promo-card {
+  border: 1px solid var(--color-brand-700, #2f6f5e);
+  border-radius: 6px;
+  padding: 20px 24px;
+  text-align: center;
+}
+
+.hero .hero-promo-card h1,
+.hero .hero-promo-card h2,
+.hero .hero-promo-card h3,
+.hero .hero-promo-card h4 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  color: var(--color-brand-700, #2f6f5e);
+}
+
+.hero .hero-promo-card p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgb(58 58 58);
+}
+
+/* ---- Right carousel ---- */
+.hero .hero-carousel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.hero .hero-slides {
+  display: flex;
+  transition: transform 0.5s ease;
+  will-change: transform;
+}
+
+.hero .hero-slide {
+  flex: 0 0 100%;
+  min-width: 100%;
+}
+
+.hero .hero-slide img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.hero .hero-slide a {
+  display: block;
+}
+
+/* Arrows */
+.hero .hero-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 80%);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  transition: background 0.2s ease;
+}
+
+.hero .hero-arrow:hover {
+  background: rgb(255 255 255);
+}
+
+.hero .hero-arrow::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-top: 2px solid rgb(58 58 58);
+  border-right: 2px solid rgb(58 58 58);
+}
+
+.hero .hero-arrow-prev {
+  left: 12px;
+}
+
+.hero .hero-arrow-prev::before {
+  transform: rotate(-135deg);
+  margin-left: 4px;
+}
+
+.hero .hero-arrow-next {
+  right: 12px;
+}
+
+.hero .hero-arrow-next::before {
+  transform: rotate(45deg);
+  margin-right: 4px;
+}
+
+/* Dots */
+.hero .hero-dots {
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  z-index: 2;
+}
+
+.hero .hero-dot {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 60%);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.hero .hero-dot[aria-selected="true"] {
+  background: rgb(255 255 255);
+}
+
+/* ---- Desktop: two columns ---- */
 @media (min-width: 900px) {
   .hero {
-    padding: 40px 32px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: 24px;
   }
 }
