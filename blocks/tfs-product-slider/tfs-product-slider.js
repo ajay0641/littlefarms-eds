@@ -202,6 +202,93 @@ function getCartErrorMessage(error) {
 }
 
 /**
+ * Restructures drop-in cards to match Little Farms Best Sellers:
+ * brand + wishlist row, then title, then price + "Add to Cart" button.
+ * @param {Element} block
+ */
+function decorateLittleFarmsCards(block) {
+  block.querySelectorAll('.tfsproductslider-product-card').forEach((card) => {
+    if (!(card instanceof HTMLElement) || card.dataset.lfDecorated === '1') return;
+    card.dataset.lfDecorated = '1';
+
+    const body = card.querySelector('.tfsproductslider-product-card__body');
+    const actions = card.querySelector('.tfsproductslider-product-card__actions');
+    const atc = card.querySelector('.tfsproductslider-product-card__atc');
+    const wishlist = card.querySelector('.tfsproductslider-product-card__wishlist');
+    const pricing = card.querySelector('.tfsproductslider-product-card__pricing');
+    if (!(body instanceof HTMLElement)) return;
+
+    const meta = document.createElement('div');
+    meta.className = 'tfs-product-slider__card-meta';
+
+    const subtitle = body.querySelector('.tfsproductslider-product-card__subtitle');
+    if (subtitle) {
+      meta.append(subtitle);
+    } else {
+      const brand = document.createElement('span');
+      brand.className = 'tfsproductslider-product-card__subtitle';
+      meta.append(brand);
+    }
+
+    if (wishlist instanceof HTMLElement) {
+      wishlist.replaceChildren();
+      wishlist.setAttribute('aria-label', wishlist.getAttribute('aria-label') || 'Add to wish list');
+      meta.append(wishlist);
+    }
+
+    const title = body.querySelector('.tfsproductslider-product-card__title');
+    if (title) {
+      body.insertBefore(meta, title);
+    } else {
+      body.prepend(meta);
+    }
+
+    const footer = document.createElement('div');
+    footer.className = 'tfs-product-slider__card-footer';
+    if (pricing) footer.append(pricing);
+
+    if (atc instanceof HTMLElement) {
+      atc.replaceChildren();
+      atc.textContent = 'Add to Cart';
+      atc.classList.add('tfs-product-slider__atc-btn');
+      footer.append(atc);
+    }
+
+    body.append(footer);
+    actions?.remove();
+  });
+}
+
+/**
+ * onLoad fires before Preact commits product cards — observe until cards exist,
+ * and keep decorating if Preact re-renders undoes the layout.
+ * @param {Element} block
+ * @param {{ sku: string }[]} items
+ * @param {typeof import('@dropins/storefront-wishlist/api.js')} wishlistApi
+ */
+function scheduleLittleFarmsCardDecorate(block, items, wishlistApi) {
+  const run = () => {
+    decorateLittleFarmsCards(block);
+    syncWishlistButtons(block, wishlistApi, items);
+  };
+
+  run();
+
+  const track = block.querySelector('.tfsproductslider-product-slider-component__track')
+    || block.querySelector('.tfs-product-slider__slider')
+    || block;
+
+  const observer = new MutationObserver(() => {
+    if (block.querySelector('.tfsproductslider-product-card:not([data-lf-decorated="1"])')) {
+      run();
+    }
+  });
+
+  observer.observe(track, { childList: true, subtree: true });
+  window.setTimeout(() => observer.disconnect(), 10000);
+}
+
+/**
  * @param {Element} block
  */
 export default async function decorate(block) {
@@ -415,7 +502,12 @@ export default async function decorate(block) {
       }
     },
     onLoad: (result) => {
-      syncWishlistButtons(block, wishlistApi, result?.items || []);
+      const items = result?.items || [];
+      if (sideTitle) {
+        scheduleLittleFarmsCardDecorate(block, items, wishlistApi);
+      } else {
+        syncWishlistButtons(block, wishlistApi, items);
+      }
     },
   })(sliderMount);
 }
