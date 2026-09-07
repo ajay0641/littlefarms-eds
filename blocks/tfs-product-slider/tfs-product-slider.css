@@ -22,9 +22,10 @@
 }
 
 .tfs-product-slider .tfsproductslider-product-slider-component {
-  /* stylelint-disable-next-line value-keyword-case -- brand / system serif stack for product cards */
-  --tfs-card-font: Georgia, "Times New Roman", Times, serif;
-  --tfs-card-text: #000;
+  /* Little Farms brand: Overpass sans-serif card typography */
+  /* stylelint-disable-next-line value-keyword-case -- proper-case brand/system font names */
+  --tfs-card-font: Overpass, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --tfs-card-text: #3a3a3a;
   --tfs-card-muted: #5c5c5c;
   --tfs-card-sale: #9b1504;
   --tfs-card-star: #c5a371;
@@ -134,8 +135,16 @@
   min-width: 0;
 }
 
-/* ---------- Product card (parity with thefutonshop.com) ---------- */
+/* ---------- Product card (Little Farms brand) ---------- */
 .tfs-product-slider .tfsproductslider-product-card {
+  /* Re-declare tokens here: the drop-in injects a <style> that sets these
+     vars directly on .tfsproductslider-product-card, so we override at the
+     same node with our higher-specificity (block-scoped) selector. */
+  /* stylelint-disable-next-line value-keyword-case -- proper-case brand/system font names */
+  --tfs-card-font: Overpass, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --tfs-card-text: #3a3a3a;
+  --tfs-card-sale: #9b1504;
+
   display: flex;
   flex-direction: column;
   gap: 0;
