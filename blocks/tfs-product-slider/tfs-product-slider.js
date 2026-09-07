@@ -238,7 +238,45 @@ export default async function decorate(block) {
   const currentPage = Number.parseInt(config['current-page'] || config.currentpage || '1', 10) || 1;
   const filter = buildFilters(config);
 
+  // Optional side-title layout (e.g. "Best Sellers"): a left panel with title,
+  // subtitle, and a "Show all" link beside the product slider on a rounded card.
+  const subtitle = config.subtitle || '';
+  const showAllText = config['show-all-text'] || config.showalltext || '';
+  const showAllLink = config['show-all-link'] || config.showalllink || '';
+  const sideTitle = !!(subtitle || showAllText || showAllLink);
+
   block.replaceChildren();
+
+  let sliderMount = block;
+  if (sideTitle) {
+    block.classList.add('tfs-product-slider--side-title');
+
+    const panel = document.createElement('div');
+    panel.className = 'tfs-product-slider__panel';
+    if (title) {
+      const h = document.createElement('h2');
+      h.className = 'tfs-product-slider__panel-title';
+      h.textContent = title;
+      panel.append(h);
+    }
+    if (subtitle) {
+      const p = document.createElement('p');
+      p.className = 'tfs-product-slider__panel-subtitle';
+      p.textContent = subtitle;
+      panel.append(p);
+    }
+    if (showAllText && showAllLink) {
+      const a = document.createElement('a');
+      a.className = 'tfs-product-slider__panel-link';
+      a.href = showAllLink;
+      a.textContent = showAllText;
+      panel.append(a);
+    }
+
+    sliderMount = document.createElement('div');
+    sliderMount.className = 'tfs-product-slider__slider';
+    block.append(panel, sliderMount);
+  }
 
   /** @type {HTMLElement|null} */
   let lastAtcButton = null;
@@ -261,7 +299,7 @@ export default async function decorate(block) {
   });
 
   await provider.render(ProductSliderContainer, {
-    title: title || undefined,
+    title: sideTitle ? undefined : (title || undefined),
     phrase,
     pageSize,
     currentPage,
@@ -379,5 +417,5 @@ export default async function decorate(block) {
     onLoad: (result) => {
       syncWishlistButtons(block, wishlistApi, result?.items || []);
     },
-  })(block);
+  })(sliderMount);
 }
