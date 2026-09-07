@@ -6,12 +6,12 @@
       "model": "hero",
       "plugins": {
         "da": {
-          "rows": 1,
-          "columns": 1,
+          "rows": "auto",
+          "columns": 2,
           "fields": [
-            { "name": "image", "selector": "div>div>picture>img[src]" },
-            { "name": "alt", "selector": "div>div>picture>img[alt]" },
-            { "name": "text", "selector": "div>div>h1" }
+            { "name": "promoImage", "selector": "div:first-child > div:first-child img[src]" },
+            { "name": "promoImageLink", "selector": "div:first-child > div:first-child a[href]" },
+            { "name": "cardText", "selector": "div:first-child > div:nth-child(2)" }
           ]
         }
       }
@@ -24,22 +24,21 @@
         {
           "component": "reference",
           "valueType": "string",
-          "name": "image",
-          "label": "Image",
+          "name": "promoImage",
+          "label": "Promo Image",
           "multi": false
         },
         {
-          "component": "text",
+          "component": "aem-content",
           "valueType": "string",
-          "name": "alt",
-          "label": "Alt",
-          "value": ""
+          "name": "promoImageLink",
+          "label": "Promo Image Link"
         },
         {
-          "component": "text",
-          "name": "text",
+          "component": "richtext",
+          "name": "cardText",
           "value": "",
-          "label": "Text",
+          "label": "Card Text (heading + paragraph)",
           "valueType": "string"
         }
       ]
