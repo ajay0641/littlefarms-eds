@@ -207,8 +207,8 @@ footer .footer-bottom img {
   }
 }
 
-/* ---- Desktop (>=900px): revert accordion to static columns ---- */
-@media (min-width: 900px) {
+/* breakpoint-exception: reference site (littlefarms.com) switches footer to desktop layout at 768px (revert accordion to static columns) */
+@media (min-width: 768px) {
   footer .footer-inner {
     padding: 60px 20px;
   }
