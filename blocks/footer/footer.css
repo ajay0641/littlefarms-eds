@@ -213,10 +213,25 @@ footer .footer-bottom img {
     padding: 60px 20px;
   }
 
-  /* Heading and back-to-top are mobile-only */
-  footer .footer-features-heading,
-  footer .footer-back-to-top {
+  /* Heading is mobile-only */
+  footer .footer-features-heading {
     display: none;
+  }
+
+  /* Back-to-top floats on the right on desktop */
+  footer .footer-back-to-top {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    margin: 0;
+    width: 52px;
+    height: 52px;
+    box-shadow: 0 2px 10px rgb(0 0 0 / 15%);
+  }
+
+  footer .footer-back-to-top::before {
+    width: 11px;
+    height: 11px;
   }
 
   footer .footer-features {
