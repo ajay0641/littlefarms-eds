@@ -6,6 +6,7 @@ footer {
 }
 
 footer .footer-inner {
+  position: relative;
   margin: 0 auto;
   max-width: 1400px;
   padding: 40px 20px;
@@ -18,6 +19,16 @@ footer .footer-inner a {
   transition: all 0.2s ease;
 }
 
+/* ---- Feature block heading (mobile) ---- */
+footer .footer-features-heading {
+  margin: 0 0 32px;
+  text-align: center;
+  color: var(--color-brand-700, #2f6f5e);
+  text-transform: uppercase;
+  font-size: 18px;
+  letter-spacing: 0.02em;
+}
+
 /* ---- Feature row ---- */
 footer .footer-features {
   display: grid;
@@ -28,14 +39,15 @@ footer .footer-features {
 
 footer .footer-feature {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 16px;
-  text-align: left;
+  gap: 12px;
+  text-align: center;
 }
 
 footer .footer-feature img {
-  width: 56px;
-  height: 56px;
+  width: 44px;
+  height: 44px;
   object-fit: contain;
   flex-shrink: 0;
 }
@@ -52,18 +64,68 @@ footer .footer-feature-text p {
   line-height: 1.4;
 }
 
-/* ---- Link columns ---- */
+/* ---- Back to top ---- */
+footer .footer-back-to-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 0 24px auto;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-brand-700, #2f6f5e);
+  cursor: pointer;
+}
+
+footer .footer-back-to-top::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  border-top: 2px solid #fff;
+  border-right: 2px solid #fff;
+  transform: rotate(-45deg);
+  margin-top: 3px;
+}
+
+/* ---- Link columns (accordion on mobile) ---- */
 footer .footer-links {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 32px;
-  padding: 40px 0;
+  gap: 0;
+}
+
+footer .footer-column {
+  border-bottom: 1px solid rgb(58 58 58 / 12%);
 }
 
 footer .footer-column h4 {
-  margin: 0 0 16px;
+  margin: 0;
+  padding: 16px 0;
   font-size: 15px;
   font-weight: 700;
+}
+
+footer .footer-column h4[role="button"] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+footer .footer-column h4[role="button"]::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-bottom: 2px solid currentcolor;
+  border-right: 2px solid currentcolor;
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+  margin-right: 4px;
+}
+
+footer .footer-column h4[aria-expanded="true"]::after {
+  transform: rotate(-135deg);
 }
 
 footer .footer-column ul {
@@ -72,8 +134,26 @@ footer .footer-column ul {
   padding: 0;
 }
 
+/* Social icons row layout (declared before accordion rules for specificity order) */
+footer .footer-social ul {
+  display: flex;
+  gap: 14px;
+}
+
+/* Collapse only accordion lists (those following a button heading) */
+footer .footer-column h4[role="button"] + ul {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.3s ease;
+}
+
+footer .footer-column h4[aria-expanded="true"] + ul {
+  max-height: 600px;
+  padding-bottom: 12px;
+}
+
 footer .footer-column li {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 footer .footer-column a {
@@ -85,10 +165,10 @@ footer .footer-inner a:hover {
   text-decoration: none;
 }
 
-/* Social icons column */
-footer .footer-social ul {
-  display: flex;
-  gap: 14px;
+/* Social icons column — always visible (not an accordion) */
+footer .footer-social {
+  border-bottom: none;
+  padding-top: 16px;
 }
 
 footer .footer-social li {
@@ -125,22 +205,18 @@ footer .footer-bottom img {
   footer .footer-features {
     grid-template-columns: repeat(2, 1fr);
   }
-
-  footer .footer-links {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  footer .footer-bottom {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
 }
 
-/* ---- Desktop ---- */
+/* ---- Desktop (>=900px): revert accordion to static columns ---- */
 @media (min-width: 900px) {
   footer .footer-inner {
     padding: 60px 20px;
+  }
+
+  /* Heading and back-to-top are mobile-only */
+  footer .footer-features-heading,
+  footer .footer-back-to-top {
+    display: none;
   }
 
   footer .footer-features {
@@ -150,8 +226,13 @@ footer .footer-bottom img {
   }
 
   footer .footer-feature {
+    flex-direction: row;
     justify-content: center;
-    text-align: center;
+  }
+
+  footer .footer-feature img {
+    width: 56px;
+    height: 56px;
   }
 
   footer .footer-links {
@@ -159,5 +240,43 @@ footer .footer-bottom img {
     justify-content: space-between;
     gap: 40px;
     padding: 60px 0 40px;
+  }
+
+  footer .footer-column {
+    border-bottom: none;
+  }
+
+  footer .footer-column h4 {
+    padding: 0 0 16px;
+  }
+
+  /* Disable accordion collapse on desktop — always show links */
+  footer .footer-column h4[role="button"] {
+    cursor: default;
+  }
+
+  footer .footer-column h4[role="button"]::after {
+    display: none;
+  }
+
+  footer .footer-column h4[role="button"] + ul,
+  footer .footer-column h4[aria-expanded="true"] + ul {
+    max-height: none;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+
+  footer .footer-column li {
+    margin-bottom: 10px;
+  }
+
+  footer .footer-social {
+    padding-top: 0;
+  }
+
+  footer .footer-bottom {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
   }
 }
