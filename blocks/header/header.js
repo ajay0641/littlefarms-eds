@@ -193,7 +193,22 @@ export default async function decorate(block) {
     brandLink.closest('.button-container').className = '';
   }
 
+
+  /** Search */
+  const searchFragment = document.createRange().createContextualFragment(`
+  <div class="search-wrapper nav-tools-wrapper">
+    <button type="button" class="nav-search-button">Search</button>
+    <div class="nav-search-input nav-search-panel nav-tools-panel">
+      <form id="search-bar-form"></form>
+      <div class="search-bar-result" style="display: none;"></div>
+    </div>
+  </div>
+  `);
+
+  navBrand.after(searchFragment);
+
   const navSections = nav.querySelector('.nav-sections');
+
   if (navSections) {
     navSections
       .querySelectorAll(':scope .default-content-wrapper > ul > li')
@@ -221,25 +236,134 @@ export default async function decorate(block) {
   }
 
   const navTools = nav.querySelector('.nav-tools');
+  
 
-  /** Wishlist */
-  const wishlist = document.createRange().createContextualFragment(`
-     <div class="wishlist-wrapper nav-tools-wrapper">
-       <button type="button" class="nav-wishlist-button" aria-label="Wishlist"></button>
-       <div class="wishlist-panel nav-tools-panel"></div>
+  /** Static Nav Links */
+  const customerMenuFragment = document.createRange().createContextualFragment(`
+     <div class="account-wrapper nav-tools-wrapper">
+       <button type="button" class="nav-account-button" aria-label="account" aria-haspopup="dialog" aria-expanded="false" aria-controls="account-panel"></button>
+       <div class="account-panel nav-tools-panel" id="account-panel"></div>
      </div>
-   `);
+  `);
 
-  navTools.append(wishlist);
+  navTools.append(customerMenuFragment);
 
-  const wishlistButton = navTools.querySelector('.nav-wishlist-button');
+  const searchPanel = nav.querySelector('.nav-search-panel');
+  const searchButton = nav.querySelector('.nav-search-button');
+  const searchForm = searchPanel.querySelector('#search-bar-form');
+  const searchResult = searchPanel.querySelector('.search-bar-result');
 
-  const wishlistMeta = getMetadata('wishlist');
-  const wishlistPath = wishlistMeta ? new URL(wishlistMeta, window.location).pathname : '/wishlist';
+  async function toggleSearch(state) {
+    const pageSize = 4;
 
-  wishlistButton.addEventListener('click', () => {
-    window.location.href = rootLink(wishlistPath);
-  });
+    if (state) {
+      await withLoadingState(searchPanel, searchButton, async () => {
+        await import('../../scripts/initializers/search.js');
+
+        // Load search components in parallel
+        const [
+          { search },
+          { render },
+          { SearchResults },
+          { provider: UI, Input, Button },
+        ] = await Promise.all([
+          import('@dropins/storefront-product-discovery/api.js'),
+          import('@dropins/storefront-product-discovery/render.js'),
+          import('@dropins/storefront-product-discovery/containers/SearchResults.js'),
+          import('@dropins/tools/components.js'),
+          import('@dropins/tools/lib.js'),
+        ]);
+
+        render.render(SearchResults, {
+          skeletonCount: pageSize,
+          scope: 'popover',
+          routeProduct: ({ urlKey, sku }) => getProductLink(urlKey, sku),
+          onSearchResult: (results) => {
+            searchResult.style.display = results.length > 0 ? 'block' : 'none';
+          },
+          slots: {
+            ProductImage: (ctx) => {
+              const { product, defaultImageProps } = ctx;
+              const anchorWrapper = document.createElement('a');
+              anchorWrapper.href = getProductLink(product.urlKey, product.sku);
+
+              tryRenderAemAssetsImage(ctx, {
+                alias: product.sku,
+                imageProps: defaultImageProps,
+                wrapper: anchorWrapper,
+                params: {
+                  width: defaultImageProps.width,
+                  height: defaultImageProps.height,
+                },
+              });
+            },
+            Footer: async (ctx) => {
+              // View all results button
+              const viewAllResultsWrapper = document.createElement('div');
+
+              const viewAllResultsButton = await UI.render(Button, {
+                children: labels.Global?.SearchViewAll,
+                variant: 'secondary',
+                href: rootLink('/search'),
+              })(viewAllResultsWrapper);
+
+              ctx.appendChild(viewAllResultsWrapper);
+
+              ctx.onChange((next) => {
+                viewAllResultsButton?.setProps((prev) => ({
+                  ...prev,
+                  href: `${rootLink('/search')}?q=${encodeURIComponent(next.variables?.phrase || '')}`,
+                }));
+              });
+            },
+          },
+        })(searchResult);
+
+        searchForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const query = e.target.search.value;
+          if (query.length) {
+            window.location.href = `${rootLink('/search')}?q=${encodeURIComponent(query)}`;
+          }
+        });
+
+        UI.render(Input, {
+          name: 'search',
+          placeholder: labels.Global?.Search,
+          onValue: (phrase) => {
+            if (!phrase) {
+              search(null, { scope: 'popover' });
+              return;
+            }
+
+            if (phrase.length < 3) {
+              return;
+            }
+
+            search({
+              phrase,
+              pageSize,
+              filter: [
+                { attribute: 'visibility', in: ['Search', 'Catalog, Search'] },
+              ],
+            }, { scope: 'popover' });
+          },
+        })(searchForm);
+      });
+    }
+
+    togglePanel(searchPanel, state);
+    if (state) searchForm?.querySelector('input')?.focus();
+  }
+
+  toggleSearch(!searchPanel.classList.contains('nav-tools-panel--show'));
+
+  // navTools.querySelector('.nav-search-button').addEventListener('click', () => {
+  if (isDesktop.matches) {
+    toggleAllNavSections(navSections);
+    overlay.classList.remove('show');
+  }
+  // });
 
   /** Mini Cart */
   const excludeMiniCartFromPaths = ['/checkout'];
@@ -255,8 +379,33 @@ export default async function decorate(block) {
   navTools.append(minicart);
 
   const minicartPanel = navTools.querySelector('.minicart-panel');
-
   const cartButton = navTools.querySelector('.nav-cart-button');
+
+  // Close panels when clicking outside
+  document.addEventListener('click', (e) => {
+    // Check if undo is enabled for mini cart
+    const miniCartElement = document.querySelector(
+      '[data-block-name="commerce-mini-cart"]',
+    );
+    const undoEnabled = miniCartElement
+      && (miniCartElement.textContent?.includes('undo-remove-item')
+        || miniCartElement.innerHTML?.includes('undo-remove-item'));
+
+    // For mini cart: if undo is enabled, be more restrictive about when to close
+    const shouldCloseMiniCart = undoEnabled
+      ? !minicartPanel.contains(e.target)
+      && !cartButton.contains(e.target)
+      && !e.target.closest('header')
+      : !minicartPanel.contains(e.target) && !cartButton.contains(e.target);
+
+    if (shouldCloseMiniCart) {
+      toggleMiniCart(false);
+    }
+
+    if (!searchPanel.contains(e.target) && !searchButton.contains(e.target)) {
+      toggleSearch(false);
+    }
+  });
 
   // Kept mounted at all times so the item count change is reliably
   // announced instead of being missed, since the visual badge is a
@@ -369,162 +518,6 @@ export default async function decorate(block) {
     previousCartQuantity = totalQuantity;
   }, { eager: true });
 
-  /** Search */
-  const searchFragment = document.createRange().createContextualFragment(`
-  <div class="search-wrapper nav-tools-wrapper">
-    <button type="button" class="nav-search-button">Search</button>
-    <div class="nav-search-input nav-search-panel nav-tools-panel">
-      <form id="search-bar-form"></form>
-      <div class="search-bar-result" style="display: none;"></div>
-    </div>
-  </div>
-  `);
-
-  navTools.append(searchFragment);
-
-  const searchPanel = navTools.querySelector('.nav-search-panel');
-  const searchButton = navTools.querySelector('.nav-search-button');
-  const searchForm = searchPanel.querySelector('#search-bar-form');
-  const searchResult = searchPanel.querySelector('.search-bar-result');
-
-  async function toggleSearch(state) {
-    const pageSize = 4;
-
-    if (state) {
-      await withLoadingState(searchPanel, searchButton, async () => {
-        await import('../../scripts/initializers/search.js');
-
-        // Load search components in parallel
-        const [
-          { search },
-          { render },
-          { SearchResults },
-          { provider: UI, Input, Button },
-        ] = await Promise.all([
-          import('@dropins/storefront-product-discovery/api.js'),
-          import('@dropins/storefront-product-discovery/render.js'),
-          import('@dropins/storefront-product-discovery/containers/SearchResults.js'),
-          import('@dropins/tools/components.js'),
-          import('@dropins/tools/lib.js'),
-        ]);
-
-        render.render(SearchResults, {
-          skeletonCount: pageSize,
-          scope: 'popover',
-          routeProduct: ({ urlKey, sku }) => getProductLink(urlKey, sku),
-          onSearchResult: (results) => {
-            searchResult.style.display = results.length > 0 ? 'block' : 'none';
-          },
-          slots: {
-            ProductImage: (ctx) => {
-              const { product, defaultImageProps } = ctx;
-              const anchorWrapper = document.createElement('a');
-              anchorWrapper.href = getProductLink(product.urlKey, product.sku);
-
-              tryRenderAemAssetsImage(ctx, {
-                alias: product.sku,
-                imageProps: defaultImageProps,
-                wrapper: anchorWrapper,
-                params: {
-                  width: defaultImageProps.width,
-                  height: defaultImageProps.height,
-                },
-              });
-            },
-            Footer: async (ctx) => {
-              // View all results button
-              const viewAllResultsWrapper = document.createElement('div');
-
-              const viewAllResultsButton = await UI.render(Button, {
-                children: labels.Global?.SearchViewAll,
-                variant: 'secondary',
-                href: rootLink('/search'),
-              })(viewAllResultsWrapper);
-
-              ctx.appendChild(viewAllResultsWrapper);
-
-              ctx.onChange((next) => {
-                viewAllResultsButton?.setProps((prev) => ({
-                  ...prev,
-                  href: `${rootLink('/search')}?q=${encodeURIComponent(next.variables?.phrase || '')}`,
-                }));
-              });
-            },
-          },
-        })(searchResult);
-
-        searchForm.addEventListener('submit', (e) => {
-          e.preventDefault();
-          const query = e.target.search.value;
-          if (query.length) {
-            window.location.href = `${rootLink('/search')}?q=${encodeURIComponent(query)}`;
-          }
-        });
-
-        UI.render(Input, {
-          name: 'search',
-          placeholder: labels.Global?.Search,
-          onValue: (phrase) => {
-            if (!phrase) {
-              search(null, { scope: 'popover' });
-              return;
-            }
-
-            if (phrase.length < 3) {
-              return;
-            }
-
-            search({
-              phrase,
-              pageSize,
-              filter: [
-                { attribute: 'visibility', in: ['Search', 'Catalog, Search'] },
-              ],
-            }, { scope: 'popover' });
-          },
-        })(searchForm);
-      });
-    }
-
-    togglePanel(searchPanel, state);
-    if (state) searchForm?.querySelector('input')?.focus();
-  }
-
-  searchButton.addEventListener('click', () => toggleSearch(!searchPanel.classList.contains('nav-tools-panel--show')));
-
-  navTools.querySelector('.nav-search-button').addEventListener('click', () => {
-    if (isDesktop.matches) {
-      toggleAllNavSections(navSections);
-      overlay.classList.remove('show');
-    }
-  });
-
-  // Close panels when clicking outside
-  document.addEventListener('click', (e) => {
-    // Check if undo is enabled for mini cart
-    const miniCartElement = document.querySelector(
-      '[data-block-name="commerce-mini-cart"]',
-    );
-    const undoEnabled = miniCartElement
-      && (miniCartElement.textContent?.includes('undo-remove-item')
-        || miniCartElement.innerHTML?.includes('undo-remove-item'));
-
-    // For mini cart: if undo is enabled, be more restrictive about when to close
-    const shouldCloseMiniCart = undoEnabled
-      ? !minicartPanel.contains(e.target)
-      && !cartButton.contains(e.target)
-      && !e.target.closest('header')
-      : !minicartPanel.contains(e.target) && !cartButton.contains(e.target);
-
-    if (shouldCloseMiniCart) {
-      toggleMiniCart(false);
-    }
-
-    if (!searchPanel.contains(e.target) && !searchButton.contains(e.target)) {
-      toggleSearch(false);
-    }
-  });
-
   const navWrapper = document.createElement('div');
   navWrapper.className = 'nav-wrapper';
   navWrapper.append(nav);
@@ -536,6 +529,9 @@ export default async function decorate(block) {
       overlay.classList.remove('show');
     }
   });
+  if (navSections && navWrapper) {
+    navWrapper.appendChild(navSections);
+  }
 
   window.addEventListener('resize', () => {
     navWrapper.classList.remove('active');
