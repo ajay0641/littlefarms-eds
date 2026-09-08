@@ -143,7 +143,25 @@ function buildBackToTop() {
 function buildBottomBar(section) {
   const bar = document.createElement('div');
   bar.className = 'footer-bottom';
-  while (section.firstElementChild) bar.append(section.firstElementChild);
+
+  // Top row: copyright (left) + payment icons (right).
+  const row = document.createElement('div');
+  row.className = 'footer-bottom-row';
+  // Credit row: "Site by ..." centered underneath.
+  const credit = document.createElement('div');
+  credit.className = 'footer-bottom-credit';
+
+  [...section.children].forEach((node) => {
+    if (node.querySelector('a[href]')) {
+      credit.append(node);
+    } else {
+      row.append(node);
+    }
+  });
+
+  bar.append(row);
+  if (credit.childElementCount) bar.append(credit);
+
   // external credit link opens in a new tab
   bar.querySelectorAll('a[href^="http"]').forEach((a) => {
     a.setAttribute('target', '_blank');
