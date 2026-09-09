@@ -37,9 +37,21 @@
 }
 
 .category-icons .category-icons-shopall a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   color: var(--color-brand-700, #2f6f5e);
   font-size: 14px;
   text-decoration: none;
+}
+
+.category-icons .category-icons-shopall a::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-top: 2px solid currentcolor;
+  border-right: 2px solid currentcolor;
+  transform: rotate(45deg);
 }
 
 .category-icons .category-icons-shopall a:hover {
