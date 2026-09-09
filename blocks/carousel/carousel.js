@@ -3,7 +3,6 @@ import { fetchPlaceholders } from '../../scripts/commerce.js';
 function updateActiveSlide(slide) {
   const block = slide.closest('.carousel');
   const slideIndex = parseInt(slide.dataset.slideIndex, 10);
-  block.dataset.activeSlide = slideIndex;
 
   const slides = block.querySelectorAll('.carousel-slide');
 
@@ -34,6 +33,14 @@ export function showSlide(block, slideIndex = 0) {
   if (slideIndex >= slides.length) realSlideIndex = 0;
   const activeSlide = slides[realSlideIndex];
 
+  // Set this synchronously and immediately — this is the only reliable
+  // point in time we know the target index for certain. The scroll-driven
+  // IntersectionObserver fires later (mid-animation it can even fire for
+  // the slide being left, since both slides briefly cross the 0.5
+  // threshold together), so it must not be the source of truth for
+  // navigation or button state.
+  block.dataset.activeSlide = realSlideIndex;
+
   activeSlide
     .querySelectorAll('a')
     .forEach((link) => link.removeAttribute('tabindex'));
@@ -42,6 +49,11 @@ export function showSlide(block, slideIndex = 0) {
     left: activeSlide.offsetLeft,
     behavior: 'smooth',
   });
+
+  const prevButton = block.querySelector('.carousel-arrow-prev');
+  const nextButton = block.querySelector('.carousel-arrow-next');
+  if (prevButton) prevButton.disabled = realSlideIndex === 0;
+  if (nextButton) nextButton.disabled = realSlideIndex === slides.length - 1;
 }
 
 function bindEvents(block) {
@@ -101,6 +113,29 @@ function createSlide(row, slideIndex, carouselId) {
   return slide;
 }
 
+function createArrows(block) {
+  const prevButton = document.createElement('button');
+  prevButton.type = 'button';
+  prevButton.classList.add('carousel-arrow', 'carousel-arrow-prev');
+  prevButton.setAttribute('aria-label', 'Previous Slide');
+  prevButton.disabled = true; // slide 0 is always active on load
+  prevButton.addEventListener('click', () => {
+    const current = parseInt(block.dataset.activeSlide || '0', 10);
+    showSlide(block, current - 1);
+  });
+
+  const nextButton = document.createElement('button');
+  nextButton.type = 'button';
+  nextButton.classList.add('carousel-arrow', 'carousel-arrow-next');
+  nextButton.setAttribute('aria-label', 'Next Slide');
+  nextButton.addEventListener('click', () => {
+    const current = parseInt(block.dataset.activeSlide || '0', 10);
+    showSlide(block, current + 1);
+  });
+
+  return { prevButton, nextButton };
+}
+
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i -= 1) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -114,6 +149,12 @@ export default async function decorate(block) {
   block.setAttribute('id', `carousel-${carouselId}`);
   const rows = Array.from(block.querySelectorAll(':scope > div'));
   const isSingleSlide = rows.length < 2;
+
+  // Block options authored in da.live as e.g. "Carousel (arrows, no-dots)"
+  // land as extra classes on the block: .carousel.arrows.no-dots
+  const showArrows = block.classList.contains('arrows');
+  const showDots = !block.classList.contains('no-dots');
+  const enableAutoplay = !block.classList.contains('no-autoplay');
 
   const placeholders = await fetchPlaceholders();
 
@@ -131,7 +172,7 @@ export default async function decorate(block) {
   block.prepend(slidesWrapper);
 
   let slideIndicators;
-  if (!isSingleSlide) {
+  if (!isSingleSlide && showDots) {
     const slideIndicatorsNav = document.createElement('nav');
     slideIndicatorsNav.setAttribute(
       'aria-label',
@@ -163,8 +204,15 @@ export default async function decorate(block) {
 
   container.append(slidesWrapper);
   block.prepend(container);
+
+  if (!isSingleSlide && showArrows) {
+    const { prevButton, nextButton } = createArrows(block);
+    container.prepend(prevButton);
+    container.append(nextButton);
+  }
+
   if (!isSingleSlide) {
     bindEvents(block);
-    startAutoplay(block);
+    if (enableAutoplay) startAutoplay(block);
   }
 }

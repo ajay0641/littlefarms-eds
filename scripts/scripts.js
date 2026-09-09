@@ -140,7 +140,6 @@ function buildAutoBlocks(main) {
     console.error('Auto Blocking failed', error);
   }
 }
-
 /**
  * Decorates formatted links to style them as buttons.
  * @param {HTMLElement} main The main container element

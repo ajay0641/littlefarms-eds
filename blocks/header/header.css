@@ -15,6 +15,11 @@ header .nav-wrapper {
   border-bottom: 1px solid var(--color-neutral-300);
 }
 
+/* row 1: notification carousel, full width, above logo/search/tools */
+header .nav-wrapper .nav-notification {
+  width: 100%;
+}
+
 header nav {
   box-sizing: border-box;
   display: flex;
@@ -132,7 +137,40 @@ header nav[aria-expanded='true'] .nav-hamburger-icon::after {
   bottom: 3px;
   transform: rotate(-45deg);
 }
+.notification .carousel .carousel-slides {
+    height: 50px;
+    text-align: center;
+    color: #fff;
+    font-weight: 700;
+}
+.notification .carousel .carousel-slide-image {
+  width: 100%;
+  text-align: center;
+}
+.notification .carousel .carousel-slides-container {
+    display: flex;
+    align-items: center;
+    width: min-content;
+    margin: 0 auto;
+}
+.notification .carousel .carousel-slides-container a {
+    color: #fff;
+    text-decoration: underline;
+}
+.notification .carousel .carousel-slides-container p {
+  margin: 0;
+}
+.notification .carousel .carousel-arrow-prev,
+.notification .carousel .carousel-arrow-next {
+    background: transparent url(/icons/accordion-white.svg) center / 11px 6px no-repeat;
 
+}
+.notification .carousel .carousel-arrow-prev {
+    transform: rotate(90deg);
+}
+.notification .carousel .carousel-arrow-next {
+    transform: rotate(-90deg);
+}
 @media (min-width: 900px) {
   header nav .nav-hamburger {
     display: none;
@@ -172,13 +210,42 @@ header nav .nav-brand img {
   }
 }
 
-header nav .nav-tools .nav-static-links a {
+header .nav-bottom-row .nav-static-links a {
   font: var(--type-body-2-strong-font);
   letter-spacing: var(--type-body-2-strong-letter-spacing);
   text-decoration: none;
   white-space: nowrap;
   font-weight: bold;
   color: #285227;
+}
+
+/* bottom row: menu (nav-sections) + static links, below the logo/search/tools row */
+header .nav-bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-medium);
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 12px 20px;
+  box-sizing: border-box;
+}
+
+@media (min-width: 900px) {
+  header .nav-bottom-row {
+    border-top: 1px solid var(--color-neutral-300);
+  }
+}
+
+@media (max-width: 899px) {
+  /* On mobile the menu keeps its own slide-out behavior and static links
+     stay hidden (see below), so let nav-sections + nav-static-links behave
+     as if they were direct children of .nav-wrapper again. */
+  header .nav-bottom-row {
+    display: contents;
+  }
 }
 
 
@@ -222,11 +289,11 @@ header nav .nav-tools-wrapper>button {
   width: 24px;
 }
 
-/* static links (Blog, Dealer Signup, Signin) */
-header nav .nav-tools .nav-static-links {
+/* static links (On Promo, Housebrand, Store Locations, Restaurants, Recipes) */
+header .nav-bottom-row .nav-static-links {
   display: none;
   align-items: center;
-  gap: var(--spacing-small);
+  gap: var(--spacing-medium);
 }
 
 
@@ -235,7 +302,7 @@ header .nav-search-panel .search-bar-result a:hover {
 }
 
 @media (min-width: 900px) {
-  header nav .nav-tools .nav-static-links {
+  header .nav-bottom-row .nav-static-links {
     display: flex;
   }
 }
@@ -304,9 +371,7 @@ header nav button.nav-search-button {
   border: 0;
   padding: 1rem 1rem 1rem 0;
 }
-header .nav-search-panel {
-  
-}
+
 
 
 header .nav-search-panel .dropin-input-container {
