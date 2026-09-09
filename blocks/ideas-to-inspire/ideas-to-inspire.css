@@ -49,18 +49,16 @@
 }
 
 .ideas-to-inspire .ideas-to-inspire-track {
-  --ideas-visible: 1.2;
-  --ideas-gap: 16px;
-
   display: flex;
-  gap: var(--ideas-gap);
+  gap: 16px;
   transition: transform 0.4s ease;
   will-change: transform;
   cursor: grab;
 }
 
+/* Card width (flex-basis) is set inline by JS so exactly N whole cards fit */
 .ideas-to-inspire .ideas-to-inspire-card {
-  flex: 0 0 calc((100% - (var(--ideas-visible) - 1) * var(--ideas-gap)) / var(--ideas-visible));
+  flex: 0 0 auto;
   position: relative;
   display: block;
   border-radius: 10px;
@@ -201,27 +199,9 @@
   outline-offset: 3px;
 }
 
-/* ---- Responsive: cards visible per breakpoint (partial next card) ---- */
-@media (min-width: 600px) {
-  .ideas-to-inspire .ideas-to-inspire-track {
-    --ideas-visible: 2.5;
-  }
-}
-
-/* breakpoint-exception: reference site (littlefarms.com) shows carousel arrows from 769px */
+/* breakpoint-exception: arrows appear from 769px (slides-per-view driven by JS); reference site uses 769px */
 @media (min-width: 769px) {
   .ideas-to-inspire .ideas-to-inspire-arrow {
     display: flex;
-  }
-
-  .ideas-to-inspire .ideas-to-inspire-track {
-    --ideas-visible: 3.5;
-    --ideas-gap: 20px;
-  }
-}
-
-@media (min-width: 1200px) {
-  .ideas-to-inspire .ideas-to-inspire-track {
-    --ideas-visible: 4.5;
   }
 }

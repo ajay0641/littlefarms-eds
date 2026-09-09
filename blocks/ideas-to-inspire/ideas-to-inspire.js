@@ -11,25 +11,39 @@
  * @param {Element} block The ideas-to-inspire block element
  */
 
+const GAP = 16;
+
 /**
- * Reads the number of cards visible per view from the CSS variable.
- * @param {Element} track The slides track
- * @returns {number} visible cards (may be fractional, e.g. 4.5)
+ * Slides shown per view at a given viewport width (integer — like slick's
+ * responsive slidesToShow, so cards are never partially cut).
+ * @param {number} width Viewport width in px
+ * @returns {number} whole number of cards to show
  */
-function getVisible(track) {
-  const raw = getComputedStyle(track).getPropertyValue('--ideas-visible').trim();
-  return parseFloat(raw) || 1;
+function slidesToShow(width) {
+  if (width >= 1200) return 5;
+  if (width >= 900) return 4;
+  if (width >= 600) return 3;
+  if (width >= 480) return 2;
+  return 1;
 }
 
 /**
- * @param {Element} track The slides track
- * @returns {number} the per-card step (card width + gap) in px
+ * Sizes each card so exactly N whole cards fill the viewport width.
+ * @param {Element} carousel The carousel element
  */
-function getStep(track) {
-  const card = track.querySelector('.ideas-to-inspire-card');
-  if (!card) return 0;
-  const gap = parseFloat(getComputedStyle(track).columnGap || getComputedStyle(track).gap) || 0;
-  return card.getBoundingClientRect().width + gap;
+function layout(carousel) {
+  const track = carousel.querySelector('.ideas-to-inspire-track');
+  const viewport = carousel.querySelector('.ideas-to-inspire-viewport');
+  const show = slidesToShow(window.innerWidth);
+  const width = viewport.clientWidth;
+  const cardW = (width - (show - 1) * GAP) / show;
+  track.style.gap = `${GAP}px`;
+  track.querySelectorAll('.ideas-to-inspire-card').forEach((card) => {
+    card.style.flex = `0 0 ${cardW}px`;
+    card.style.width = `${cardW}px`;
+  });
+  carousel.dataset.show = show;
+  carousel.dataset.step = cardW + GAP;
 }
 
 /**
@@ -39,8 +53,8 @@ function getStep(track) {
 function maxIndex(carousel) {
   const track = carousel.querySelector('.ideas-to-inspire-track');
   const total = track.children.length;
-  const visible = getVisible(track);
-  return Math.max(0, Math.ceil(total - visible));
+  const show = parseInt(carousel.dataset.show || '1', 10);
+  return Math.max(0, total - show);
 }
 
 /**
@@ -54,7 +68,7 @@ function goTo(carousel, index) {
   const next = Math.min(Math.max(0, index), max);
   carousel.dataset.index = next;
 
-  const step = getStep(track);
+  const step = parseFloat(carousel.dataset.step) || 0;
   track.style.transform = `translateX(-${next * step}px)`;
 
   const prev = carousel.querySelector('.ideas-to-inspire-arrow-prev');
@@ -64,9 +78,9 @@ function goTo(carousel, index) {
 
   const fill = carousel.querySelector('.ideas-to-inspire-progress-fill');
   if (fill) {
-    const visible = getVisible(track);
+    const show = parseInt(carousel.dataset.show || '1', 10);
     const total = track.children.length;
-    const widthPct = Math.min(100, Math.max(12, (visible / total) * 100));
+    const widthPct = Math.min(100, Math.max(10, (show / total) * 100));
     const progress = max > 0 ? next / max : 0;
     fill.style.width = `${widthPct}%`;
     fill.style.transform = `translateX(${progress * (100 - widthPct)}%)`;
@@ -93,7 +107,7 @@ function initDrag(carousel) {
     startX = e.clientX;
     deltaX = 0;
     const idx = parseInt(carousel.dataset.index || '0', 10);
-    baseOffset = idx * getStep(track);
+    baseOffset = idx * (parseFloat(carousel.dataset.step) || 0);
   };
 
   const onMove = (e) => {
@@ -114,7 +128,7 @@ function initDrag(carousel) {
     if (!dragging) return;
     dragging = false;
     track.classList.remove('is-dragging');
-    const step = getStep(track) || 1;
+    const step = parseFloat(carousel.dataset.step) || 1;
     const moved = Math.round(-deltaX / step);
     goTo(carousel, parseInt(carousel.dataset.index || '0', 10) + moved);
   };
@@ -216,7 +230,10 @@ export default function decorate(block) {
 
   initDrag(carousel);
 
-  const refresh = () => goTo(carousel, parseInt(carousel.dataset.index || '0', 10));
+  const refresh = () => {
+    layout(carousel);
+    goTo(carousel, parseInt(carousel.dataset.index || '0', 10));
+  };
   requestAnimationFrame(refresh);
   window.addEventListener('resize', refresh);
   track.querySelectorAll('img').forEach((img) => {
