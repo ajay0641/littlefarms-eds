@@ -180,11 +180,19 @@ export default async function decorate(block) {
   nav.id = 'nav';
   while (fragment.firstElementChild) nav.append(fragment.firstElementChild);
 
-  const classes = ['brand', 'sections', 'tools'];
+  // The nav doc now authors a notification carousel as the first row, ahead
+  // of brand/sections/tools, so every section shifts down by one — the
+  // mapping below must include it or brand/sections/tools all get mislabeled.
+  const classes = ['notification', 'brand', 'sections', 'tools'];
   classes.forEach((c, i) => {
     const section = nav.children[i];
     if (section) section.classList.add(`nav-${c}`);
   });
+
+  // Notification carousel renders full-width above everything else, so pull
+  // it out of the nav row entirely; it's re-inserted at the top of
+  // nav-wrapper further down.
+  const navNotification = nav.querySelector('.nav-notification');
 
   const navBrand = nav.querySelector('.nav-brand');
   const brandLink = navBrand.querySelector('.button');
@@ -236,7 +244,12 @@ export default async function decorate(block) {
   }
 
   const navTools = nav.querySelector('.nav-tools');
-  
+
+  // Static links (On Promo, Housebrand, Store Locations, etc.) are authored
+  // inside nav-tools, but visually they belong on the bottom row next to the
+  // menu, not on the top row next to account/cart. Pull it out here so it
+  // can be regrouped with nav-sections below.
+  const navStaticLinks = navTools.querySelector('.nav-static-links');
 
   /** Static Nav Links */
   const customerMenuFragment = document.createRange().createContextualFragment(`
@@ -523,14 +536,24 @@ export default async function decorate(block) {
   navWrapper.append(nav);
   block.append(navWrapper);
 
+  // Row 1: notification carousel, full width, above the logo/search/tools row.
+  if (navNotification) navWrapper.prepend(navNotification);
+
   navWrapper.addEventListener('mouseout', (e) => {
     if (isDesktop.matches && !nav.contains(e.relatedTarget)) {
       toggleAllNavSections(navSections);
       overlay.classList.remove('show');
     }
   });
-  if (navSections && navWrapper) {
-    navWrapper.appendChild(navSections);
+  // Bottom row = menu (nav-sections) + static links, in that order, grouped
+  // together so a future dedicated "menu" block can target `.nav-bottom-row`
+  // as a single unit. Top row (hamburger/brand/search/tools) is left as-is.
+  if (navWrapper && (navSections || navStaticLinks)) {
+    const navBottomRow = document.createElement('div');
+    navBottomRow.className = 'nav-bottom-row';
+    if (navSections) navBottomRow.appendChild(navSections);
+    if (navStaticLinks) navBottomRow.appendChild(navStaticLinks);
+    navWrapper.appendChild(navBottomRow);
   }
 
   window.addEventListener('resize', () => {

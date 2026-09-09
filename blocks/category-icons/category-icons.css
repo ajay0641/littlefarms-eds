@@ -37,9 +37,21 @@
 }
 
 .category-icons .category-icons-shopall a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   color: var(--color-brand-700, #2f6f5e);
   font-size: 14px;
   text-decoration: none;
+}
+
+.category-icons .category-icons-shopall a::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-top: 2px solid currentcolor;
+  border-right: 2px solid currentcolor;
+  transform: rotate(45deg);
 }
 
 .category-icons .category-icons-shopall a:hover {
@@ -52,10 +64,14 @@
 }
 
 .category-icons .category-icons-track {
+  --category-icons-visible: 4;
+  --category-icons-gap: 16px;
+
   display: flex;
-  gap: 24px;
+  gap: var(--category-icons-gap);
   overflow-x: auto;
   scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
   scrollbar-width: none;
   padding: 4px 0;
 }
@@ -64,9 +80,10 @@
   display: none;
 }
 
+/* Each item is sized so exactly N (--category-icons-visible) fit in the row */
 .category-icons .category-icons-item {
-  flex: 0 0 auto;
-  width: 120px;
+  flex: 0 0 calc((100% - (var(--category-icons-visible) - 1) * var(--category-icons-gap)) / var(--category-icons-visible));
+  scroll-snap-align: start;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -76,8 +93,9 @@
 }
 
 .category-icons .category-icons-icon {
-  width: 96px;
-  height: 96px;
+  width: 100%;
+  max-width: 96px;
+  aspect-ratio: 1;
   border-radius: 50%;
   background: var(--color-brand-100, #dfe7e2);
   display: flex;
@@ -92,8 +110,8 @@
 }
 
 .category-icons .category-icons-icon img {
-  width: 64px;
-  height: 64px;
+  width: 66%;
+  height: 66%;
   object-fit: contain;
 }
 
@@ -151,4 +169,25 @@
 .category-icons .category-icons-arrow[disabled] {
   opacity: 0;
   pointer-events: none;
+}
+
+/* breakpoint-exception: visible items per breakpoint 4/5/6/8; reference site uses 480/768 for the aisle carousel */
+@media (min-width: 480px) {
+  .category-icons .category-icons-track {
+    --category-icons-visible: 5;
+  }
+}
+
+/* breakpoint-exception: reference site (littlefarms.com) uses 480/768 for the aisle carousel */
+@media (min-width: 768px) {
+  .category-icons .category-icons-track {
+    --category-icons-visible: 6;
+    --category-icons-gap: 24px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .category-icons .category-icons-track {
+    --category-icons-visible: 8;
+  }
 }

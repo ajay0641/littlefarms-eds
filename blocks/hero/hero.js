@@ -5,7 +5,10 @@
  * Content model (positional rows):
  *   Row 1  → left promo: cell 1 = promo image (optionally wrapped in a link),
  *            cell 2 = card content (heading + paragraph text)
- *   Row 2+ → carousel slides: cell 1 = slide image (optionally wrapped in a link)
+ *   Row 2+ → carousel slides: cell 1 = slide image(s) — a <picture> or two <img>
+ *            (mobile + desktop) optionally wrapped in a link; cell 2 (optional)
+ *            = overlay content (heading, paragraph, and a link rendered as the
+ *            "Shop Now!" button).
  *
  * @param {Element} block The hero block element
  */
@@ -78,7 +81,101 @@ function initCarousel(carousel) {
   carousel.addEventListener('mouseenter', stop);
   carousel.addEventListener('mouseleave', start);
 
+  initDrag(carousel, start, stop);
+
   start();
+}
+
+/**
+ * Adds pointer/touch drag-to-swipe support to the carousel.
+ * Follows the finger while dragging and snaps to the nearest slide on release.
+ * @param {Element} carousel The carousel element
+ * @param {Function} start Restart autoplay
+ * @param {Function} stop Pause autoplay
+ */
+function initDrag(carousel, start, stop) {
+  const track = carousel.querySelector('.hero-slides');
+  const slides = carousel.querySelectorAll('.hero-slide');
+  if (!track || slides.length <= 1) return;
+
+  let startX = 0;
+  let deltaX = 0;
+  let dragging = false;
+  let width = 0;
+  // Swipe must exceed this fraction of the carousel width to change slides.
+  const THRESHOLD = 0.2;
+
+  // Distance the pointer must travel before a press becomes a drag. Below this,
+  // the gesture stays a click so dots and arrows remain interactive.
+  const DRAG_START = 6;
+  let pending = false;
+
+  const onDown = (e) => {
+    // Ignore presses on interactive controls (dots, arrows) so their click fires.
+    if (e.target.closest('.hero-dot, .hero-arrow')) return;
+    pending = true;
+    dragging = false;
+    startX = e.clientX;
+    deltaX = 0;
+    width = carousel.clientWidth || 1;
+  };
+
+  const onMove = (e) => {
+    if (!pending) return;
+    deltaX = e.clientX - startX;
+
+    // Promote to a real drag only once past the threshold.
+    if (!dragging) {
+      if (Math.abs(deltaX) < DRAG_START) return;
+      dragging = true;
+      stop();
+      track.style.transition = 'none';
+      carousel.classList.add('is-dragging');
+      carousel.setPointerCapture?.(e.pointerId);
+    }
+
+    const current = parseInt(carousel.dataset.activeSlide || '0', 10);
+    const percent = (deltaX / width) * 100;
+    track.style.transform = `translateX(calc(-${current * 100}% + ${percent}%))`;
+  };
+
+  const onUp = () => {
+    if (!pending) return;
+    pending = false;
+    if (!dragging) return;
+    dragging = false;
+    carousel.classList.remove('is-dragging');
+    track.style.transition = '';
+    const current = parseInt(carousel.dataset.activeSlide || '0', 10);
+    if (Math.abs(deltaX) > width * THRESHOLD) {
+      showSlide(carousel, current + (deltaX < 0 ? 1 : -1));
+    } else {
+      showSlide(carousel, current);
+    }
+    start();
+  };
+
+  carousel.addEventListener('pointerdown', onDown);
+  carousel.addEventListener('pointermove', onMove);
+  carousel.addEventListener('pointerup', onUp);
+  carousel.addEventListener('pointercancel', onUp);
+  carousel.addEventListener('pointerleave', onUp);
+
+  // Stop the browser's native image/link drag, which would otherwise fire
+  // pointercancel and abort the swipe before it passes the drag threshold.
+  carousel.addEventListener('dragstart', (e) => e.preventDefault());
+  carousel.querySelectorAll('img, a').forEach((el) => {
+    el.setAttribute('draggable', 'false');
+  });
+
+  // Prevent the wrapping links from navigating when the user actually dragged.
+  carousel.querySelectorAll('a').forEach((a) => {
+    a.addEventListener('click', (e) => {
+      if (Math.abs(deltaX) > DRAG_START) {
+        e.preventDefault();
+      }
+    });
+  });
 }
 
 /**
@@ -127,8 +224,33 @@ export default function decorate(block) {
     slide.className = 'hero-slide';
     slide.dataset.slideIndex = i;
     slide.setAttribute('aria-hidden', i !== 0);
-    const cell = row.children[0] || row;
-    while (cell.firstChild) slide.append(cell.firstChild);
+
+    const slideCells = [...row.children];
+    // Image cell — holds the slide media (and any wrapping link).
+    const media = document.createElement('div');
+    media.className = 'hero-slide-media';
+    if (slideCells[0]) while (slideCells[0].firstChild) media.append(slideCells[0].firstChild);
+    // Tag responsive images: first = mobile, second = desktop (CSS toggles them).
+    // Tag the wrapping <picture> when present so the whole element toggles.
+    const imgs = media.querySelectorAll('img');
+    if (imgs.length >= 2) {
+      const mobileEl = imgs[0].closest('picture') || imgs[0];
+      const desktopEl = imgs[1].closest('picture') || imgs[1];
+      mobileEl.classList.add('hero-img-mobile');
+      desktopEl.classList.add('hero-img-desktop');
+    }
+    slide.append(media);
+
+    // Optional overlay cell — heading, description, and CTA button.
+    if (slideCells[1] && slideCells[1].textContent.trim()) {
+      const info = document.createElement('div');
+      info.className = 'hero-slide-info';
+      while (slideCells[1].firstChild) info.append(slideCells[1].firstChild);
+      // Turn the overlay link into the "Shop Now!" button.
+      info.querySelectorAll('a').forEach((a) => a.classList.add('hero-slide-cta'));
+      slide.append(info);
+    }
+
     track.append(slide);
   });
   carousel.append(track);

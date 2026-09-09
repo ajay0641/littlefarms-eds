@@ -883,5 +883,12 @@ export function decorateSections(main) {
     section.classList.add('section');
     section.dataset.sectionStatus = 'initialized';
     section.style.display = 'none';
+
+    // section-metadata keys other than `style` land here as data-attributes
+    // (e.g. `background` -> data-background) rather than being applied —
+    // apply the ones that need real effect, not just an attribute.
+    if (section.dataset.background) {
+      section.style.backgroundColor = section.dataset.background;
+    }
   });
 }
