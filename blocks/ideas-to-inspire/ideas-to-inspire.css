@@ -52,7 +52,7 @@
   gap: var(--ideas-gap);
   overflow-x: auto;
   scroll-behavior: smooth;
-  scroll-snap-type: x mandatory;
+  scroll-snap-type: x proximity;
   scrollbar-width: none;
   padding: 4px 0;
   cursor: grab;

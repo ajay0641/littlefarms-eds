@@ -12,12 +12,19 @@
  */
 
 /**
- * Scrolls the track by roughly one viewport width in the given direction.
+ * Scrolls the track by a whole number of cards in the given direction so
+ * cards never end up half-cut at the edges.
  * @param {Element} track The scrolling track element
  * @param {number} dir -1 for previous, 1 for next
  */
 function scrollTrack(track, dir) {
-  track.scrollBy({ left: dir * track.clientWidth * 0.8, behavior: 'smooth' });
+  const card = track.querySelector('.ideas-to-inspire-card');
+  if (!card) return;
+  const gap = parseFloat(getComputedStyle(track).columnGap || getComputedStyle(track).gap) || 0;
+  const step = card.getBoundingClientRect().width + gap;
+  // Advance by however many whole cards are fully visible (at least one).
+  const perView = Math.max(1, Math.floor(track.clientWidth / step));
+  track.scrollBy({ left: dir * step * perView, behavior: 'smooth' });
 }
 
 /**
