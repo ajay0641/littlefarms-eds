@@ -105,26 +105,43 @@ function initDrag(carousel, start, stop) {
   // Swipe must exceed this fraction of the carousel width to change slides.
   const THRESHOLD = 0.2;
 
+  // Distance the pointer must travel before a press becomes a drag. Below this,
+  // the gesture stays a click so dots and arrows remain interactive.
+  const DRAG_START = 6;
+  let pending = false;
+
   const onDown = (e) => {
-    dragging = true;
+    // Ignore presses on interactive controls (dots, arrows) so their click fires.
+    if (e.target.closest('.hero-dot, .hero-arrow')) return;
+    pending = true;
+    dragging = false;
     startX = e.clientX;
     deltaX = 0;
     width = carousel.clientWidth || 1;
-    stop();
-    track.style.transition = 'none';
-    carousel.classList.add('is-dragging');
-    carousel.setPointerCapture?.(e.pointerId);
   };
 
   const onMove = (e) => {
-    if (!dragging) return;
+    if (!pending) return;
     deltaX = e.clientX - startX;
+
+    // Promote to a real drag only once past the threshold.
+    if (!dragging) {
+      if (Math.abs(deltaX) < DRAG_START) return;
+      dragging = true;
+      stop();
+      track.style.transition = 'none';
+      carousel.classList.add('is-dragging');
+      carousel.setPointerCapture?.(e.pointerId);
+    }
+
     const current = parseInt(carousel.dataset.activeSlide || '0', 10);
     const percent = (deltaX / width) * 100;
     track.style.transform = `translateX(calc(-${current * 100}% + ${percent}%))`;
   };
 
   const onUp = () => {
+    if (!pending) return;
+    pending = false;
     if (!dragging) return;
     dragging = false;
     carousel.classList.remove('is-dragging');
@@ -147,7 +164,7 @@ function initDrag(carousel, start, stop) {
   // Prevent the wrapping links from navigating when the user actually dragged.
   carousel.querySelectorAll('a').forEach((a) => {
     a.addEventListener('click', (e) => {
-      if (Math.abs(deltaX) > 8) {
+      if (Math.abs(deltaX) > DRAG_START) {
         e.preventDefault();
       }
     });
