@@ -13,6 +13,10 @@
   position: relative;
 }
 
+.ideas-to-inspire .ideas-to-inspire-carousel {
+  position: relative;
+}
+
 /* ---- Heading ---- */
 .ideas-to-inspire .ideas-to-inspire-heading {
   text-align: center;
@@ -50,21 +54,13 @@
 
   display: flex;
   gap: var(--ideas-gap);
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  scroll-snap-type: x proximity;
-  scrollbar-width: none;
-  padding: 4px 0;
+  transition: transform 0.4s ease;
+  will-change: transform;
   cursor: grab;
-}
-
-.ideas-to-inspire .ideas-to-inspire-track::-webkit-scrollbar {
-  display: none;
 }
 
 .ideas-to-inspire .ideas-to-inspire-card {
   flex: 0 0 calc((100% - (var(--ideas-visible) - 1) * var(--ideas-gap)) / var(--ideas-visible));
-  scroll-snap-align: start;
   position: relative;
   display: block;
   border-radius: 10px;
@@ -123,8 +119,7 @@
 /* Draggable affordance */
 .ideas-to-inspire .ideas-to-inspire-track.is-dragging {
   cursor: grabbing;
-  scroll-behavior: auto;
-  scroll-snap-type: none;
+  transition: none;
 }
 
 .ideas-to-inspire .ideas-to-inspire-track.is-dragging .ideas-to-inspire-image img {
