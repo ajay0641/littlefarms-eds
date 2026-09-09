@@ -1,10 +1,15 @@
 .hero-container .hero-wrapper {
-  max-width: 1400px;
   margin: 0 auto;
-  padding: 24px 20px;
+  padding: 0;
 }
 
 .hero {
+  /* Color Variables */
+  --hero-brand-color: var(--color-brand-500);
+  --hero-text-color: var(--color-neutral-800);
+  --hero-white-color: var(--color-neutral-50);
+  --hero-dot-bg-color: #ebebeb;
+
   display: grid;
   grid-template-columns: 1fr;
   gap: 20px;
@@ -15,14 +20,18 @@
 .hero .hero-promo {
   display: none;
   flex-direction: column;
-  gap: 16px;
 }
 
 .hero .hero-promo-image img {
+  background-size: cover;
+  background-position: center;
+  height: 280px;
+  margin-bottom: 5px;
   width: 100%;
-  height: auto;
-  display: block;
-  border-radius: 8px;
+}
+
+.hero .hero-promo-image p {
+  margin: 0;
 }
 
 .hero .hero-promo-image a {
@@ -30,9 +39,9 @@
 }
 
 .hero .hero-promo-card {
-  border: 1px solid var(--color-brand-700, #2f6f5e);
-  border-radius: 6px;
-  padding: 20px 24px;
+  padding: 20px 10px;
+  color: var(--hero-brand-color);
+  border: 1px solid var(--hero-brand-color);
   text-align: center;
 }
 
@@ -40,23 +49,22 @@
 .hero .hero-promo-card h2,
 .hero .hero-promo-card h3,
 .hero .hero-promo-card h4 {
-  margin: 0 0 8px;
-  font-size: 20px;
-  color: var(--color-brand-700, #2f6f5e);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 21px;
+  margin: 0 0 5px;
 }
 
 .hero .hero-promo-card p {
   margin: 0;
   font-size: 14px;
   line-height: 1.5;
-  color: rgb(58 58 58);
 }
 
 /* ---- Right carousel ---- */
 .hero .hero-carousel {
   position: relative;
   overflow: hidden;
-  border-radius: 8px;
   cursor: grab;
   touch-action: pan-y;
 }
@@ -84,11 +92,12 @@
 }
 
 .hero .hero-slide-media img {
-  width: 100%;
   height: auto;
-  display: block;
-  user-select: none;
-  -webkit-user-drag: none;
+  max-width: 100%;
+  position: relative;
+  width: 100%;
+  min-height: 75vw;
+  object-fit: fill;
 }
 
 /* Prevent image ghost-drag / accidental link clicks while swiping */
@@ -116,41 +125,46 @@
 .hero .hero-slide-info h2,
 .hero .hero-slide-info h3,
 .hero .hero-slide-info h4 {
-  margin: 0 0 12px;
+  font-family: 'AppleJuice';
   font-size: 20px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  color: var(--color-brand-700, #2f6f5e);
+  line-height: 22px;
+  margin: 0 0 12px;
 }
 
 .hero .hero-slide-info p {
-  margin: 0 0 16px;
+  margin: 0 0 15px;
   font-size: 14px;
   line-height: 1.5;
-  color: rgb(58 58 58);
 }
 
 .hero .hero-slide-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 26px;
-  border-radius: 24px;
-  background: var(--color-brand-700, #2f6f5e);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
+  background-color: transparent;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  line-height: 18px;
+  padding: 14px 20px;
+  min-width: 125px;
+  font-weight: 700;
+  border: 0;
+  cursor: pointer;
   text-decoration: none;
+  text-align: center;
+  display: inline-block;
+  font-size: 14px;
+  width: 250px;
+  background-image: url(../../icons/littlefarms/shape-green.svg);
+  color: var(--hero-white-color);
 }
 
 .hero .hero-slide-cta::after {
   content: '';
-  width: 6px;
-  height: 6px;
-  border-top: 2px solid currentcolor;
-  border-right: 2px solid currentcolor;
+  width: 5px;
+  height: 5px;
+  border-top: 1px solid currentcolor;
+  border-right: 1px solid currentcolor;
   transform: rotate(45deg);
+  display: inline-block;
+  margin-left: 7px;
 }
 
 .hero .hero-slide-cta:hover {
@@ -160,13 +174,13 @@
 /* Arrows — hidden on mobile (<768px), shown from 768px up */
 .hero .hero-arrow {
   position: absolute;
-  top: 50%;
+  top: calc(50% - 20px);
   transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
+  width: 30px;
+  height: 30px;
   border: none;
   border-radius: 50%;
-  background: rgb(255 255 255 / 80%);
+  background: var(--hero-white-color);
   cursor: pointer;
   display: none;
   align-items: center;
@@ -175,16 +189,12 @@
   transition: background 0.2s ease;
 }
 
-.hero .hero-arrow:hover {
-  background: rgb(255 255 255);
-}
-
 .hero .hero-arrow::before {
   content: '';
-  width: 10px;
-  height: 10px;
-  border-top: 2px solid rgb(58 58 58);
-  border-right: 2px solid rgb(58 58 58);
+  width: 7px;
+  height: 7px;
+  border-top: 1px solid var(--hero-text-color);
+  border-right: 1px solid var(--hero-text-color);
 }
 
 .hero .hero-arrow-prev {
@@ -193,7 +203,7 @@
 
 .hero .hero-arrow-prev::before {
   transform: rotate(-135deg);
-  margin-left: 4px;
+  margin-left: 3px;
 }
 
 .hero .hero-arrow-next {
@@ -213,23 +223,22 @@
   right: 0;
   display: flex;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   z-index: 2;
 }
 
 .hero .hero-dot {
-  width: 10px;
-  height: 10px;
   padding: 0;
   border: none;
-  border-radius: 50%;
-  background: rgb(0 0 0 / 15%);
   cursor: pointer;
-  transition: background 0.2s ease;
+  height: 8px;
+  width: 8px;
+  background: var(--hero-dot-bg-color);
+  border-radius: 100%;
 }
 
 .hero .hero-dot[aria-selected="true"] {
-  background: rgb(58 58 58);
+  background: var(--hero-text-color);
 }
 
 /* breakpoint-exception: reference site (littlefarms.com) reveals hero arrows/info + desktop image at 768px */
@@ -254,29 +263,45 @@
   .hero .hero-slide-media .hero-img-mobile {
     display: none;
   }
-}
 
-/* ---- Desktop: two columns ---- */
-@media (min-width: 900px) {
+  .hero-container .hero-wrapper {
+    padding: 0 20px;
+  }
+
+  .hero-slide-media p {
+    margin: 0;
+  }
+
+  .hero .hero-slide-media img {
+    min-height: 400px;
+    object-fit: cover;
+    height: 400px;
+  }
+
+  .hero .hero-carousel {
+    padding-bottom: 25px;
+  }
+
   .hero {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-    gap: 24px;
+    grid-template-columns: minmax(0, 375px) minmax(0, 2fr);
+    gap: 25px;
   }
 
   /* Overlay the info as a floating tan card on the right of the banner */
   .hero .hero-slide-info {
+    background: url(../../icons/littlefarms/shape-garlic.svg) center no-repeat;
+    background-size: 100% 100%;
     position: absolute;
-    top: 50%;
-    right: 32px;
-    transform: translateY(-50%);
-    width: 280px;
-    padding: 28px 24px;
-    border-radius: 16px;
-    background: #cbb9a5;
+    right: 20px;
+    bottom: 20px;
+    padding: 30px 20px;
     text-align: center;
+    width: calc(100% - 20px);
+    max-width: 355px;
+    box-sizing: border-box;
   }
 
-  .hero .hero-slide-info p {
-    color: #3a3a3a;
+  .hero .hero-slide-info p:last-child {
+    margin-bottom: 0;
   }
 }
