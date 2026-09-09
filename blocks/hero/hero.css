@@ -168,7 +168,9 @@
 }
 
 .hero .hero-slide-cta:hover {
-  opacity: 0.9;
+  opacity: 0.8;
+  color: var(--hero-white-color);
+  text-decoration: none;
 }
 
 /* Arrows — hidden on mobile (<768px), shown from 768px up */
