@@ -92,8 +92,9 @@
   display: block;
 }
 
-/* Slide info overlay (title, description, CTA) */
+/* Slide info overlay (title, description, CTA) — hidden on mobile (<768px) */
 .hero .hero-slide-info {
+  display: none;
   padding: 16px 4px 0;
   text-align: center;
 }
@@ -128,7 +129,7 @@
   opacity: 0.9;
 }
 
-/* Arrows */
+/* Arrows — hidden on mobile (<768px), shown from 768px up */
 .hero .hero-arrow {
   position: absolute;
   top: 50%;
@@ -139,7 +140,7 @@
   border-radius: 50%;
   background: rgb(255 255 255 / 80%);
   cursor: pointer;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   z-index: 2;
@@ -189,25 +190,28 @@
 }
 
 .hero .hero-dot {
-  width: 9px;
-  height: 9px;
+  width: 10px;
+  height: 10px;
   padding: 0;
   border: none;
   border-radius: 50%;
-  background: rgb(255 255 255 / 60%);
+  background: rgb(0 0 0 / 15%);
   cursor: pointer;
   transition: background 0.2s ease;
 }
 
 .hero .hero-dot[aria-selected="true"] {
-  background: rgb(255 255 255);
+  background: rgb(58 58 58);
 }
 
-/* ---- Desktop: two columns ---- */
-@media (min-width: 900px) {
-  .hero {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-    gap: 24px;
+/* breakpoint-exception: reference site (littlefarms.com) reveals hero arrows/info + desktop image at 768px */
+@media (min-width: 768px) {
+  .hero .hero-arrow {
+    display: flex;
+  }
+
+  .hero .hero-slide-info {
+    display: block;
   }
 
   /* Swap to the desktop banner image */
@@ -217,6 +221,14 @@
 
   .hero .hero-slide-media .hero-img-mobile {
     display: none;
+  }
+}
+
+/* ---- Desktop: two columns ---- */
+@media (min-width: 900px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: 24px;
   }
 
   /* Overlay the info as a floating card on the right of the banner */
