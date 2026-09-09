@@ -1,7 +1,12 @@
+/* Full-bleed dark band */
+.ideas-to-inspire-container {
+  background: #3a3a3a;
+}
+
 .ideas-to-inspire-container .ideas-to-inspire-wrapper {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 24px 20px;
+  padding: 40px 20px 48px;
 }
 
 .ideas-to-inspire {
@@ -17,7 +22,7 @@
 .ideas-to-inspire .ideas-to-inspire-heading h2,
 .ideas-to-inspire .ideas-to-inspire-heading h3 {
   margin: 0 0 24px;
-  color: var(--color-brand-700, #2f6f5e);
+  color: #fff;
   text-transform: uppercase;
   letter-spacing: 0.02em;
   font-size: 24px;
@@ -77,7 +82,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: rgb(0 0 0 / 22%);
+  background: rgb(0 0 0 / 15%);
 }
 
 /* Title centered over the image (matches reference) */
@@ -114,7 +119,7 @@
   position: relative;
   height: 2px;
   margin: 20px 0 4px;
-  background: rgb(0 0 0 / 12%);
+  background: rgb(255 255 255 / 25%);
 }
 
 .ideas-to-inspire .ideas-to-inspire-progress-fill {
@@ -123,7 +128,7 @@
   left: 0;
   height: 100%;
   min-width: 12%;
-  background: rgb(58 58 58);
+  background: rgb(255 255 255);
   transition: width 0.15s ease, transform 0.15s ease;
 }
 
