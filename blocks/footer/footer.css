@@ -1,6 +1,19 @@
+main,
+.header-wrapper {
+  display: none;
+}
+
 footer {
-  background-color: rgb(246 244 242);
-  color: rgb(58 58 58);
+  /* Color Variables */
+  --footer-bg-color: var(--color-neutral-200);
+  --footer-text-color: var(--color-neutral-800);
+  --footer-heading-color: var(--color-brand-500);
+  --footer-brand-color: var(--color-brand-300);
+  --footer-white-color: var(--color-neutral-50);
+  --footer-border-color: #ebebeb;
+
+  background-color: var(--footer-bg-color);
+  color: var(--footer-text-color);
   font-size: 14px;
   line-height: 1.5;
 }
@@ -9,7 +22,7 @@ footer .footer-inner {
   position: relative;
   margin: 0 auto;
   max-width: 1400px;
-  padding: 40px 20px;
+  padding: 0 20px 60px;
   box-sizing: border-box;
 }
 
@@ -19,49 +32,77 @@ footer .footer-inner a {
   transition: all 0.2s ease;
 }
 
+.footer-feature-block {
+  padding-top: 60px;
+  padding-bottom: 40px;
+  text-align: center;
+}
+
 /* ---- Feature block heading (mobile) ---- */
 footer .footer-features-heading {
-  margin: 0 0 32px;
+  font-family: 'AppleJuice';
+  font-size: 24px;
+  line-height: 30px;
+  font-weight: 400;
+  color: var(--footer-heading-color);
+  position: relative;
+  display: inline-block;
+  margin: 0 auto 20px;
   text-align: center;
-  color: var(--color-brand-700, #2f6f5e);
-  text-transform: uppercase;
-  font-size: 18px;
-  letter-spacing: 0.02em;
+}
+
+footer .footer-features-heading::before {
+  top: -7px;
+  left: -16px;
+}
+
+footer .footer-features-heading::after {
+  transform: rotate(180deg);
+  right: -16px;
+  bottom: -5px;
+}
+
+footer .footer-features-heading::before,
+footer .footer-features-heading::after {
+  content: "";
+  position: absolute;
+  width: 15px;
+  height: 13px;
+  background: url(../../icons/littlefarms/curves-avocado.svg) 0 0 no-repeat;
 }
 
 /* ---- Feature row ---- */
 footer .footer-features {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 32px;
-  padding-bottom: 40px;
+  gap: 25px;
 }
 
 footer .footer-feature {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   text-align: center;
 }
 
 footer .footer-feature img {
-  width: 44px;
-  height: 44px;
-  object-fit: contain;
-  flex-shrink: 0;
+  width: 100%;
+  max-width: 52px;
 }
 
 footer .footer-feature-text h3 {
-  margin: 0 0 6px;
-  font-size: 15px;
+  display: block;
+  margin: 0 0 5px;
   font-weight: 700;
+  line-height: 1.5;
+  font-size: 1.4rem;
 }
 
 footer .footer-feature-text p {
   margin: 0;
-  font-size: 13px;
-  line-height: 1.4;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 /* ---- Back to top ---- */
@@ -69,21 +110,21 @@ footer .footer-back-to-top {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 0 24px auto;
-  width: 40px;
-  height: 40px;
-  border: none;
+  margin: 0 0 15px auto;
   border-radius: 50%;
-  background: var(--color-brand-700, #2f6f5e);
   cursor: pointer;
+  width: 56px;
+  height: 56px;
+  background-color: var(--footer-brand-color);
+  border: none;
 }
 
 footer .footer-back-to-top::before {
   content: '';
-  width: 9px;
-  height: 9px;
-  border-top: 2px solid #fff;
-  border-right: 2px solid #fff;
+  width: 10px;
+  height: 10px;
+  border-top: 2px solid var(--footer-white-color);
+  border-right: 2px solid var(--footer-white-color);
   transform: rotate(-45deg);
   margin-top: 3px;
 }
@@ -95,15 +136,19 @@ footer .footer-links {
   gap: 0;
 }
 
+footer .footer-column:first-child {
+  border-top: 1px solid var(--footer-border-color);
+}
+
 footer .footer-column {
-  border-bottom: 1px solid rgb(58 58 58 / 12%);
+  border-bottom: 1px solid var(--footer-border-color);
 }
 
 footer .footer-column h4 {
   margin: 0;
-  padding: 16px 0;
-  font-size: 15px;
-  font-weight: 700;
+  padding: 10px 0;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 footer .footer-column h4[role="button"] {
@@ -115,13 +160,13 @@ footer .footer-column h4[role="button"] {
 
 footer .footer-column h4[role="button"]::after {
   content: '';
-  width: 8px;
-  height: 8px;
-  border-bottom: 2px solid currentcolor;
-  border-right: 2px solid currentcolor;
+  width: 6px;
+  height: 6px;
+  border-bottom: 1.5px solid currentcolor;
+  border-right: 1.5px solid currentcolor;
   transform: rotate(45deg);
   transition: transform 0.2s ease;
-  margin-right: 4px;
+  margin-right: 10px;
 }
 
 footer .footer-column h4[aria-expanded="true"]::after {
@@ -137,7 +182,7 @@ footer .footer-column ul {
 /* Social icons row layout (declared before accordion rules for specificity order) */
 footer .footer-social ul {
   display: flex;
-  gap: 14px;
+  gap: 20px;
 }
 
 /* Collapse only accordion lists (those following a button heading) */
@@ -152,36 +197,38 @@ footer .footer-column h4[aria-expanded="true"] + ul {
   padding-bottom: 12px;
 }
 
-footer .footer-column li {
-  margin-bottom: 12px;
-}
-
 footer .footer-column a {
-  font-size: 14px;
+  color: var(--footer-text-color);
+  font-size: 12px;
+  line-height: 28px;
+  text-decoration: none;
 }
 
 footer .footer-bottom-credit a {
-  color: var(--color-brand-700, #2f6f5e);
+  color: var(--footer-brand-color);
 }
 
 footer .footer-inner a:hover {
-  opacity: 0.7;
-  text-decoration: none;
+  color: var(--footer-brand-color);
 }
 
 /* Social icons column — always visible (not an accordion) */
 footer .footer-social {
   border-bottom: none;
-  padding-top: 16px;
+  padding-top: 30px;
 }
 
 footer .footer-social li {
   margin-bottom: 0;
 }
 
+footer .footer-social h4 {
+  display: none;
+}
+
 footer .footer-social img {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   display: block;
 }
 
@@ -189,15 +236,17 @@ footer .footer-social img {
 footer .footer-bottom {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  padding-top: 24px;
+  gap: 40px;
+  padding-top: 30px;
 }
 
 footer .footer-bottom-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
   gap: 16px;
+  font-size: 12px;
 }
 
 footer .footer-bottom-credit {
@@ -206,7 +255,6 @@ footer .footer-bottom-credit {
 
 footer .footer-bottom p {
   margin: 0;
-  font-size: 13px;
 }
 
 footer .footer-bottom img {
@@ -223,24 +271,23 @@ footer .footer-bottom img {
 
 /* breakpoint-exception: reference site (littlefarms.com) switches footer to desktop layout at 768px (revert accordion to static columns) */
 @media (min-width: 768px) {
-  footer .footer-inner {
-    padding: 60px 20px;
-  }
-
   /* Heading is mobile-only */
   footer .footer-features-heading {
     display: none;
   }
 
+  .footer-feature-block {
+    align-items: flex-start;
+    padding-top: 45px;
+    padding-bottom: 15px;
+  }
+
   /* Back-to-top floats on the right on desktop */
   footer .footer-back-to-top {
     position: absolute;
-    right: 20px;
-    top: 50%;
+    right: 40px;
+    top: 40%;
     margin: 0;
-    width: 52px;
-    height: 52px;
-    box-shadow: 0 2px 10px rgb(0 0 0 / 15%);
   }
 
   footer .footer-back-to-top::before {
@@ -249,26 +296,30 @@ footer .footer-bottom img {
   }
 
   footer .footer-features {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 24px;
-    padding-bottom: 60px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 35px;
+    padding-bottom: 35px;
   }
 
   footer .footer-feature {
     flex-direction: row;
     justify-content: center;
-  }
-
-  footer .footer-feature img {
-    width: 56px;
-    height: 56px;
+    gap: 20px;
   }
 
   footer .footer-links {
     grid-template-columns: repeat(5, auto);
     justify-content: space-between;
     gap: 40px;
-    padding: 60px 0 40px;
+    padding: 60px 0 0;
+  }
+
+  footer .footer-bottom-row {
+    font-size: 14px;
+  }
+
+  footer .footer-column:first-child {
+    border-top: none;
   }
 
   footer .footer-column {
@@ -276,7 +327,16 @@ footer .footer-bottom img {
   }
 
   footer .footer-column h4 {
-    padding: 0 0 16px;
+    display: block;
+    font-size: 16px;
+    margin-bottom: 20px;
+    padding: 0;
+    font-weight: 700;
+  }
+
+  footer .footer-social img {
+    width: 24px;
+    height: 24px;
   }
 
   /* Disable accordion collapse on desktop — always show links */
@@ -295,11 +355,17 @@ footer .footer-bottom img {
     padding-bottom: 0;
   }
 
-  footer .footer-column li {
-    margin-bottom: 10px;
-  }
-
   footer .footer-social {
     padding-top: 0;
+  }
+
+  footer .footer-column a {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 1025px) {
+  footer .footer-features {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
