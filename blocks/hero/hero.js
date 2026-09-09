@@ -161,6 +161,13 @@ function initDrag(carousel, start, stop) {
   carousel.addEventListener('pointercancel', onUp);
   carousel.addEventListener('pointerleave', onUp);
 
+  // Stop the browser's native image/link drag, which would otherwise fire
+  // pointercancel and abort the swipe before it passes the drag threshold.
+  carousel.addEventListener('dragstart', (e) => e.preventDefault());
+  carousel.querySelectorAll('img, a').forEach((el) => {
+    el.setAttribute('draggable', 'false');
+  });
+
   // Prevent the wrapping links from navigating when the user actually dragged.
   carousel.querySelectorAll('a').forEach((a) => {
     a.addEventListener('click', (e) => {
