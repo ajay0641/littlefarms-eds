@@ -66,18 +66,66 @@
 }
 
 .hero .hero-slide {
+  position: relative;
   flex: 0 0 100%;
   min-width: 100%;
 }
 
-.hero .hero-slide img {
+.hero .hero-slide-media,
+.hero .hero-slide-media a,
+.hero .hero-slide-media picture {
+  display: block;
+}
+
+.hero .hero-slide-media img {
   width: 100%;
   height: auto;
   display: block;
 }
 
-.hero .hero-slide a {
+/* Show desktop image on wide screens, mobile image on small screens */
+.hero .hero-slide-media .hero-img-desktop {
+  display: none;
+}
+
+.hero .hero-slide-media .hero-img-mobile {
   display: block;
+}
+
+/* Slide info overlay (title, description, CTA) */
+.hero .hero-slide-info {
+  padding: 16px 4px 0;
+  text-align: center;
+}
+
+.hero .hero-slide-info h2,
+.hero .hero-slide-info h3,
+.hero .hero-slide-info h4 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  color: var(--color-brand-700, #2f6f5e);
+}
+
+.hero .hero-slide-info p {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: rgb(58 58 58);
+}
+
+.hero .hero-slide-cta {
+  display: inline-block;
+  padding: 10px 22px;
+  border-radius: 24px;
+  background: var(--color-brand-700, #2f6f5e);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.hero .hero-slide-cta:hover {
+  opacity: 0.9;
 }
 
 /* Arrows */
@@ -160,5 +208,27 @@
   .hero {
     grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
     gap: 24px;
+  }
+
+  /* Swap to the desktop banner image */
+  .hero .hero-slide-media .hero-img-desktop {
+    display: block;
+  }
+
+  .hero .hero-slide-media .hero-img-mobile {
+    display: none;
+  }
+
+  /* Overlay the info as a floating card on the right of the banner */
+  .hero .hero-slide-info {
+    position: absolute;
+    top: 50%;
+    right: 24px;
+    transform: translateY(-50%);
+    width: 260px;
+    padding: 24px;
+    border-radius: 12px;
+    background: rgb(255 255 255 / 88%);
+    text-align: center;
   }
 }

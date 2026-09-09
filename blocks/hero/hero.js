@@ -5,7 +5,10 @@
  * Content model (positional rows):
  *   Row 1  → left promo: cell 1 = promo image (optionally wrapped in a link),
  *            cell 2 = card content (heading + paragraph text)
- *   Row 2+ → carousel slides: cell 1 = slide image (optionally wrapped in a link)
+ *   Row 2+ → carousel slides: cell 1 = slide image(s) — a <picture> or two <img>
+ *            (mobile + desktop) optionally wrapped in a link; cell 2 (optional)
+ *            = overlay content (heading, paragraph, and a link rendered as the
+ *            "Shop Now!" button).
  *
  * @param {Element} block The hero block element
  */
@@ -127,8 +130,33 @@ export default function decorate(block) {
     slide.className = 'hero-slide';
     slide.dataset.slideIndex = i;
     slide.setAttribute('aria-hidden', i !== 0);
-    const cell = row.children[0] || row;
-    while (cell.firstChild) slide.append(cell.firstChild);
+
+    const slideCells = [...row.children];
+    // Image cell — holds the slide media (and any wrapping link).
+    const media = document.createElement('div');
+    media.className = 'hero-slide-media';
+    if (slideCells[0]) while (slideCells[0].firstChild) media.append(slideCells[0].firstChild);
+    // Tag responsive images: first = mobile, second = desktop (CSS toggles them).
+    // Tag the wrapping <picture> when present so the whole element toggles.
+    const imgs = media.querySelectorAll('img');
+    if (imgs.length >= 2) {
+      const mobileEl = imgs[0].closest('picture') || imgs[0];
+      const desktopEl = imgs[1].closest('picture') || imgs[1];
+      mobileEl.classList.add('hero-img-mobile');
+      desktopEl.classList.add('hero-img-desktop');
+    }
+    slide.append(media);
+
+    // Optional overlay cell — heading, description, and CTA button.
+    if (slideCells[1] && slideCells[1].textContent.trim()) {
+      const info = document.createElement('div');
+      info.className = 'hero-slide-info';
+      while (slideCells[1].firstChild) info.append(slideCells[1].firstChild);
+      // Turn the overlay link into the "Shop Now!" button.
+      info.querySelectorAll('a').forEach((a) => a.classList.add('hero-slide-cta'));
+      slide.append(info);
+    }
+
     track.append(slide);
   });
   carousel.append(track);
