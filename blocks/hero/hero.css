@@ -57,6 +57,12 @@
   position: relative;
   overflow: hidden;
   border-radius: 8px;
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+.hero .hero-carousel.is-dragging {
+  cursor: grabbing;
 }
 
 .hero .hero-slides {
@@ -81,6 +87,14 @@
   width: 100%;
   height: auto;
   display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Prevent image ghost-drag / accidental link clicks while swiping */
+.hero .hero-carousel.is-dragging img,
+.hero .hero-carousel.is-dragging a {
+  pointer-events: none;
 }
 
 /* Show desktop image on wide screens, mobile image on small screens */

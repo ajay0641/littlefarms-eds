@@ -81,7 +81,77 @@ function initCarousel(carousel) {
   carousel.addEventListener('mouseenter', stop);
   carousel.addEventListener('mouseleave', start);
 
+  initDrag(carousel, start, stop);
+
   start();
+}
+
+/**
+ * Adds pointer/touch drag-to-swipe support to the carousel.
+ * Follows the finger while dragging and snaps to the nearest slide on release.
+ * @param {Element} carousel The carousel element
+ * @param {Function} start Restart autoplay
+ * @param {Function} stop Pause autoplay
+ */
+function initDrag(carousel, start, stop) {
+  const track = carousel.querySelector('.hero-slides');
+  const slides = carousel.querySelectorAll('.hero-slide');
+  if (!track || slides.length <= 1) return;
+
+  let startX = 0;
+  let deltaX = 0;
+  let dragging = false;
+  let width = 0;
+  // Swipe must exceed this fraction of the carousel width to change slides.
+  const THRESHOLD = 0.2;
+
+  const onDown = (e) => {
+    dragging = true;
+    startX = e.clientX;
+    deltaX = 0;
+    width = carousel.clientWidth || 1;
+    stop();
+    track.style.transition = 'none';
+    carousel.classList.add('is-dragging');
+    carousel.setPointerCapture?.(e.pointerId);
+  };
+
+  const onMove = (e) => {
+    if (!dragging) return;
+    deltaX = e.clientX - startX;
+    const current = parseInt(carousel.dataset.activeSlide || '0', 10);
+    const percent = (deltaX / width) * 100;
+    track.style.transform = `translateX(calc(-${current * 100}% + ${percent}%))`;
+  };
+
+  const onUp = () => {
+    if (!dragging) return;
+    dragging = false;
+    carousel.classList.remove('is-dragging');
+    track.style.transition = '';
+    const current = parseInt(carousel.dataset.activeSlide || '0', 10);
+    if (Math.abs(deltaX) > width * THRESHOLD) {
+      showSlide(carousel, current + (deltaX < 0 ? 1 : -1));
+    } else {
+      showSlide(carousel, current);
+    }
+    start();
+  };
+
+  carousel.addEventListener('pointerdown', onDown);
+  carousel.addEventListener('pointermove', onMove);
+  carousel.addEventListener('pointerup', onUp);
+  carousel.addEventListener('pointercancel', onUp);
+  carousel.addEventListener('pointerleave', onUp);
+
+  // Prevent the wrapping links from navigating when the user actually dragged.
+  carousel.querySelectorAll('a').forEach((a) => {
+    a.addEventListener('click', (e) => {
+      if (Math.abs(deltaX) > 8) {
+        e.preventDefault();
+      }
+    });
+  });
 }
 
 /**
