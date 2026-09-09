@@ -9,6 +9,10 @@
 }
 
 /* ---- Heading ---- */
+.ideas-to-inspire .ideas-to-inspire-heading {
+  text-align: center;
+}
+
 .ideas-to-inspire .ideas-to-inspire-heading h1,
 .ideas-to-inspire .ideas-to-inspire-heading h2,
 .ideas-to-inspire .ideas-to-inspire-heading h3 {
@@ -35,6 +39,7 @@
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
   padding: 4px 0;
+  cursor: grab;
 }
 
 .ideas-to-inspire .ideas-to-inspire-track::-webkit-scrollbar {
@@ -67,21 +72,62 @@
   transform: scale(1.04);
 }
 
-/* Title label overlaid at the bottom */
-.ideas-to-inspire .ideas-to-inspire-title {
+/* Subtle dim so the centered title stays readable over any image */
+.ideas-to-inspire .ideas-to-inspire-image::after {
+  content: '';
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 40px 16px 16px;
-  background: linear-gradient(to top, rgb(0 0 0 / 55%), rgb(0 0 0 / 0%));
-  color: #fff;
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1.3;
+  inset: 0;
+  background: rgb(0 0 0 / 22%);
 }
 
-/* ---- Arrows ---- */
+/* Title centered over the image (matches reference) */
+.ideas-to-inspire .ideas-to-inspire-title {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  text-align: center;
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+/* Draggable affordance */
+.ideas-to-inspire .ideas-to-inspire-track.is-dragging {
+  cursor: grabbing;
+  scroll-behavior: auto;
+  scroll-snap-type: none;
+}
+
+.ideas-to-inspire .ideas-to-inspire-track.is-dragging .ideas-to-inspire-image img {
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ---- Progress bar ---- */
+.ideas-to-inspire .ideas-to-inspire-progress {
+  position: relative;
+  height: 2px;
+  margin: 20px 0 4px;
+  background: rgb(0 0 0 / 12%);
+}
+
+.ideas-to-inspire .ideas-to-inspire-progress-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  min-width: 12%;
+  background: rgb(58 58 58);
+  transition: width 0.15s ease, transform 0.15s ease;
+}
+
+/* ---- Arrows (hidden < 769px) ---- */
 .ideas-to-inspire .ideas-to-inspire-arrow {
   position: absolute;
   top: calc(50% + 24px);
@@ -93,7 +139,7 @@
   background: rgb(255 255 255);
   box-shadow: 0 1px 6px rgb(0 0 0 / 25%);
   cursor: pointer;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   z-index: 2;
@@ -137,7 +183,12 @@
   }
 }
 
-@media (min-width: 900px) {
+/* breakpoint-exception: reference site (littlefarms.com) shows carousel arrows from 769px */
+@media (min-width: 769px) {
+  .ideas-to-inspire .ideas-to-inspire-arrow {
+    display: flex;
+  }
+
   .ideas-to-inspire .ideas-to-inspire-track {
     --ideas-visible: 4;
     --ideas-gap: 20px;

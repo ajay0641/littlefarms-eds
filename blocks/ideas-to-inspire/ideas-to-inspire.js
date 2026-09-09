@@ -21,17 +21,81 @@ function scrollTrack(track, dir) {
 }
 
 /**
- * Toggles the disabled state of the arrows based on scroll position.
+ * Toggles the disabled state of the arrows and updates the progress bar
+ * based on scroll position.
  * @param {Element} block The block element
  */
 function updateArrows(block) {
   const track = block.querySelector('.ideas-to-inspire-track');
   const prev = block.querySelector('.ideas-to-inspire-arrow-prev');
   const next = block.querySelector('.ideas-to-inspire-arrow-next');
-  if (!track || !prev || !next) return;
-  const maxScroll = track.scrollWidth - track.clientWidth - 1;
-  prev.disabled = track.scrollLeft <= 0;
-  next.disabled = track.scrollLeft >= maxScroll;
+  const fill = block.querySelector('.ideas-to-inspire-progress-fill');
+  if (!track) return;
+  const maxScroll = track.scrollWidth - track.clientWidth;
+  if (prev) prev.disabled = track.scrollLeft <= 0;
+  if (next) next.disabled = track.scrollLeft >= maxScroll - 1;
+
+  // Progress bar: fill width tracks how much of the row is in view; the fill
+  // slides to reflect the current scroll offset.
+  if (fill) {
+    const ratio = track.clientWidth / track.scrollWidth;
+    const widthPct = Math.min(100, Math.max(12, ratio * 100));
+    fill.style.width = `${widthPct}%`;
+    const progress = maxScroll > 0 ? track.scrollLeft / maxScroll : 0;
+    const travel = 100 - widthPct;
+    fill.style.transform = `translateX(${progress * travel}%)`;
+  }
+}
+
+/**
+ * Adds pointer drag-to-scroll to the track.
+ * @param {Element} block The block element
+ */
+function initDrag(block) {
+  const track = block.querySelector('.ideas-to-inspire-track');
+  if (!track) return;
+  let startX = 0;
+  let startScroll = 0;
+  let pending = false;
+  let dragging = false;
+  const DRAG_START = 6;
+
+  track.addEventListener('pointerdown', (e) => {
+    pending = true;
+    dragging = false;
+    startX = e.clientX;
+    startScroll = track.scrollLeft;
+  });
+  track.addEventListener('pointermove', (e) => {
+    if (!pending) return;
+    const delta = e.clientX - startX;
+    if (!dragging) {
+      if (Math.abs(delta) < DRAG_START) return;
+      dragging = true;
+      track.classList.add('is-dragging');
+      track.setPointerCapture?.(e.pointerId);
+    }
+    track.scrollLeft = startScroll - delta;
+  });
+  const end = () => {
+    if (!pending) return;
+    pending = false;
+    if (dragging) {
+      dragging = false;
+      track.classList.remove('is-dragging');
+    }
+  };
+  track.addEventListener('pointerup', end);
+  track.addEventListener('pointercancel', end);
+  track.addEventListener('pointerleave', end);
+
+  // Prevent card links from navigating after a real drag.
+  track.querySelectorAll('a').forEach((a) => {
+    a.addEventListener('click', (e) => {
+      if (Math.abs(track.scrollLeft - startScroll) > DRAG_START) e.preventDefault();
+    });
+  });
+  track.addEventListener('dragstart', (e) => e.preventDefault());
 }
 
 /**
@@ -103,7 +167,16 @@ export default function decorate(block) {
   track.addEventListener('scroll', () => updateArrows(block));
   window.addEventListener('resize', () => updateArrows(block));
 
-  block.append(viewport, prev, next);
+  // --- Progress bar ---
+  const progress = document.createElement('div');
+  progress.className = 'ideas-to-inspire-progress';
+  const fill = document.createElement('div');
+  fill.className = 'ideas-to-inspire-progress-fill';
+  progress.append(fill);
+
+  block.append(viewport, prev, next, progress);
+
+  initDrag(block);
 
   requestAnimationFrame(() => updateArrows(block));
   track.querySelectorAll('img').forEach((img) => {
