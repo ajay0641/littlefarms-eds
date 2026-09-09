@@ -21,11 +21,22 @@
 .ideas-to-inspire .ideas-to-inspire-heading h1,
 .ideas-to-inspire .ideas-to-inspire-heading h2,
 .ideas-to-inspire .ideas-to-inspire-heading h3 {
-  margin: 0 0 24px;
+  margin: 0 0 28px;
   color: #fff;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
-  font-size: 24px;
+  letter-spacing: 0.03em;
+  font-family: AppleJuice, sans-serif;
+  font-weight: 400;
+  font-size: 26px;
+  line-height: 1.2;
+}
+
+@media (min-width: 769px) {
+  .ideas-to-inspire .ideas-to-inspire-heading h1,
+  .ideas-to-inspire .ideas-to-inspire-heading h2,
+  .ideas-to-inspire .ideas-to-inspire-heading h3 {
+    font-size: 34px;
+  }
 }
 
 /* ---- Track ---- */
@@ -34,7 +45,7 @@
 }
 
 .ideas-to-inspire .ideas-to-inspire-track {
-  --ideas-visible: 1.5;
+  --ideas-visible: 1.2;
   --ideas-gap: 16px;
 
   display: flex;
@@ -77,12 +88,12 @@
   transform: scale(1.04);
 }
 
-/* Subtle dim so the centered title stays readable over any image */
+/* Dark overlay so the centered title stays readable over any image */
 .ideas-to-inspire .ideas-to-inspire-image::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgb(0 0 0 / 15%);
+  background: rgb(0 0 0 / 28%);
 }
 
 /* Title centered over the image (matches reference) */
@@ -96,10 +107,17 @@
   padding: 16px;
   text-align: center;
   color: #fff;
+  font-family: AppleJuice, sans-serif;
   font-size: 22px;
-  font-weight: 700;
-  line-height: 1.25;
+  font-weight: 400;
+  line-height: 1.2;
   text-transform: uppercase;
+}
+
+@media (min-width: 769px) {
+  .ideas-to-inspire .ideas-to-inspire-title {
+    font-size: 28px;
+  }
 }
 
 /* Draggable affordance */
@@ -181,10 +199,17 @@
   pointer-events: none;
 }
 
-/* ---- Responsive: cards visible per breakpoint ---- */
+/* Keyboard focus affordance */
+.ideas-to-inspire .ideas-to-inspire-card:focus-visible,
+.ideas-to-inspire .ideas-to-inspire-arrow:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+/* ---- Responsive: cards visible per breakpoint (partial next card) ---- */
 @media (min-width: 600px) {
   .ideas-to-inspire .ideas-to-inspire-track {
-    --ideas-visible: 3;
+    --ideas-visible: 2.5;
   }
 }
 
@@ -195,13 +220,13 @@
   }
 
   .ideas-to-inspire .ideas-to-inspire-track {
-    --ideas-visible: 4;
+    --ideas-visible: 3.5;
     --ideas-gap: 20px;
   }
 }
 
 @media (min-width: 1200px) {
   .ideas-to-inspire .ideas-to-inspire-track {
-    --ideas-visible: 5;
+    --ideas-visible: 4.5;
   }
 }

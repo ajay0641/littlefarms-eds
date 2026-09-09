@@ -155,12 +155,12 @@ export default function decorate(block) {
   const prev = document.createElement('button');
   prev.className = 'ideas-to-inspire-arrow ideas-to-inspire-arrow-prev';
   prev.type = 'button';
-  prev.setAttribute('aria-label', 'Scroll left');
+  prev.setAttribute('aria-label', 'Previous ideas');
 
   const next = document.createElement('button');
   next.className = 'ideas-to-inspire-arrow ideas-to-inspire-arrow-next';
   next.type = 'button';
-  next.setAttribute('aria-label', 'Scroll right');
+  next.setAttribute('aria-label', 'Next ideas');
 
   prev.addEventListener('click', () => scrollTrack(track, -1));
   next.addEventListener('click', () => scrollTrack(track, 1));
