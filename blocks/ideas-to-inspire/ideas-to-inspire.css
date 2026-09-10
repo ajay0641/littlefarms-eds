@@ -1,0 +1,207 @@
+/* Full-bleed dark band */
+.ideas-to-inspire-container {
+  background: #3a3a3a;
+}
+
+.ideas-to-inspire-container .ideas-to-inspire-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 20px 48px;
+}
+
+.ideas-to-inspire {
+  position: relative;
+}
+
+.ideas-to-inspire .ideas-to-inspire-carousel {
+  position: relative;
+}
+
+/* ---- Heading ---- */
+.ideas-to-inspire .ideas-to-inspire-heading {
+  text-align: center;
+}
+
+.ideas-to-inspire .ideas-to-inspire-heading h1,
+.ideas-to-inspire .ideas-to-inspire-heading h2,
+.ideas-to-inspire .ideas-to-inspire-heading h3 {
+  margin: 0 0 28px;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-family: AppleJuice, sans-serif;
+  font-weight: 400;
+  font-size: 26px;
+  line-height: 1.2;
+}
+
+@media (min-width: 769px) {
+  .ideas-to-inspire .ideas-to-inspire-heading h1,
+  .ideas-to-inspire .ideas-to-inspire-heading h2,
+  .ideas-to-inspire .ideas-to-inspire-heading h3 {
+    font-size: 34px;
+  }
+}
+
+/* ---- Track ---- */
+.ideas-to-inspire .ideas-to-inspire-viewport {
+  overflow: hidden;
+}
+
+.ideas-to-inspire .ideas-to-inspire-track {
+  display: flex;
+  gap: 16px;
+  transition: transform 0.4s ease;
+  will-change: transform;
+  cursor: grab;
+}
+
+/* Card width (flex-basis) is set inline by JS so exactly N whole cards fit */
+.ideas-to-inspire .ideas-to-inspire-card {
+  flex: 0 0 auto;
+  position: relative;
+  display: block;
+  border-radius: 10px;
+  overflow: hidden;
+  text-decoration: none;
+}
+
+.ideas-to-inspire .ideas-to-inspire-image {
+  display: block;
+}
+
+.ideas-to-inspire .ideas-to-inspire-image img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 320 / 400;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.ideas-to-inspire .ideas-to-inspire-card:hover .ideas-to-inspire-image img {
+  transform: scale(1.04);
+}
+
+/* Dark overlay so the centered title stays readable over any image */
+.ideas-to-inspire .ideas-to-inspire-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 28%);
+}
+
+/* Title centered over the image (matches reference) */
+.ideas-to-inspire .ideas-to-inspire-title {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  text-align: center;
+  color: #fff;
+  font-family: AppleJuice, sans-serif;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+@media (min-width: 769px) {
+  .ideas-to-inspire .ideas-to-inspire-title {
+    font-size: 28px;
+  }
+}
+
+/* Draggable affordance */
+.ideas-to-inspire .ideas-to-inspire-track.is-dragging {
+  cursor: grabbing;
+  transition: none;
+}
+
+.ideas-to-inspire .ideas-to-inspire-track.is-dragging .ideas-to-inspire-image img {
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ---- Progress bar ---- */
+.ideas-to-inspire .ideas-to-inspire-progress {
+  position: relative;
+  height: 2px;
+  margin: 20px 0 4px;
+  background: rgb(255 255 255 / 25%);
+}
+
+.ideas-to-inspire .ideas-to-inspire-progress-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  min-width: 12%;
+  background: rgb(255 255 255);
+  transition: width 0.15s ease, transform 0.15s ease;
+}
+
+/* ---- Arrows (hidden < 769px) ---- */
+.ideas-to-inspire .ideas-to-inspire-arrow {
+  position: absolute;
+  top: calc(50% + 24px);
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: rgb(255 255 255);
+  box-shadow: 0 1px 6px rgb(0 0 0 / 25%);
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.ideas-to-inspire .ideas-to-inspire-arrow::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  border-top: 2px solid rgb(58 58 58);
+  border-right: 2px solid rgb(58 58 58);
+}
+
+.ideas-to-inspire .ideas-to-inspire-arrow-prev {
+  left: 8px;
+}
+
+.ideas-to-inspire .ideas-to-inspire-arrow-prev::before {
+  transform: rotate(-135deg);
+  margin-left: 3px;
+}
+
+.ideas-to-inspire .ideas-to-inspire-arrow-next {
+  right: 8px;
+}
+
+.ideas-to-inspire .ideas-to-inspire-arrow-next::before {
+  transform: rotate(45deg);
+  margin-right: 3px;
+}
+
+.ideas-to-inspire .ideas-to-inspire-arrow[disabled] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Keyboard focus affordance */
+.ideas-to-inspire .ideas-to-inspire-card:focus-visible,
+.ideas-to-inspire .ideas-to-inspire-arrow:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+/* breakpoint-exception: arrows appear from 769px (slides-per-view driven by JS); reference site uses 769px */
+@media (min-width: 769px) {
+  .ideas-to-inspire .ideas-to-inspire-arrow {
+    display: flex;
+  }
+}

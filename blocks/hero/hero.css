@@ -1,3 +1,7 @@
+main > .hero-container {
+  margin-bottom: 20px;
+}
+
 .hero-container .hero-wrapper {
   margin: 0 auto;
   padding: 0;
