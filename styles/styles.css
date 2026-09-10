@@ -194,7 +194,7 @@ body:not(.appear) {
 
 header {
   grid-row: 1;
-  height: var(--nav-height);
+  /* height: var(--nav-height); */
 }
 
 main {
@@ -694,6 +694,7 @@ main[hidden] {
   --product-item-btn-loading-border: var(--color-opacity-24);
   --product-item-font-family: var(--type-base-font-family);
   --product-item-badge-font: var(--type-heading-font-family);
+
   width: 100%;
   box-sizing: border-box;
   display: flex;
@@ -758,7 +759,7 @@ main[hidden] {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-  padding: 12px 0 0 0;
+  padding: 12px 0 0;
   box-sizing: border-box;
 }
 
@@ -848,7 +849,7 @@ main[hidden] {
   font-weight: 400;
   line-height: 18px;
   color: var(--product-item-package-color);
-  margin: 0 0 10px 0;
+  margin: 0 0 10px;
   min-height: 18px;
 }
 

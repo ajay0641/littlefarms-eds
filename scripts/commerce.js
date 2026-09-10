@@ -60,6 +60,17 @@ export const PRODUCT_TEMPLATE_PATHS = [
   'products/default',
 ];
 
+/**
+ * Category template paths - pages that are templates and should use
+ * default/fake category IDs. Should be relative to root path, ie "/" , "/fr/" , etc.
+ */
+export const CATEGORY_TEMPLATE_PATHS = [
+  'categories/default',
+];
+
+/** @deprecated use getCategoryFromUrl session fallback; cleared after read */
+export const CATEGORY_PATH_STORAGE_KEY = 'hlx-category-path';
+
 // PATHS
 export const SUPPORT_PATH = '/support';
 export const PRIVACY_POLICY_PATH = '/privacy-policy';
@@ -675,6 +686,125 @@ export function getProductLink(urlKey, sku) {
   const sanitizedUrlKey = urlKey ? sanitizeName(urlKey) : '';
   const sanitizedSku = sku ? sanitizeName(sku) : '';
   return rootLink(`/products/${sanitizedUrlKey}/${sanitizedSku}`);
+}
+
+/**
+ * Builds a category PLP link: /categories/{urlPath}/{categoryId}
+ * @param {string} urlPath
+ * @param {string|number} cateId
+ * @returns {string}
+ */
+export function getCategoryLink(urlPath, cateId) {
+  if (!urlPath) {
+    console.warn('getCategoryLink: urlPath is missing or empty', { urlPath, cateId });
+  }
+  if (!cateId) {
+    console.warn('getCategoryLink: cateId is missing or empty', { urlPath, cateId });
+  }
+  const normalizedPath = (urlPath || '').replace(/^\/+|\/+$/g, '');
+  const sanitizedCateId = cateId ? sanitizeName(String(cateId)) : '';
+  return rootLink(`/categories/${normalizedPath}/${sanitizedCateId}`);
+}
+
+/**
+ * Checks if the current page is a category template page.
+ * @returns {boolean}
+ */
+export function isCategoryTemplate() {
+  const root = getRootPath();
+  const { pathname } = window.location;
+
+  return CATEGORY_TEMPLATE_PATHS.some((templatePath) => {
+    const fullPath = root ? `${root}${templatePath}` : templatePath;
+    return pathname === fullPath || pathname === fullPath.replace(/\/$/, '');
+  });
+}
+
+/**
+ * Extracts category urlPath and id from the current URL or ?cp= param.
+ * @param {Document} [doc=document]
+ * @returns {{ urlPath: string, cateId: string }|null}
+ */
+export function getCategoryFromUrl(doc = document) {
+  const win = doc.defaultView || window;
+  const urlParams = new URLSearchParams(win.location.search);
+  const urlpathParam = urlParams.get('urlpath');
+  if (urlpathParam) {
+    return {
+      urlPath: urlpathParam.replace(/^\/+|\/+$/g, ''),
+      cateId: urlParams.get('cateId') || '',
+    };
+  }
+
+  const cp = urlParams.get('cp');
+  let path = cp ? decodeURIComponent(cp) : win.location.pathname;
+
+  if (isCategoryTemplate() && !cp) {
+    try {
+      const storedPath = win.sessionStorage.getItem(CATEGORY_PATH_STORAGE_KEY);
+      if (storedPath) {
+        path = storedPath;
+        win.sessionStorage.removeItem(CATEGORY_PATH_STORAGE_KEY);
+      }
+    } catch {
+      // sessionStorage may be unavailable
+    }
+  }
+
+  const result = path.match(/\/categories\/(.+)\/([^/]+)$/);
+  if (result) {
+    return { urlPath: result[1], cateId: result[2] };
+  }
+
+  return null;
+}
+
+/**
+ * Returns true when the URL should be rewritten to /categories/{urlPath}/{id}.
+ * @param {URL} url
+ * @param {{ urlPath: string, cateId: string }|null} categoryMeta
+ * @returns {boolean}
+ */
+export function shouldCanonicalizeCategoryUrl(url, categoryMeta) {
+  if (!categoryMeta?.urlPath || !categoryMeta?.cateId) {
+    return false;
+  }
+
+  const canonicalPath = new URL(
+    getCategoryLink(categoryMeta.urlPath, categoryMeta.cateId),
+    url.origin,
+  ).pathname.replace(/\/$/, '') || '/';
+
+  const currentPath = url.pathname.replace(/\/$/, '') || '/';
+  return currentPath !== canonicalPath
+    || url.searchParams.has('cp')
+    || url.searchParams.has('urlpath');
+}
+
+/**
+ * Rewrites template fallback URLs to canonical /categories/{urlPath}/{id}.
+ * @param {URL} url
+ * @param {{ urlPath: string, cateId: string }|null} categoryMeta
+ * @returns {URL}
+ */
+export function canonicalizeCategoryUrl(url, categoryMeta) {
+  if (!shouldCanonicalizeCategoryUrl(url, categoryMeta)) {
+    return url;
+  }
+
+  const canonical = new URL(
+    getCategoryLink(categoryMeta.urlPath, categoryMeta.cateId),
+    url.origin,
+  );
+
+  ['page', 'sort', 'filter', 'q'].forEach((param) => {
+    const value = url.searchParams.get(param);
+    if (value) {
+      canonical.searchParams.set(param, value);
+    }
+  });
+
+  return canonical;
 }
 
 /**

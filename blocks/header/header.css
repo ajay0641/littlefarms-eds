@@ -139,40 +139,49 @@ header nav[aria-expanded='true'] .nav-hamburger-icon::after {
   bottom: 3px;
   transform: rotate(-45deg);
 }
+
 .notification .carousel .carousel-slides {
     height: 50px;
     text-align: center;
     color: #fff;
     font-weight: 700;
 }
+
 .notification .carousel .carousel-slide-image {
   width: 100%;
   text-align: center;
 }
+
 .notification .carousel .carousel-slides-container {
     display: flex;
     align-items: center;
     width: min-content;
     margin: 0 auto;
 }
+
 .notification .carousel .carousel-slides-container a {
     color: #fff;
     text-decoration: underline;
 }
+
 .notification .carousel .carousel-slides-container p {
   margin: 0;
 }
+
 .notification .carousel .carousel-arrow-prev,
 .notification .carousel .carousel-arrow-next {
-    background: transparent url(/icons/accordion-white.svg) center / 11px 6px no-repeat;
+    background: transparent url("/icons/accordion-white.svg") center / 11px 6px no-repeat;
 
 }
+
 .notification .carousel .carousel-arrow-prev {
     transform: rotate(90deg);
 }
+
 .notification .carousel .carousel-arrow-next {
     transform: rotate(-90deg);
 }
+
 @media (min-width: 900px) {
   header nav .nav-hamburger {
     display: none;
@@ -232,6 +241,59 @@ header .nav-bottom-row {
   margin: 0 auto;
   padding: 12px 20px;
   box-sizing: border-box;
+}
+
+/* ---------- Category nav (tfs-menu dropin) ---------- */
+header nav .nav-sections {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+header nav .nav-sections .tfs-menu-wrapper,
+header nav .nav-sections .tfs-menu {
+  width: 100%;
+}
+
+header nav .nav-sections .tfsmenu-menu-component {
+  --tfs-menu-bg: transparent;
+  --tfs-menu-text: var(--color-neutral-800, #3a3a3a);
+  --tfs-menu-text-muted: var(--color-brand-300, #4d7f71);
+  --tfs-menu-accent: var(--color-brand-500, #005745);
+  --tfs-menu-border: var(--color-neutral-300, #e8e8e8);
+  --tfs-menu-font: var(--type-base-font-family), sans-serif;
+
+  border-bottom: 0;
+  background: transparent;
+}
+
+header nav .nav-sections .menu-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+header nav .nav-sections .menu-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 0;
+  color: var(--color-neutral-800, #3a3a3a);
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+header nav .nav-sections .menu-link:hover {
+  color: var(--color-brand-500, #005745);
+}
+
+header nav .nav-sections .dropdown-menu {
+  z-index: 40;
 }
 
 @media (min-width: 900px) {
@@ -355,19 +417,21 @@ header nav .nav-tools .nav-cart-status {
 .search-wrapper {
     display: flex;
     align-items: center;
-    background: url(../../icons/littlefarms/shape-search.svg) no-repeat;
+    background: url("../../icons/littlefarms/shape-search.svg") no-repeat;
     background-size: 100% 100%;
     padding-left: 1.5rem;
     margin-left: 3rem;
 }
+
 header nav button.nav-search-button {
     font-size: 0;
-    background-image: url(../../icons/search.svg);
+    background-image: url("../../icons/search.svg");
     background-repeat: no-repeat;
     background-position: center;
     height: 100%;
     width: 4rem;
 }
+
 .nav-search-input input {
   border: 0;
   padding: 1rem 1rem 1rem 0;
@@ -864,9 +928,10 @@ body:has(.seller-assisted-buying-banner) {
     display: inline-block;
   }
 }
+
 @media (min-width: 769px), print {
   .minicart-wrapper {
-      background: url(../../icons/littlefarms/shape-green-border.svg) no-repeat;
+      background: url("../../icons/littlefarms/shape-green-border.svg") no-repeat;
       background-size: 100% 100%;
       width: 180px;
       height: 50px;

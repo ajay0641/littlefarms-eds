@@ -70,7 +70,7 @@ main > .hero-container {
   position: relative;
   overflow: hidden;
   user-select: none;
-  -webkit-user-select: none;
+  user-select: none;
 }
 
 .hero .hero-slides {
@@ -87,7 +87,7 @@ main > .hero-container {
   box-sizing: border-box;
   list-style: none;
   user-select: none;
-  -webkit-user-select: none;
+  user-select: none;
 }
 
 .hero .hero-slide-media,
@@ -95,7 +95,7 @@ main > .hero-container {
 .hero .hero-slide-media picture {
   display: block;
   user-select: none;
-  -webkit-user-select: none;
+  user-select: none;
   -webkit-user-drag: none;
 }
 
@@ -107,7 +107,7 @@ main > .hero-container {
   min-height: 75vw;
   object-fit: fill;
   user-select: none;
-  -webkit-user-select: none;
+  user-select: none;
   -webkit-user-drag: none;
 }
 
@@ -130,7 +130,7 @@ main > .hero-container {
 .hero .hero-slide-info h2,
 .hero .hero-slide-info h3,
 .hero .hero-slide-info h4 {
-  font-family: 'AppleJuice';
+  font-family: AppleJuice;
   font-size: 20px;
   line-height: 22px;
   margin: 0 0 12px;
@@ -157,7 +157,7 @@ main > .hero-container {
   display: inline-block;
   font-size: 14px;
   width: 250px;
-  background-image: url(../../icons/littlefarms/shape-green.svg);
+  background-image: url("../../icons/littlefarms/shape-green.svg");
   color: var(--hero-white-color);
 }
 
@@ -305,7 +305,7 @@ main > .hero-container {
 
   /* Overlay the info as a floating tan card on the right of the banner */
   .hero .hero-slide-info {
-    background: url(../../icons/littlefarms/shape-garlic.svg) center no-repeat;
+    background: url("../../icons/littlefarms/shape-garlic.svg") center no-repeat;
     background-size: 100% 100%;
     position: absolute;
     right: 20px;

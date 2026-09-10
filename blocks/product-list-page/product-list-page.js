@@ -16,7 +16,7 @@ import { tryRenderAemAssetsImage } from '@dropins/tools/lib/aem/assets.js';
 import { events } from '@dropins/tools/event-bus.js';
 // AEM
 import { readBlockConfig } from '../../scripts/aem.js';
-import { fetchPlaceholders, getProductLink } from '../../scripts/commerce.js';
+import { fetchPlaceholders, getCategoryFromUrl, getProductLink } from '../../scripts/commerce.js';
 import { getSearchStateFromUrl, applySearchStateToUrl } from './search-url.js';
 
 // Initializers
@@ -27,7 +27,15 @@ export default async function decorate(block) {
   const labels = await fetchPlaceholders();
 
   const config = readBlockConfig(block);
+  const categoryMeta = getCategoryFromUrl();
   const pageSize = parseInt(config.pagesize, 10) || 9;
+
+  // Override authored urlpath with the category from the live URL (folder mapping /
+  // menu redirect via /categories/default + sessionStorage / ?cp=).
+  const urlCategoryPath = categoryMeta?.urlPath;
+  if (urlCategoryPath) {
+    config.urlpath = urlCategoryPath;
+  }
 
   const fragment = document.createRange().createContextualFragment(`
     <div class="search__wrapper">
@@ -54,6 +62,9 @@ export default async function decorate(block) {
   // executed after the plp block and block config is not available
   if (config.urlpath) {
     block.dataset.urlpath = config.urlpath;
+  }
+  if (categoryMeta?.cateId) {
+    block.dataset.categoryId = categoryMeta.cateId;
   }
 
   const searchState = getSearchStateFromUrl(new URL(window.location.href));

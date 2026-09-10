@@ -101,7 +101,7 @@ main > .category-icons-container {
   text-decoration: none;
   color: var(--category-icons-text-color);
   user-select: none;
-  -webkit-user-select: none;
+  user-select: none;
   -webkit-user-drag: none;
 }
 
@@ -131,7 +131,7 @@ main > .category-icons-container {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: url(../../icons/littlefarms/category-back.svg) center no-repeat;
+  background: url("../../icons/littlefarms/category-back.svg") center no-repeat;
   background-size: contain;
   margin-bottom: 2px;
   font-size: 18px;
@@ -145,7 +145,7 @@ main > .category-icons-container {
   object-fit: contain;
   width: 44px;
   user-select: none;
-  -webkit-user-select: none;
+  user-select: none;
   -webkit-user-drag: none;
 }
 
@@ -235,7 +235,7 @@ main > .category-icons-container {
   .category-icons .category-icons-heading h4 {
     font-size: 30px;
     line-height: 36px;
-    font-family: 'AppleJuice';
+    font-family: AppleJuice;
     color: var(--category-icons-heading-color);
     font-weight: 400;
   }

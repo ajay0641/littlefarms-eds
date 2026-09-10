@@ -26,6 +26,7 @@ main > .section .carousel-wrapper {
     overflow: scroll clip;
     height: 40vw;
 }
+
 .carousel .carousel-arrow-prev,
 .carousel .carousel-arrow-next {
     top: 50%;
@@ -33,7 +34,7 @@ main > .section .carousel-wrapper {
     height: 30px;
     border: 0;
     border-radius: 50%;
-    background: #fff url(/icons/littlefarms/chevron.svg) center / 11px 6px no-repeat;
+    background: #fff url("/icons/littlefarms/chevron.svg") center / 11px 6px no-repeat;
     color: transparent;
     font-size: 0;
     line-height: 0;
@@ -41,20 +42,24 @@ main > .section .carousel-wrapper {
     cursor: pointer;
     z-index: 2;
 }
+
 .carousel .carousel-arrow-prev {
     left: 12px;
     transform: translateY(-50%);
 }
+
 .carousel .carousel-arrow-next {
     right: 12px;
     transform: translateY(-50%) rotate(180deg);
 }
+
 .carousel .carousel-arrow-prev:disabled,
 .carousel .carousel-arrow-next:disabled {
     opacity: 0.35;
     cursor: default;
     pointer-events: none;
 }
+
 .carousel .carousel-slides::-webkit-scrollbar {
     display: none;
 }

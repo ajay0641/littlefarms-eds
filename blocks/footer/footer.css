@@ -35,7 +35,7 @@ footer .footer-inner a {
 
 /* ---- Feature block heading (mobile) ---- */
 footer .footer-features-heading {
-  font-family: 'AppleJuice';
+  font-family: AppleJuice;
   font-size: 24px;
   line-height: 30px;
   font-weight: 400;
@@ -63,7 +63,7 @@ footer .footer-features-heading::after {
   position: absolute;
   width: 15px;
   height: 13px;
-  background: url(../../icons/littlefarms/curves-avocado.svg) 0 0 no-repeat;
+  background: url("../../icons/littlefarms/curves-avocado.svg") 0 0 no-repeat;
 }
 
 /* ---- Feature row ---- */

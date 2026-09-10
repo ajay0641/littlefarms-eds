@@ -2,6 +2,7 @@
 main .section.tf-slider,
 main .section:has(.tfs-product-slider) {
   --slider-section-bg: var(--color-neutral-50);
+
   background-color: var(--slider-section-bg);
   padding: 0 0 35px;
   margin: 0;
@@ -28,6 +29,7 @@ main .section:has(.tfs-product-slider) > div {
   --slider-arrow-shadow: 0 2px 8px rgb(0 0 0 / 8%);
   --slider-pagination-bg-color: var(--color-neutral-300);
   --slider-pagination-active-color: var(--color-neutral-800);
+
   width: 100%;
   box-sizing: border-box;
 }
@@ -117,7 +119,7 @@ main .section:has(.tfs-product-slider) > div {
   min-width: 0;
   position: relative;
   box-sizing: border-box;
-  padding: 0 20px 0;
+  padding: 0 20px;
   margin: 0;
 }
 
@@ -200,6 +202,7 @@ main .section:has(.tfs-product-slider) > div {
   main .section.tf-slider,
   main .section:has(.tfs-product-slider) {
     --slider-section-bg: var(--color-neutral-200);
+
     background-color: var(--slider-section-bg);
     padding: 40px 0;
   }
@@ -233,7 +236,7 @@ main .section:has(.tfs-product-slider) > div {
     font-size: 30px;
     line-height: 36px;
     text-align: left;
-    margin: 0 0 15px 0;
+    margin: 0 0 15px;
   }
 
   .tfs-product-slider__panel-subtitle {
@@ -242,7 +245,7 @@ main .section:has(.tfs-product-slider) > div {
     font-size: 14px;
     line-height: 21px;
     color: var(--slider-panel-subtitle-color);
-    margin: 0 0 15px 0;
+    margin: 0 0 15px;
     text-align: left;
   }
 
@@ -272,10 +275,7 @@ main .section:has(.tfs-product-slider) > div {
   .tfs-product-slider--side-title .tfs-product-slider__slider::before {
     content: "";
     position: absolute;
-    top: 0;
-    left: 0;
-    right: -30px;
-    bottom: 0;
+    inset: 0 -30px 0 0;
     background: url("../../icons/littlefarms/shape-white.svg") no-repeat center center / 100% 100%;
     z-index: 0;
     pointer-events: none;

@@ -526,6 +526,19 @@
     ]
   },
   {
+    "id": "tfs-menu",
+    "fields": [
+      {
+        "component": "text",
+        "name": "parent-id",
+        "label": "Parent Category ID",
+        "valueType": "string",
+        "value": "2",
+        "description": "Catalog Service category ID for the menu root (default 2 = store root)"
+      }
+    ]
+  },
+  {
     "id": "tfs-product-slider",
     "fields": [
       {
@@ -540,6 +553,27 @@
         "label": "Search Phrase",
         "valueType": "string",
         "description": "Optional productSearch phrase (empty = all matching filter)"
+      },
+      {
+        "component": "text",
+        "name": "subtitle",
+        "label": "Subtitle",
+        "valueType": "string",
+        "description": "Optional. Enables the side-title layout (left panel beside the slider). Example: What our customers love!"
+      },
+      {
+        "component": "text",
+        "name": "show-all-text",
+        "label": "Show All Text",
+        "valueType": "string",
+        "description": "Optional side-title link label, e.g. Show all"
+      },
+      {
+        "component": "aem-content",
+        "name": "show-all-link",
+        "label": "Show All Link",
+        "valueType": "string",
+        "description": "Optional side-title link target, e.g. /best-of-little-farms"
       },
       {
         "component": "text",
