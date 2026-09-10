@@ -1,11 +1,7 @@
 import { getCookie } from '@dropins/tools/lib.js';
 import * as authApi from '@dropins/storefront-auth/api.js';
-import { render as authRenderer } from '@dropins/storefront-auth/render.js';
-import { SignIn } from '@dropins/storefront-auth/containers/SignIn.js';
-import {
-  CUSTOMER_FORGOTPASSWORD_PATH,
-  rootLink,
-} from '../../scripts/commerce.js';
+import { events } from '@dropins/tools/event-bus.js';
+import { rootLink } from '../../scripts/commerce.js';
 
 function handleLogout(redirections) {
   const shouldRedirect = Object.entries(redirections).some(([currentPath, redirectPath]) => {
@@ -22,67 +18,41 @@ function handleLogout(redirections) {
   }
 }
 
-function renderSignIn(element) {
-  authRenderer.render(SignIn, {
-    onSuccessCallback: () => {
-      // reload the page
-      window.location.reload();
-    },
-    formSize: 'small',
-    routeForgotPassword: () => rootLink(CUSTOMER_FORGOTPASSWORD_PATH),
-  })(element);
-}
-
 export function renderAuthDropdown(navTools) {
-  const dropdownElement = document.createRange().createContextualFragment(`
- <div class="dropdown-wrapper nav-tools-wrapper">
-    <button type="button" class="nav-dropdown-button" aria-haspopup="dialog" aria-expanded="false" aria-controls="login-modal"></button>
-    <div class="nav-auth-menu-panel nav-tools-panel">
-      <div id="auth-dropin-container"></div>
-      <ul class="authenticated-user-menu">
-         <li><a href="${rootLink('/customer/account')}">My Account</a></li>
-          <li><button>Logout</button></li>
-      </ul>
-    </div>
- </div>`);
+  const accountButton = navTools.querySelector('.nav-account-button');
+  const accountPanel = navTools.querySelector('.account-panel');
+  if (!accountButton || !accountPanel) return;
 
-  navTools.append(dropdownElement);
+  accountPanel.classList.add('nav-auth-menu-panel');
+  accountPanel.innerHTML = `
+    <ul class="authenticated-user-menu">
+      <li><a href="${rootLink('/customer/account')}">My Account</a></li>
+      <li><button type="button">Logout</button></li>
+    </ul>
+  `;
+  accountPanel.setAttribute('role', 'dialog');
+  accountPanel.setAttribute('aria-label', 'Account menu');
+  accountPanel.addEventListener('click', (event) => event.stopPropagation());
 
-  const authDropDownPanel = navTools.querySelector('.nav-auth-menu-panel');
-  const authDropDownMenuList = navTools.querySelector(
-    '.authenticated-user-menu',
-  );
-  const authDropinContainer = navTools.querySelector('#auth-dropin-container');
-  const loginButton = navTools.querySelector('.nav-dropdown-button');
-  const logoutButtonElement = navTools.querySelector(
-    '.authenticated-user-menu > li > button',
-  );
+  const logoutButton = accountPanel.querySelector('button');
+  const toggleAccountMenu = (state) => {
+    const show = state ?? !accountPanel.classList.contains('nav-tools-panel--show');
+    accountPanel.classList.toggle('nav-tools-panel--show', show);
+    accountPanel.setAttribute('aria-hidden', show ? 'false' : 'true');
+    accountButton.setAttribute('aria-expanded', show ? 'true' : 'false');
+  };
 
-  authDropDownPanel.addEventListener('click', (e) => e.stopPropagation());
+  accountButton.addEventListener('click', () => {
+    if (getCookie('auth_dropin_user_token')) toggleAccountMenu();
+  });
 
-  async function toggleDropDownAuthMenu(state) {
-    const show = state ?? !authDropDownPanel.classList.contains('nav-tools-panel--show');
-
-    authDropDownPanel.classList.toggle('nav-tools-panel--show', show);
-    authDropDownPanel.setAttribute('role', 'dialog');
-    authDropDownPanel.setAttribute('aria-hidden', 'false');
-    authDropDownPanel.setAttribute('aria-labelledby', 'modal-title');
-    authDropDownPanel.setAttribute('aria-describedby', 'modal-description');
-    loginButton.setAttribute('aria-expanded', show ? 'true' : 'false');
-    authDropDownPanel.focus();
-  }
-
-  loginButton.addEventListener('click', () => toggleDropDownAuthMenu());
-  document.addEventListener('click', async (e) => {
-    const clickOnDropDownPanel = authDropDownPanel.contains(e.target);
-    const clickOnLoginButton = loginButton.contains(e.target);
-
-    if (!clickOnDropDownPanel && !clickOnLoginButton) {
-      await toggleDropDownAuthMenu(false);
+  document.addEventListener('click', (event) => {
+    if (!accountPanel.contains(event.target) && !accountButton.contains(event.target)) {
+      toggleAccountMenu(false);
     }
   });
 
-  logoutButtonElement.addEventListener('click', async () => {
+  logoutButton.addEventListener('click', async () => {
     await authApi.revokeCustomerToken();
     handleLogout({
       '/checkout': rootLink('/cart'),
@@ -91,32 +61,25 @@ export function renderAuthDropdown(navTools) {
     });
   });
 
-  renderSignIn(authDropinContainer);
+  const updateAccountUI = (isAuthenticated) => {
+    const userToken = getCookie('auth_dropin_user_token');
+    const userName = getCookie('auth_dropin_firstname');
 
-  const updateDropDownUI = (isAuthenticated) => {
-    const getUserTokenCookie = getCookie('auth_dropin_user_token');
-    const getUserNameCookie = getCookie('auth_dropin_firstname');
-
-    if (isAuthenticated || getUserTokenCookie) {
-      authDropDownMenuList.style.display = 'block';
-      authDropinContainer.style.display = 'none';
-      loginButton.textContent = `Hi, ${getUserNameCookie}`;
+    if (isAuthenticated || userToken) {
+      accountButton.classList.add('nav-dropdown-button');
+      accountButton.textContent = `Hi, ${userName || ''}`;
+      accountButton.setAttribute('aria-label', `Account menu for ${userName || 'customer'}`);
+      accountButton.setAttribute('aria-controls', 'account-panel');
     } else {
-      authDropDownMenuList.style.display = 'none';
-      authDropinContainer.style.display = 'block';
-      loginButton.innerHTML = `
-      <svg
-          width="25"
-          height="25"
-          viewBox="0 0 24 24"
-          aria-label="My Account"
-          >
-          <g fill="none" stroke="#000000" stroke-width="1.5">
-          <circle cx="12" cy="6" r="4"></circle>
-          <path d="M20 17.5c0 2.485 0 4.5-8 4.5s-8-2.015-8-4.5S7.582 13 12 13s8 2.015 8 4.5Z"></path></g></svg>
-        `;
+      accountButton.classList.remove('nav-dropdown-button');
+      accountButton.textContent = '';
+      accountButton.setAttribute('aria-label', 'Account');
+      accountButton.setAttribute('aria-controls', 'auth-combine-modal');
+      toggleAccountMenu(false);
     }
   };
 
-  updateDropDownUI();
+  updateAccountUI();
+  events.on('authenticated', updateAccountUI);
 }
+

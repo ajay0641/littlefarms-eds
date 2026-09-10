@@ -1,22 +1,33 @@
 import { getCookie } from '@dropins/tools/lib.js';
 import { render as authRenderer } from '@dropins/storefront-auth/render.js';
-import { AuthCombine } from '@dropins/storefront-auth/containers/AuthCombine.js';
+import { SignIn } from '@dropins/storefront-auth/containers/SignIn.js';
+import { SignUp } from '@dropins/storefront-auth/containers/SignUp.js';
 import { SuccessNotification } from '@dropins/storefront-auth/containers/SuccessNotification.js';
 import * as authApi from '@dropins/storefront-auth/api.js';
-import { events } from '@dropins/tools/event-bus.js';
 import { Button, provider as UI } from '@dropins/tools/components.js';
 import {
   CUSTOMER_LOGIN_PATH,
   CUSTOMER_ACCOUNT_PATH,
   CUSTOMER_FORGOTPASSWORD_PATH,
   rootLink,
-  getProductLink,
 } from '../../scripts/commerce.js';
 
-const signInFormConfig = {
-  renderSignUpLink: true,
+const signInFormConfig = (email) => ({
+  initialEmailValue: email,
+  formSize: 'small',
+  labels: {
+    title: 'Welcome back',
+    buttonPrimary: 'Log in',
+  },
+  renderSignUpLink: false,
   routeForgotPassword: () => rootLink(CUSTOMER_FORGOTPASSWORD_PATH),
   slots: {
+    Title: (ctx) => {
+      const subtitle = document.createElement('p');
+      subtitle.className = 'account-auth-subtitle';
+      subtitle.textContent = 'Please enter your password to continue';
+      ctx.appendChild(subtitle);
+    },
     SuccessNotification: (ctx) => {
       const userName = ctx?.isSuccessful?.userName || '';
 
@@ -63,9 +74,12 @@ const signInFormConfig = {
       ctx.appendChild(elem);
     },
   },
-};
+});
 
-const signUpFormConfig = {
+const signUpFormConfig = (email) => ({
+  inputsDefaultValueSet: [{ code: 'email', defaultValue: email }],
+  requireRetypePassword: true,
+  formSize: 'small',
   routeSignIn: () => rootLink(CUSTOMER_LOGIN_PATH),
   routeRedirectOnSignIn: () => rootLink(CUSTOMER_ACCOUNT_PATH),
   isAutoSignInEnabled: false,
@@ -113,40 +127,34 @@ const signUpFormConfig = {
       ctx.appendChild(elem);
     },
   },
-};
+});
 
-const resetPasswordFormConfig = {
-  routeSignIn: () => rootLink(CUSTOMER_LOGIN_PATH),
-};
-
-const onHeaderLinkClick = (element) => {
-  const viewportMeta = document.querySelector('meta[name="viewport"]');
-  const originalViewportContent = viewportMeta.getAttribute('content');
-
-  if (getCookie('auth_dropin_firstname')) {
-    window.location.href = rootLink(CUSTOMER_ACCOUNT_PATH);
-    return;
+const getModalOverlay = () => {
+  let modalOverlay = document.querySelector('.modal-overlay');
+  if (!modalOverlay) {
+    modalOverlay = document.createElement('div');
+    modalOverlay.className = 'modal-overlay';
+    document.body.appendChild(modalOverlay);
   }
-  const signInModal = document.createElement('div');
-  document.body.style.overflow = 'hidden';
-  viewportMeta.setAttribute(
-    'content',
-    'width=device-width, initial-scale=1.0',
-  );
+  return modalOverlay;
+};
 
-  signInModal.setAttribute('id', 'auth-combine-modal');
-  signInModal.classList.add('auth-combine-modal-overlay');
+const bindAccountAuthModal = (accountButton) => {
+  const accountWrapper = accountButton?.closest('.account-wrapper');
+  const signInModal = accountWrapper?.querySelector('#auth-combine-modal');
+  const signInForm = signInModal?.querySelector('#auth-combine-wrapper');
+  if (!accountButton || !signInModal || !signInForm) return () => {};
 
-  const trapFocus = (event) => {
-    if (!signInModal) return;
+  const modalOverlay = getModalOverlay();
+  const viewportMeta = document.querySelector('meta[name="viewport"]');
+  let originalViewportContent = viewportMeta?.getAttribute('content');
 
+  function trapFocus(event) {
     const key = event.key.toLowerCase();
 
     if (key === 'escape') {
       event.preventDefault();
-      signInModal.click();
-      element?.focus();
-      window.removeEventListener('keydown', trapFocus);
+      closeModal();
       return;
     }
 
@@ -158,11 +166,6 @@ const onHeaderLinkClick = (element) => {
 
     const firstElement = focusableElements[0];
     const lastElement = focusableElements[focusableElements.length - 1];
-
-    if (!signInModal.dataset.focusInitialized) {
-      signInModal.dataset.focusInitialized = 'true';
-      requestAnimationFrame(() => firstElement.focus(), 10);
-    }
 
     if (key === 'tab' && event.shiftKey) {
       if (document.activeElement === firstElement) {
@@ -178,46 +181,139 @@ const onHeaderLinkClick = (element) => {
         firstElement.focus();
       }
     }
-  };
+  }
 
-  window.addEventListener('keydown', trapFocus);
+  function closeModal() {
+    if (!signInModal.classList.contains('is-open')) return;
 
-  signInModal.onclick = () => {
-    signInModal.remove();
-    document.body.style.overflow = 'auto';
-    viewportMeta.setAttribute('content', originalViewportContent);
+    signInModal.classList.remove('is-open');
+    document.documentElement.classList.remove('modal-active');
+    if (originalViewportContent) {
+      viewportMeta?.setAttribute('content', originalViewportContent);
+    }
     window.removeEventListener('keydown', trapFocus);
-    window.location.reload();
+    accountButton.setAttribute('aria-expanded', 'false');
+    accountButton.focus();
+  }
+
+  const renderEmailStep = () => {
+    signInForm.replaceChildren();
+
+    const reorderLink = document.createElement('a');
+    reorderLink.className = 'account-auth-reorder';
+    reorderLink.href = rootLink(CUSTOMER_ACCOUNT_PATH);
+    reorderLink.textContent = 'Reorder Last Basket';
+    signInForm.appendChild(reorderLink);
+
+    const formContainer = document.createElement('div');
+    formContainer.className = 'account-auth-form-container';
+    signInForm.appendChild(formContainer);
+
+    const renderSignIn = (email) => {
+      formContainer.replaceChildren();
+      authRenderer.render(SignIn, signInFormConfig(email))(formContainer);
+    };
+
+    const renderSignUp = (email) => {
+      formContainer.replaceChildren();
+      authRenderer.render(SignUp, signUpFormConfig(email))(formContainer);
+    };
+
+    const emailStep = document.createElement('div');
+    emailStep.className = 'account-auth-email-step';
+    emailStep.innerHTML = `
+      <h2 id="account-auth-title">Log in / Create account</h2>
+      <p id="account-auth-description">Enter your email and we will search if you have an account</p>
+      <form class="account-auth-email-form">
+        <label for="account-auth-email">Email*</label>
+        <input id="account-auth-email" name="email" type="email" autocomplete="email"
+          placeholder="Enter your email" aria-describedby="account-auth-description" required>
+        <button type="submit" class="account-auth-email-submit">Continue</button>
+        <p class="account-auth-error" role="alert" aria-live="polite"></p>
+      </form>
+    `;
+    formContainer.appendChild(emailStep);
+
+    const emailForm = emailStep.querySelector('form');
+    const emailInput = emailStep.querySelector('input');
+    const submitButton = emailStep.querySelector('button');
+    const errorMessage = emailStep.querySelector('.account-auth-error');
+
+    emailForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!emailForm.reportValidity()) return;
+
+      submitButton.disabled = true;
+      emailInput.setAttribute('aria-busy', 'true');
+      errorMessage.textContent = '';
+
+      try {
+        await import('../../scripts/initializers/checkout.js');
+        const { isEmailAvailable } = await import('@dropins/storefront-checkout/api.js');
+        const email = emailInput.value.trim();
+        const emailAvailable = await isEmailAvailable(email);
+
+        if (emailAvailable) {
+          renderSignUp(email);
+        } else {
+          renderSignIn(email);
+        }
+      } catch (error) {
+        console.error('Unable to check customer email', error);
+        errorMessage.textContent = 'We could not check your email. Please try again.';
+        submitButton.disabled = false;
+        emailInput.removeAttribute('aria-busy');
+        emailInput.focus();
+      }
+    });
+
+    requestAnimationFrame(() => emailInput.focus());
   };
 
-  const signInForm = document.createElement('div');
-  signInForm.setAttribute('id', 'auth-combine-wrapper');
-  signInForm.onclick = (event) => {
+  const openModal = () => {
+    if (getCookie('auth_dropin_firstname')) {
+      window.location.href = rootLink(CUSTOMER_ACCOUNT_PATH);
+      return;
+    }
+
+    if (signInModal.classList.contains('is-open')) return;
+
+    originalViewportContent = viewportMeta?.getAttribute('content');
+    viewportMeta?.setAttribute(
+      'content',
+      'width=device-width, initial-scale=1.0',
+    );
+
+    renderEmailStep();
+    signInModal.classList.add('is-open');
+    document.documentElement.classList.add('modal-active');
+    accountButton.setAttribute('aria-expanded', 'true');
+    window.addEventListener('keydown', trapFocus);
+  };
+
+  signInForm.addEventListener('click', (event) => {
     event.stopPropagation();
-  };
+  });
+  modalOverlay.addEventListener('click', closeModal);
 
-  signInModal.appendChild(signInForm);
-  document.body.appendChild(signInModal);
-
-  authRenderer.render(AuthCombine, {
-    signInFormConfig,
-    signUpFormConfig,
-    resetPasswordFormConfig,
-  })(signInForm);
+  return openModal;
 };
 
-const renderAuthCombine = (navSections, toggleMenu) => {
-  if (getCookie('auth_dropin_firstname')) return;
+const renderAuthCombine = (navSections, toggleMenu, accountButton) => {
+  const openModal = bindAccountAuthModal(accountButton);
 
-  const navListEl = navSections.querySelector('.default-content-wrapper > ul');
+  if (!getCookie('auth_dropin_firstname')) {
+    accountButton?.addEventListener('click', openModal);
+  }
 
-  const listItems = navListEl.querySelectorAll(
+  const navListEl = navSections?.querySelector('.default-content-wrapper > ul');
+  const listItems = navListEl?.querySelectorAll(
     '.default-content-wrapper > ul > li',
-  );
+  ) || [];
 
   const accountLi = Array.from(listItems).find((li) => li.textContent.includes('Account'));
 
-  if (accountLi) {
+  if (accountLi && !getCookie('auth_dropin_firstname')) {
     const accountLiItems = accountLi.querySelectorAll('ul > li');
     const authCombineLink = accountLiItems[accountLiItems.length - 1];
 
@@ -226,60 +322,11 @@ const renderAuthCombine = (navSections, toggleMenu) => {
     authCombineLink.innerHTML = `<a href="#">${text}</a>`;
     authCombineLink.addEventListener('click', (event) => {
       event.preventDefault();
-      onHeaderLinkClick(accountLi);
-
-      function getPopupElements() {
-        const headerBlock = document.querySelector('.header.block');
-        const headerLoginButton = document.querySelector('#header-login-button');
-        const popupElement = document.querySelector('#popup-menu');
-        const popupMenuContainer = document.querySelector('.popupMenuContainer');
-
-        return {
-          headerBlock,
-          headerLoginButton,
-          popupElement,
-          popupMenuContainer,
-        };
-      }
-
-      events.on('authenticated', (isAuthenticated) => {
-        const authCombineNavElement = document.querySelector(
-          '.authCombineNavElement',
-        );
-        if (isAuthenticated) {
-          const { headerLoginButton, popupElement, popupMenuContainer } = getPopupElements();
-
-          if (
-            !authCombineNavElement
-          || !headerLoginButton
-          || !popupElement
-          || !popupMenuContainer
-          ) {
-            return;
-          }
-
-          authCombineNavElement.style.display = 'none';
-          popupMenuContainer.innerHTML = '';
-          popupElement.style.minWidth = '250px';
-          if (headerLoginButton) {
-            const spanElementText = headerLoginButton.querySelector('span');
-            spanElementText.textContent = `Hi, ${getCookie(
-              'auth_dropin_firstname',
-            )}`;
-          }
-          popupMenuContainer.insertAdjacentHTML(
-            'afterend',
-            `<ul class="popupMenuUrlList">
-              <li><a href="${rootLink(CUSTOMER_ACCOUNT_PATH)}">My Account</a></li>
-              <li><a href="${getProductLink('hollister-backyard-sweatshirt', 'MH05')}">Product page</a></li>
-              <li><button class="logoutButton">Logout</button></li>
-            </ul>`,
-          );
-        }
-      });
+      openModal();
       toggleMenu?.();
     });
   }
 };
 
 export default renderAuthCombine;
+

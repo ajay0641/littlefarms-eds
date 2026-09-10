@@ -10,7 +10,7 @@
 header .nav-wrapper {
   background-color: var(--background-color);
   width: 100%;
-  z-index: 3;
+  z-index: 4;
   position: fixed;
   border-bottom: 1px solid var(--color-neutral-300);
 }
@@ -33,6 +33,7 @@ header nav {
   max-width: 1400px;
   height: var(--nav-height);
   font-family: var(--type-base-font-family);
+  z-index: 4;
 }
 
 header nav[aria-expanded='true'] {
@@ -44,7 +45,8 @@ header nav[aria-expanded='true'] {
 }
 
 .account-wrapper {
-    padding: 0 2rem;
+  position: relative;
+  padding: 0 2rem;
 }
 
 @media (min-width: 900px) {
@@ -227,7 +229,6 @@ header .nav-bottom-row {
   flex-wrap: wrap;
   gap: var(--spacing-medium);
   width: 100%;
-  max-width: 1400px;
   margin: 0 auto;
   padding: 12px 20px;
   box-sizing: border-box;
@@ -455,7 +456,6 @@ header .nav-search-input .search_autocomplete .popover-container {
 @media (min-width: 1024px) {
   header nav .nav-tools-wrapper {
     position: relative;
-    text-align: right;
   }
 
   header nav .nav-tools-panel {
@@ -473,41 +473,128 @@ header .nav-search-input .search_autocomplete .popover-container {
 }
 
 /* CSS for authCombine */
-#auth-combine-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgb(0 0 0 / 50%);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10;
-  overflow-y: auto;
-  padding: 10px 0;
-  box-sizing: border-box;
+.account-wrapper #auth-combine-modal {
+    display: none;
+    position: absolute;
+    justify-content: flex-start;
+    align-items: flex-start;
+    z-index: 10;
+    box-sizing: border-box;
+    height: max-content;
+    width: 420px;
+    top: 100%;
+    left: -100px;
 }
 
-#auth-combine-wrapper {
-  background-color: white;
-  border-radius: var(--shape-border-radius-2);
-  width: 100%;
-  max-width: 800px;
-  min-height: max-content;
-  margin: 0 10px;
-  box-sizing: border-box;
-  max-height: 90vh;
-  overflow-y: auto;
+.account-wrapper #auth-combine-modal.is-open {
+  display: flex;
+}
 
-  @supports (height: 90svh) {
-    max-height: 90svh;
-  }
+.account-wrapper #auth-combine-wrapper {
+  background-color: white;
+  width: calc(100% - 58px);
+  max-width: 360px;
+  margin-top: 18px;
+  box-sizing: border-box;
+  max-height: calc(100% - 18px);
+  overflow-y: auto;
+}
+
+.account-wrapper #auth-combine-wrapper .account-auth-reorder {
+  display: block;
+  margin: 18px 20px 8px;
+  border-radius: 14px;
+  padding: 13px 20px;
+  background-color: #198572;
+  color: var(--color-neutral-50);
+  font: var(--type-body-1-strong-font);
+  text-align: center;
+  text-decoration: none;
+}
+
+.account-wrapper #auth-combine-wrapper .account-auth-reorder:hover,
+.account-wrapper #auth-combine-wrapper .account-auth-reorder:focus-visible {
+  background-color: var(--color-brand-600);
+  color: var(--color-neutral-50);
+}
+
+.account-wrapper #auth-combine-wrapper .account-auth-email-step {
+  padding: 0 20px 24px;
+}
+
+.account-wrapper #auth-combine-wrapper .account-auth-email-step h2 {
+  margin: 14px 0 8px;
+  color: var(--color-neutral-900);
+  font: var(--type-headline-1-font);
+  text-transform: uppercase;
+}
+
+.account-wrapper #auth-combine-wrapper .account-auth-email-step > p,
+.account-wrapper #auth-combine-wrapper .account-auth-subtitle {
+  margin: 0 0 16px;
+  font: var(--type-body-1-default-font);
+}
+
+.account-wrapper #auth-combine-wrapper .account-auth-email-form {
+  display: grid;
+  gap: 10px;
+}
+
+.account-wrapper #auth-combine-wrapper .account-auth-email-form label {
+  font: var(--type-body-1-strong-font);
+}
+
+.account-wrapper #auth-combine-wrapper .account-auth-email-form input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid #198572;
+  border-radius: 2px;
+  padding: 12px 14px;
+  background: var(--color-neutral-50);
+  color: var(--color-neutral-900);
+  font: var(--type-body-1-default-font);
+}
+
+.account-wrapper #auth-combine-wrapper .account-auth-email-form input:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+}
+
+.account-wrapper #auth-combine-wrapper .account-auth-email-submit {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.account-wrapper #auth-combine-wrapper .account-auth-error {
+  margin: 0;
+  color: var(--color-alert-800, #b00020);
+  font: var(--type-details-caption-2-font);
+}
+
+.account-wrapper #auth-combine-wrapper .auth-sign-in-form,
+.account-wrapper #auth-combine-wrapper .auth-sign-up-form {
+  border-radius: 0;
+  padding: 8px 20px 40px;
+}
+
+.account-wrapper #auth-combine-wrapper .auth-sign-in-form__title,
+.account-wrapper #auth-combine-wrapper .auth-sign-up-form__title {
+  margin-bottom: 16px;
+}
+
+.account-wrapper #auth-combine-wrapper .auth-sign-in-form__title .dropin-header-container__title,
+.account-wrapper #auth-combine-wrapper .auth-sign-up-form__title .dropin-header-container__title {
+  text-transform: uppercase;
 }
 
 /* CSS for auth dropdown */
 
-.dropdown-wrapper.nav-tools-wrapper .nav-dropdown-button {
+.account-wrapper.nav-tools-wrapper .nav-dropdown-button {
   font: var(--type-body-1-default-font) !important;
   letter-spacing: var(--type-body-1-default-letter-spacing) !important;
   background-color: transparent;
@@ -521,7 +608,11 @@ header .nav-search-input .search_autocomplete .popover-container {
   min-width: 40px;
 }
 
-.dropdown-wrapper.nav-tools-wrapper .nav-auth-menu-panel {
+.account-wrapper.nav-tools-wrapper .nav-auth-menu-panel {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
   font: var(--type-body-1-default-font) !important;
   letter-spacing: var(--type-body-1-default-letter-spacing) !important;
   width: 100%;
@@ -533,13 +624,17 @@ header .nav-search-input .search_autocomplete .popover-container {
   }
 }
 
+.account-wrapper.nav-tools-wrapper .nav-auth-menu-panel.nav-tools-panel--show {
+  display: block;
+}
+
 @media (min-width: 1024px) {
-  .dropdown-wrapper.nav-tools-wrapper .nav-auth-menu-panel {
+  .account-wrapper.nav-tools-wrapper .nav-auth-menu-panel {
     width: 398px;
   }
 }
 
-.dropdown-wrapper.nav-tools-wrapper .nav-auth-menu-panel .authenticated-user-menu {
+.account-wrapper.nav-tools-wrapper .nav-auth-menu-panel .authenticated-user-menu {
   list-style: none;
   cursor: pointer;
   padding: 0;
@@ -547,25 +642,24 @@ header .nav-search-input .search_autocomplete .popover-container {
   overflow: hidden;
 }
 
-.dropdown-wrapper.nav-tools-wrapper .nav-auth-menu-panel .authenticated-user-menu li {
+.account-wrapper.nav-tools-wrapper .nav-auth-menu-panel .authenticated-user-menu li {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.dropdown-wrapper.nav-tools-wrapper .nav-auth-menu-panel .authenticated-user-menu li>a {
+.account-wrapper.nav-tools-wrapper .nav-auth-menu-panel .authenticated-user-menu li>a {
   padding: 12px 15px;
   display: inline-block;
   width: 100%;
   text-decoration: none;
 }
 
-.dropdown-wrapper.nav-tools-wrapper .nav-auth-menu-panel .authenticated-user-menu li>a:hover,
-.dropdown-wrapper.nav-tools-wrapper .nav-auth-menu-panel .authenticated-user-menu li>.logoutButton:hover {
+.account-wrapper.nav-tools-wrapper .nav-auth-menu-panel .authenticated-user-menu li>a:hover {
   background-color: lightgray;
 }
 
-.dropdown-wrapper.nav-tools-wrapper .nav-auth-menu-panel .authenticated-user-menu li button {
+.account-wrapper.nav-tools-wrapper .nav-auth-menu-panel .authenticated-user-menu li button {
   cursor: pointer;
   background-color: transparent !important;
   color: currentcolor !important;
@@ -582,7 +676,7 @@ header .nav-search-input .search_autocomplete .popover-container {
   border-radius: 0 !important;
 }
 
-.dropdown-wrapper.nav-tools-wrapper .nav-auth-menu-panel .authenticated-user-menu li button:hover {
+.account-wrapper.nav-tools-wrapper .nav-auth-menu-panel .authenticated-user-menu li button:hover {
   background-color: lightgray !important;
   border-radius: 0 !important;
 }
@@ -601,6 +695,18 @@ header .nav-search-input .search_autocomplete .popover-container {
 }
 
 .overlay.show {
+  display: block;
+}
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgb(0 0 0 / 50%);
+  z-index: 3;
+}
+
+html.modal-active .modal-overlay {
   display: block;
 }
 
