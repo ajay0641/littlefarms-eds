@@ -10,8 +10,8 @@ main .section:has(.tfs-product-slider) {
 
 main .section.tf-slider > div,
 main .section:has(.tfs-product-slider) > div {
-  max-width: 100%;
   margin: 0 auto;
+  max-width: 100%;
   padding: 0;
   box-sizing: border-box;
 }
