@@ -150,6 +150,11 @@ html, body {
   min-height: 100%;
 }
 
+html.modal-active,
+html.modal-active body {
+  overflow: hidden;
+}
+
 html {
   font-size: 62.5%;
 }

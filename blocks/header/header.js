@@ -201,7 +201,6 @@ export default async function decorate(block) {
     brandLink.closest('.button-container').className = '';
   }
 
-
   /** Search */
   const searchFragment = document.createRange().createContextualFragment(`
   <div class="search-wrapper nav-tools-wrapper">
@@ -254,7 +253,10 @@ export default async function decorate(block) {
   /** Static Nav Links */
   const customerMenuFragment = document.createRange().createContextualFragment(`
      <div class="account-wrapper nav-tools-wrapper">
-       <button type="button" class="nav-account-button" aria-label="account" aria-haspopup="dialog" aria-expanded="false" aria-controls="account-panel"></button>
+       <button type="button" class="nav-account-button" aria-label="account" aria-haspopup="dialog" aria-expanded="false" aria-controls="auth-combine-modal"></button>
+       <div id="auth-combine-modal" role="dialog" aria-modal="true" aria-label="Account access">
+         <div id="auth-combine-wrapper"></div>
+       </div>
        <div class="account-panel nav-tools-panel" id="account-panel"></div>
      </div>
   `);
@@ -582,6 +584,7 @@ export default async function decorate(block) {
   renderAuthCombine(
     navSections,
     () => !isDesktop.matches && toggleMenu(nav, navSections, false),
+    navTools.querySelector('.nav-account-button'),
   );
   renderAuthDropdown(navTools);
 }
