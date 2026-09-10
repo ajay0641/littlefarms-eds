@@ -1,871 +1,363 @@
-.tfs-product-slider {
-  width: 100%;
-}
-
-/* Centered section heading + description above the slider */
-.tfs-product-slider-container .default-content-wrapper {
-  text-align: center;
-  max-width: 1000px;
-  margin-inline: auto;
-}
-
-.tfs-product-slider-container .default-content-wrapper h1 {
-  margin: 0 0 12px;
-  font-size: 32px;
-  font-weight: 400;
-  text-align: center;
-}
-
-.tfs-product-slider-container .default-content-wrapper p {
-  margin: 0 auto 28px;
-  color: #333;
-}
-
-.tfs-product-slider .tfsproductslider-product-slider-component {
-  /* Little Farms brand: Overpass sans-serif card typography */
-  --tfs-card-font: var(--type-base-font-family);
-  --tfs-card-text: var(--color-neutral-800, #3a3a3a);
-  --tfs-card-muted: var(--color-brand-300, #4d7f71);
-  --tfs-card-sale: var(--color-neutral-800, #3a3a3a);
-  --tfs-card-star: #c5a371;
-  --tfs-card-star-empty: #d9d2c5;
-
-  position: relative;
-  width: 100%;
-  max-width: 100%;
-  color: var(--tfs-card-text);
-  font-family: var(--tfs-card-font);
-}
-
-.tfs-product-slider-wrapper {
-  width: 100%;
-}
-
-/* Arrow controls — centered vertically, left & right of the section */
-.tfs-product-slider .tfsproductslider-product-slider-component__header {
-  position: static;
-  display: block;
-  margin: 0;
-  min-height: 0;
-  pointer-events: none;
-}
-
-/* Drop-in uses an empty <span> when there is no title — hide it */
-.tfs-product-slider .tfsproductslider-product-slider-component__header > span:empty {
+.header-wrapper {
   display: none;
 }
 
-.tfs-product-slider .tfsproductslider-product-slider-component__title {
-  position: relative;
-  margin: 0 0 1rem;
-  pointer-events: auto;
-  text-align: center;
-}
-
-.tfs-product-slider .tfsproductslider-product-slider-component__nav {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0;
-  width: 100%;
-  margin: 0;
-  padding: 0 4px;
-  transform: translateY(-50%);
-  pointer-events: none;
-}
-
-.tfs-product-slider .tfsproductslider-product-slider-component__nav-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 44px;
-  height: 44px;
-  border: 1px solid #d9d9d1;
-  border-radius: 50%;
-  background: #fff;
-  color: #333;
-  font-size: 22px;
-  line-height: 1;
-  cursor: pointer;
-  pointer-events: auto;
-  box-shadow: 0 2px 10px rgb(0 0 0 / 12%);
-  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-}
-
-.tfs-product-slider .tfsproductslider-product-slider-component__nav-btn:hover {
-  background: #5f665a;
-  border-color: #5f665a;
-  color: #fff;
-}
-
-.tfs-product-slider .tfsproductslider-product-slider-component__nav-btn:disabled {
-  opacity: 0.35;
-  cursor: default;
-  box-shadow: none;
-}
-
-/* Keep cards clear of overlay arrows on larger screens */
-.tfs-product-slider .tfsproductslider-product-slider-component__track {
-  display: flex;
-  gap: 20px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-}
-
-.tfs-product-slider .tfsproductslider-product-slider-component__track::-webkit-scrollbar {
-  display: none;
-}
-
-/* Mobile-first slides */
-.tfs-product-slider .tfsproductslider-product-slider-component__slide {
-  flex: 0 0 80%;
-  scroll-snap-align: start;
-  min-width: 0;
-}
-
-/* ---------- Product card (Little Farms brand) ---------- */
-.tfs-product-slider .tfsproductslider-product-card {
-  /* Re-declare tokens here: the drop-in injects a style that sets these
-     vars directly on .tfsproductslider-product-card, so we override at the
-     same node with our higher-specificity (block-scoped) selector. */
-  --tfs-card-font: var(--type-base-font-family);
-  --tfs-card-text: var(--color-neutral-800, #3a3a3a);
-  --tfs-card-sale: var(--color-neutral-800, #3a3a3a);
-
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  width: 100%;
-  height: 100%;
-  color: var(--tfs-card-text);
-  text-decoration: none;
-  font-family: var(--tfs-card-font);
-  background: #fff;
-  box-sizing: border-box;
-}
-
-.tfs-product-slider .tfsproductslider-product-card:focus-visible {
-  outline: 2px solid var(--tfs-card-sale);
-  outline-offset: 4px;
-}
-
-/* Image — landscape lifestyle crop */
-.tfs-product-slider .tfsproductslider-product-card__media {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-  background: #f3f1ed;
-  line-height: 0;
-}
-
-.tfs-product-slider .tfsproductslider-product-card__image {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  transition: opacity 0.25s ease;
-}
-
-.tfs-product-slider .tfsproductslider-product-card:hover .tfsproductslider-product-card__image {
-  opacity: 0.92;
-}
-
-.tfs-product-slider .tfsproductslider-product-card__image--placeholder {
-  background: linear-gradient(135deg, #ece9e3, #f7f5f1);
-}
-
-.tfs-product-slider .tfsproductslider-product-card__media-wrap {
-  position: relative;
-}
-
-/* Overlay actions — cart + wishlist (drop-in v1.0.3+ uses __actions / __action-btn) */
-.tfs-product-slider .tfsproductslider-product-card__actions {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  opacity: 1;
-  pointer-events: auto;
-  transition: opacity 0.2s ease;
-}
-
-@media (min-width: 900px) and (hover: hover) {
-  .tfs-product-slider .tfsproductslider-product-card__actions {
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .tfs-product-slider .tfsproductslider-product-card:hover .tfsproductslider-product-card__actions,
-  .tfs-product-slider .tfsproductslider-product-card:focus-within .tfsproductslider-product-card__actions {
-    opacity: 1;
-    pointer-events: auto;
-  }
-}
-
-.tfs-product-slider .tfsproductslider-product-card__action-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  border: 1px solid rgb(0 0 0 / 8%);
-  border-radius: 50%;
-  background: rgb(255 255 255 / 94%);
-  color: #1a1a1a;
-  box-shadow: 0 2px 10px rgb(0 0 0 / 14%);
-  cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.tfs-product-slider .tfsproductslider-product-card__action-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-.tfs-product-slider .tfsproductslider-product-card__action-btn:focus-visible {
-  outline: 2px solid var(--tfs-card-sale, #9b1504);
-  outline-offset: 2px;
-}
-
-.tfs-product-slider .tfsproductslider-product-card__action-btn:hover:not(:disabled, .is-loading) {
-  opacity: .8;
-}
-
-.tfs-product-slider .tfsproductslider-product-card__action-btn-icon {
-  display: block;
-  width: 22px;
-  height: 22px;
-  flex-shrink: 0;
-}
-
-/* Wishlist active (filled) state — mirrors PLP WishlistToggle */
-.tfs-product-slider .tfsproductslider-product-card__wishlist.is-active {
-  background: #5f665a;
-  border-color: #5f665a;
-  color: #fff;
-}
-
-.tfs-product-slider .tfsproductslider-product-card__wishlist.is-active .tfsproductslider-product-card__action-btn-icon {
-  fill: currentcolor;
-}
-
-/* Loading spinner while cart / wishlist request runs */
-.tfs-product-slider .tfsproductslider-product-card__action-btn.is-loading {
-  position: relative;
-  pointer-events: none;
-  cursor: wait;
-  color: transparent;
-}
-
-.tfs-product-slider .tfsproductslider-product-card__action-btn.is-loading .tfsproductslider-product-card__action-btn-icon {
-  opacity: 0;
-}
-
-.tfs-product-slider .tfsproductslider-product-card__action-btn.is-loading::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgb(95 102 90 / 25%);
-  border-top-color: #5f665a;
-  border-radius: 50%;
-  animation: tfs-product-slider-atc-spin 0.7s linear infinite;
-}
-
-/* Legacy class aliases (older drop-in builds) */
-.tfs-product-slider .tfsproductslider-product-card__atc {
-  position: static;
-}
-
-.tfs-product-slider .tfsproductslider-product-card__atc-icon {
-  display: block;
-  width: 22px;
-  height: 22px;
-  flex-shrink: 0;
-}
-
-@keyframes tfs-product-slider-atc-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Body — left-aligned stack */
-.tfs-product-slider .tfsproductslider-product-card__body {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 14px 2px 0;
-  text-align: left;
-}
-
-/* Title + optional second line (subtitle) */
-.tfs-product-slider .tfsproductslider-product-card__title,
-.tfs-product-slider .tfsproductslider-product-card__subtitle {
-  margin: 0;
-  font-family: var(--tfs-card-font);
-  font-size: 17px;
-  font-weight: 700;
-  line-height: 1.3;
-  color: var(--tfs-card-text);
-  text-decoration: none;
-}
-
-.tfs-product-slider .tfsproductslider-product-card__subtitle {
-  margin-top: -4px;
-}
-
-.tfs-product-slider .tfsproductslider-product-card:hover .tfsproductslider-product-card__title,
-.tfs-product-slider .tfsproductslider-product-card:hover .tfsproductslider-product-card__subtitle,
-.tfs-product-slider .tfsproductslider-product-card:focus-visible .tfsproductslider-product-card__title,
-.tfs-product-slider .tfsproductslider-product-card:focus-visible .tfsproductslider-product-card__subtitle {
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-/* Reviews row */
-.tfs-product-slider .tfsproductslider-product-card__reviews {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px 8px;
-  margin: 0;
-}
-
-.tfs-product-slider .tfsproductslider-product-card__stars {
-  display: inline-flex;
-  gap: 1px;
-  letter-spacing: 0.02em;
-}
-
-.tfs-product-slider .tfsproductslider-product-card__star {
-  color: var(--tfs-card-star-empty);
-  font-size: 15px;
-  line-height: 1;
-}
-
-.tfs-product-slider .tfsproductslider-product-card__star--filled {
-  color: var(--tfs-card-star);
-}
-
-.tfs-product-slider .tfsproductslider-product-card__review-count {
-  font-family: var(--tfs-card-font);
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 1.2;
-  color: var(--tfs-card-muted);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-/* Pricing */
-.tfs-product-slider .tfsproductslider-product-card__pricing {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin: 0;
-}
-
-.tfs-product-slider .tfsproductslider-product-card__price-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 8px;
-}
-
-.tfs-product-slider .tfsproductslider-product-card__from {
-  font-family: var(--tfs-card-font);
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1.2;
-  color: var(--tfs-card-text);
-}
-
-.tfs-product-slider .tfsproductslider-product-card__regular {
-  font-family: var(--tfs-card-font);
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1.2;
-  color: var(--tfs-card-text);
-  text-decoration: line-through;
-}
-
-.tfs-product-slider .tfsproductslider-product-card__final {
-  font-family: var(--tfs-card-font);
-  font-size: 17px;
-  font-weight: 700;
-  line-height: 1.2;
-  color: var(--tfs-card-sale);
-}
-
-.tfs-product-slider .tfsproductslider-product-card__save {
-  margin: 0;
-  font-family: var(--tfs-card-font);
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1.25;
-  color: var(--tfs-card-sale);
-}
-
-/* Skeleton */
-.tfs-product-slider .tfsproductslider-product-slider-component__skeleton {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  background: linear-gradient(90deg, #ece9e3 25%, #f7f5f1 50%, #ece9e3 75%);
-  background-size: 200% 100%;
-  animation: tfs-product-slider-shimmer 1.2s ease-in-out infinite;
-}
-
-@keyframes tfs-product-slider-shimmer {
-  0% {
-    background-position: 100% 0;
-  }
-
-  100% {
-    background-position: -100% 0;
-  }
-}
-
-/* ---------- Tablet ---------- */
-@media (min-width: 600px) {
-  .tfs-product-slider .tfsproductslider-product-slider-component__slide {
-    flex-basis: calc((100% - 20px) / 2);
-  }
-}
-
-/* ---------- Desktop ---------- */
-@media (min-width: 900px) {
-  .tfs-product-slider .tfsproductslider-product-slider-component__slide {
-    flex-basis: calc((100% - 60px) / 4);
-  }
-
-  .tfs-product-slider .tfsproductslider-product-card__title,
-  .tfs-product-slider .tfsproductslider-product-card__subtitle {
-    font-size: 18px;
-  }
-
-  .tfs-product-slider .tfsproductslider-product-card__from,
-  .tfs-product-slider .tfsproductslider-product-card__regular,
-  .tfs-product-slider .tfsproductslider-product-card__save {
-    font-size: 17px;
-  }
-
-  .tfs-product-slider .tfsproductslider-product-card__final {
-    font-size: 18px;
-  }
-}
-
-/* ================= Side-title / Best Sellers (Little Farms) ================= */
-
-/* Section canvas */
+/* Outer section wrapper background and spacing */
 main .section.tf-slider,
-main .section.tfs-product-slider-container:has(.tfs-product-slider--side-title) {
-  background-color: #f6f4f2;
-  padding-top: 40px;
-  padding-bottom: 40px;
+main .section:has(.tfs-product-slider) {
+  --slider-section-bg: var(--color-neutral-50);
+  background-color: var(--slider-section-bg);
+  padding: 0 0 35px;
+  margin: 0;
+  overflow: hidden;
 }
 
 main .section.tf-slider > div,
-main .section.tfs-product-slider-container:has(.tfs-product-slider--side-title) > div {
-  max-width: 1400px;
-}
-
-.tfs-product-slider--side-title {
-  --lf-green: var(--color-brand-500, #005745);
-  --lf-green-mid: #407466;
-  --lf-green-link: var(--color-brand-300, #4d7f71);
-  --lf-text: var(--color-neutral-800, #3a3a3a);
-  --lf-heart: #b9314f;
-  --lf-display: var(--type-heading-font-family);
-  --lf-sans: var(--type-base-font-family);
-
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  align-items: stretch;
-  background: transparent;
-  border-radius: 0;
+main .section:has(.tfs-product-slider) > div {
+  max-width: 100%;
+  margin: 0 auto;
   padding: 0;
-  box-shadow: none;
-  font-family: var(--lf-sans);
-  color: var(--lf-text);
+  box-sizing: border-box;
 }
 
-.tfs-product-slider.tfs-product-slider--side-title .tfs-product-slider__panel {
-  flex: 0 0 auto;
-  text-align: left;
-  padding: 8px 20px 0;
+.tfs-product-slider {
+  --slider-panel-title-color: var(--color-brand-500);
+  --slider-panel-subtitle-color: var(--color-neutral-800);
+  --slider-panel-link-color: var(--color-brand-300);
+  --slider-panel-link-hover-color: var(--color-brand-300);
+  --slider-arrow-bg: var(--color-neutral-50);
+  --slider-arrow-border-color: var(--color-neutral-400);
+  --slider-arrow-hover-bg: var(--color-brand-500);
+  --slider-arrow-hover-border-color: var(--color-brand-500);
+  --slider-arrow-shadow: 0 2px 8px rgb(0 0 0 / 8%);
+  --slider-pagination-bg-color: var(--color-neutral-300);
+  --slider-pagination-active-color: var(--color-neutral-800);
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.tfs-product-slider.tfs-product-slider--side-title .tfs-product-slider__panel-title {
-  margin: 0 0 12px;
-  color: var(--lf-green);
-  text-transform: none;
-  font-family: var(--lf-display);
-  font-size: 30px;
-  font-weight: 400;
-  line-height: 1.2;
-  letter-spacing: normal;
+.tfs-product-slider__container {
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.tfs-product-slider.tfs-product-slider--side-title .tfs-product-slider__panel-subtitle {
-  margin: 0 0 16px;
-  color: var(--lf-text);
-  font-family: var(--lf-sans);
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 1.4;
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfs-product-slider__panel-link {
+/* ==========================================================================
+   Mobile & Tablet Layout (Default / Mobile-first, <= 768px)
+   ========================================================================== */
+.tfs-product-slider__panel {
   position: relative;
-  display: inline-block;
-  padding-right: 14px;
-  color: var(--lf-green-link);
-  font-family: var(--lf-sans);
-  font-size: 14px;
+  width: 100%;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.tfs-product-slider__panel .block-title {
+  margin: 0 65px;
+  text-align: center;
+}
+
+.tfs-product-slider__panel-title {
+  font-family: var(--type-heading-font-family);
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 30px;
+  color: var(--slider-panel-title-color);
+  margin: 0 0 10px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tfs-product-slider__panel-subtitle {
+  display: none;
+}
+
+.tfs-product-slider__shopall {
+  position: absolute;
+  right: 20px;
+  top: 4px;
+  margin: 0;
+}
+
+.tfs-product-slider__panel-link:not(.dropin-design a) {
+  font-family: var(--type-base-font-family);
+  font-size: 13px;
   font-weight: 400;
   line-height: 18px;
+  color: var(--slider-panel-link-color);
   text-decoration: none;
+  padding-right: 10px;
+  position: relative;
+  display: inline-block;
+  transition: color 0.2s;
 }
 
-.tfs-product-slider.tfs-product-slider--side-title .tfs-product-slider__panel-link::after {
+.tfs-product-slider__panel > .tfs-product-slider__panel-link {
+  position: absolute;
+  right: 20px;
+  top: 5px;
+}
+
+.tfs-product-slider__panel-link::after {
+  width: 4px;
+  height: 4px;
+  border-top: 1px solid currentcolor;
+  border-right: 1px solid currentcolor;
+  transform: rotate(45deg);
+  display: inline-block;
   content: "";
   position: absolute;
   top: 6px;
   right: 0;
-  width: 9px;
-  height: 5px;
-  background: url("/icons/littlefarms/chevron.svg") center / contain no-repeat;
-  transform: rotate(-90deg);
-  filter: invert(42%) sepia(18%) saturate(787%) hue-rotate(118deg) brightness(92%) contrast(88%);
 }
 
-.tfs-product-slider.tfs-product-slider--side-title .tfs-product-slider__panel-link:hover {
+.tfs-product-slider__panel-link:not(.dropin-design a):hover {
+  color: var(--slider-panel-link-hover-color);
   text-decoration: underline;
-  text-underline-offset: 2px;
 }
 
-/* White organic blob behind the product track */
-.tfs-product-slider.tfs-product-slider--side-title .tfs-product-slider__slider {
-  position: relative;
-  min-width: 0;
-  flex: 1 1 auto;
-  padding: 28px 16px 36px;
-  z-index: 0;
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfs-product-slider__slider::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: url("/icons/littlefarms/shape-white.svg") center / 100% 100% no-repeat;
-  pointer-events: none;
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-slider-component {
-  --tfs-card-font: var(--lf-sans);
-  --tfs-card-text: var(--lf-text);
-  --tfs-card-muted: var(--lf-green-link);
-  --tfs-card-sale: var(--lf-text);
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-slider-component__header {
-  position: static;
-  min-height: 0;
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-slider-component__nav {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  z-index: 5;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0;
+.tfs-product-slider__slider {
   width: 100%;
-  padding: 0 4px;
-  transform: translateY(-50%);
-  pointer-events: none;
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-slider-component__nav-btn {
-  width: 30px;
-  height: 30px;
-  border: 0;
-  border-radius: 50%;
-  background: #fff url("/icons/littlefarms/chevron.svg") center / 11px 6px no-repeat;
-  color: transparent;
-  font-size: 0;
-  line-height: 0;
-  box-shadow: none;
-  pointer-events: auto;
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-slider-component__nav-btn:first-child {
-  transform: rotate(90deg);
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-slider-component__nav-btn:last-child {
-  transform: rotate(-90deg);
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-slider-component__nav-btn:hover {
-  background-color: #fff;
-  border: 0;
-  color: transparent;
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-slider-component__nav-btn:disabled {
-  display: none;
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-slider-component__track {
-  gap: 16px;
-  padding: 8px 36px 8px 8px;
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-slider-component__slide {
-  flex-basis: 70%;
-}
-
-/* Cards */
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card {
-  --tfs-card-font: var(--lf-sans);
-  --tfs-card-text: var(--lf-text);
-  --tfs-card-sale: var(--lf-text);
-
-  gap: 0;
-  background: transparent;
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card:focus-visible {
-  outline-color: var(--lf-green);
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card__media {
-  background: transparent;
-  aspect-ratio: 1 / 1;
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card .tfsproductslider-product-card__image {
-  object-fit: contain;
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card:hover .tfsproductslider-product-card__image {
-  opacity: 1;
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card__body {
-  gap: 0;
-  padding: 10px 4px 0;
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfs-product-slider__card-meta {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 4px;
-  min-height: 18px;
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card .tfsproductslider-product-card__subtitle {
-  margin: 0;
-  color: var(--lf-green-link);
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 1.3;
-  text-decoration: none;
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card:hover .tfsproductslider-product-card__subtitle,
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card:focus-visible .tfsproductslider-product-card__subtitle {
-  text-decoration: none;
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card__wishlist {
-  flex-shrink: 0;
-  width: 22px;
-  height: 20px;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: url("/icons/littlefarms/wishlist-heart.svg") center / contain no-repeat;
-  box-shadow: none;
-  color: transparent;
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card__wishlist:hover:not(:disabled, .is-loading) {
-  background-color: transparent;
-  border: 0;
-  color: transparent;
-  transform: none;
-  box-shadow: none;
-  filter: brightness(0.9);
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card__wishlist.is-active {
-  background: url("/icons/littlefarms/wishlist-heart-filled.svg") center / contain no-repeat;
-  border: 0;
-  box-shadow: none;
-  filter: none;
-  opacity: 1;
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card .tfsproductslider-product-card__title {
-  margin: 0 0 6px;
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1.35;
-  color: var(--lf-text);
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card:hover .tfsproductslider-product-card__title,
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card:focus-visible .tfsproductslider-product-card__title {
-  text-decoration: none;
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card__reviews {
-  display: none;
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfs-product-slider__card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card__pricing {
-  flex: 1 1 auto;
   min-width: 0;
+  position: relative;
+  box-sizing: border-box;
+  padding: 0 20px 0;
+  margin: 0;
 }
 
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card__from {
-  display: none;
+.tfs-product-slider__splide {
+  position: relative;
+  width: 100%;
 }
 
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card__final,
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card__regular {
-  font-size: 14px;
-  font-weight: 400;
-  color: var(--lf-text);
+.tfs-product-slider__splide .splide__track {
+  overflow: hidden;
+  padding: 0 15px;
 }
 
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card__regular {
-  text-decoration: line-through;
-  opacity: 0.7;
+.tfs-product-slider__splide .splide__list {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card__save {
-  display: none;
+.tfs-product-slider__slide {
+  box-sizing: border-box;
 }
 
-.tfs-product-slider.tfs-product-slider--side-title .tfs-product-slider__atc-btn,
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card__atc {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  width: 125px;
-  min-width: 125px;
-  height: 46px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: 0;
-  background: transparent url("/icons/littlefarms/shape-green.svg") center / 100% 100% no-repeat;
-  box-shadow: none;
-  color: #fff;
-  font-family: var(--type-heading-font-family, var(--lf-display));
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 1.2;
-  text-align: center;
-  white-space: nowrap;
-  transform: none;
+/* Arrows hidden on mobile/tablet */
+.tfs-product-slider__arrow {
+  display: none !important;
 }
 
-.tfs-product-slider.tfs-product-slider--side-title .tfs-product-slider__atc-btn.is-loading,
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card__atc.is-loading {
-  color: transparent;
+/* Splide Pagination for Mobile / Tablet (styled like ideas-to-inspire) */
+.tfs-product-slider .splide__pagination,
+.tfs-product-slider .splide .splide__pagination {
+  display: flex !important;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+  position: static;
+  box-sizing: border-box;
 }
 
-.tfs-product-slider.tfs-product-slider--side-title .tfs-product-slider__atc-btn.is-loading::after,
-.tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card__atc.is-loading::after {
-  border-color: rgb(255 255 255 / 35%);
-  border-top-color: #fff;
-}
 
-@media (min-width: 600px) {
-  .tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-slider-component__slide {
-    flex-basis: calc((100% - 32px) / 3);
+@media (min-width: 640px) {
+  .tfs-product-slider .splide__pagination, 
+  .tfs-product-slider .splide .splide__pagination {
+    margin-top: 30px;
   }
 }
 
-@media (min-width: 900px) {
+.tfs-product-slider .splide__pagination li {
+  flex: 1;
+  height: 4px;
+  margin: 0;
+  padding: 0;
+  display: flex;
+}
+
+.tfs-product-slider .splide__pagination__page {
+  flex: 1;
+  width: 100%;
+  height: 4px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background-color: var(--slider-pagination-bg-color);
+  border-radius: 2px;
+  cursor: pointer;
+  opacity: 1;
+  transform: none;
+  transition: background-color 0.25s ease;
+}
+
+.tfs-product-slider .splide__pagination__page.is-active {
+  background-color: var(--slider-pagination-active-color);
+}
+
+/* ==========================================================================
+   Desktop Layout (min-width: 769px) - Matching littlefarms.com
+   ========================================================================== */
+@media (min-width: 769px) {
+  main .section.tf-slider,
+  main .section:has(.tfs-product-slider) {
+    --slider-section-bg: var(--color-neutral-200);
+    background-color: var(--slider-section-bg);
+    padding: 40px 0;
+  }
+
+  main .section.tf-slider > div,
+  main .section:has(.tfs-product-slider) > div {
+    max-width: 1440px;
+    padding: 0 0 0 20px;
+  }
+
   .tfs-product-slider--side-title {
+    display: flex;
     flex-direction: row;
     align-items: stretch;
+    justify-content: center;
     gap: 0;
   }
 
-  .tfs-product-slider.tfs-product-slider--side-title .tfs-product-slider__panel {
-    flex: 0 0 180px;
-    padding: 50px 20px 0;
+  .tfs-product-slider__panel {
+    flex: 0 0 160px;
+    width: 160px;
+    padding: 50px 20px 0 0;
   }
 
-  .tfs-product-slider.tfs-product-slider--side-title .tfs-product-slider__panel-title {
+  .tfs-product-slider__panel .block-title {
+    margin: 0;
+    text-align: left;
+  }
+
+  .tfs-product-slider__panel-title {
     font-size: 30px;
     line-height: 36px;
+    text-align: left;
+    margin: 0 0 15px 0;
   }
 
-  .tfs-product-slider.tfs-product-slider--side-title .tfs-product-slider__slider {
-    flex: 1 1 auto;
-    padding: 24px 24px 40px 40px;
-  }
-
-  .tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-slider-component__track {
-    padding-right: 40px;
-  }
-
-  .tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-slider-component__slide {
-    flex-basis: calc((100% - 48px) / 4);
-  }
-
-  .tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card__title,
-  .tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card__subtitle {
+  .tfs-product-slider__panel-subtitle {
+    display: block;
+    font-family: var(--type-base-font-family);
     font-size: 14px;
+    line-height: 21px;
+    color: var(--slider-panel-subtitle-color);
+    margin: 0 0 15px 0;
+    text-align: left;
   }
 
-  .tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card__from,
-  .tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card__regular,
-  .tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card__save,
-  .tfs-product-slider.tfs-product-slider--side-title .tfsproductslider-product-card__final {
+  .tfs-product-slider__shopall,
+  .tfs-product-slider__panel > .tfs-product-slider__panel-link {
+    position: static;
+    display: inline-block;
+    margin: 0;
+  }
+
+  .tfs-product-slider__panel-link {
     font-size: 14px;
+    line-height: 21px;
+    position: relative;
+    padding-right: 10px;
+  }
+
+  .tfs-product-slider__slider {
+    flex: 1;
+    max-width: 1220px;
+    min-width: 0;
+    padding: 0 0 0 45px;
+    margin: 0;
+  }
+
+  /* Organic white curved card shape on desktop */
+  .tfs-product-slider--side-title .tfs-product-slider__slider::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: -30px;
+    bottom: 0;
+    background: url("../../icons/littlefarms/shape-white.svg") no-repeat center center / 100% 100%;
+    z-index: 0;
+    pointer-events: none;
+    display: block;
+    height: 100%;
+    width: 1250px;
+  }
+
+  .tfs-product-slider__splide {
+    z-index: 1;
+    padding: 50px 0 35px;
+  }
+
+  .tfs-product-slider__splide .splide__track {
+    padding: 6px 4px;
+  }
+
+  .tfs-product-slider__arrow {
+    display: flex !important;
+    position: absolute;
+    top: 48%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--slider-arrow-bg);
+    border: 1px solid var(--slider-arrow-border-color);
+    box-shadow: var(--slider-arrow-shadow);
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: background-color 0.2s, border-color 0.2s, transform 0.15s;
+    padding: 0;
+  }
+
+  .tfs-product-slider__arrow::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: url("../../icons/littlefarms/chevron.svg") center / 11.5px 6.5px no-repeat;
+    transition: background-image 0.2s;
+  }
+
+  .tfs-product-slider__arrow--prev::after {
+    transform: rotate(90deg);
+  }
+
+  .tfs-product-slider__arrow--next::after {
+    transform: rotate(-90deg);
+  }
+
+  .tfs-product-slider__arrow:hover {
+    background-color: var(--slider-arrow-hover-bg);
+    border-color: var(--slider-arrow-hover-border-color);
+    transform: translateY(-50%) scale(1.08);
+  }
+
+  .tfs-product-slider__arrow:hover::after {
+    background-image: url("../../icons/accordion-white.svg");
+  }
+
+  .tfs-product-slider__arrow--prev {
+    left: -12px;
+  }
+
+  .tfs-product-slider__arrow--next {
+    right: 15px;
+  }
+
+  .tfs-product-slider__arrow:disabled {
+    display: none !important;
+  }
+
+  .tfs-product-slider .splide__pagination,
+  .tfs-product-slider .splide .splide__pagination {
+    display: none !important;
   }
 }
-

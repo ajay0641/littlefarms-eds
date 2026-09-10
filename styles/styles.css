@@ -44,6 +44,19 @@
   --color-button-hover: var(--color-brand-600);
   --color-action-button-active: var(--color-neutral-50);
   --color-action-button-hover: var(--color-neutral-300);
+  --product-item-bg: var(--color-neutral-50);
+  --product-item-photo-bg: var(--color-neutral-50);
+  --product-item-badge-bg: var(--color-brand-500);
+  --product-item-badge-color: var(--color-neutral-50);
+  --product-item-brand-color: var(--color-brand-300);
+  --product-item-title-color: var(--color-neutral-800);
+  --product-item-title-hover: var(--color-brand-500);
+  --product-item-package-color: var(--color-neutral-700);
+  --product-item-price-color: var(--color-neutral-800);
+  --product-item-old-price-color: var(--color-neutral-600);
+  --product-item-btn-bg: var(--color-brand-500);
+  --product-item-btn-color: var(--color-neutral-50);
+  --product-item-btn-loading-border: var(--color-opacity-24);
   --color-opacity-16: rgb(255 255 255 / 16%);
   --color-opacity-24: rgb(255 255 255 / 24%);
   --grid-1-columns: 4;
@@ -659,5 +672,376 @@ body.columns main > .section:empty {
 */
 main[hidden] {
   display: none !important;
+}
+
+/* ==========================================================================
+   Global Little Farms Product Card Design
+   ========================================================================== */
+.product-item,
+.product-card {
+  --product-item-bg: var(--color-neutral-50);
+  --product-item-photo-bg: var(--color-neutral-50);
+  --product-item-badge-bg: var(--color-brand-500);
+  --product-item-badge-color: var(--color-neutral-50);
+  --product-item-brand-color: var(--color-brand-300);
+  --product-item-title-color: var(--color-neutral-800);
+  --product-item-title-hover: var(--color-brand-500);
+  --product-item-package-color: var(--color-neutral-700);
+  --product-item-price-color: var(--color-neutral-800);
+  --product-item-old-price-color: var(--color-neutral-600);
+  --product-item-btn-bg: var(--color-brand-500);
+  --product-item-btn-color: var(--color-neutral-50);
+  --product-item-btn-loading-border: var(--color-opacity-24);
+  --product-item-font-family: var(--type-base-font-family);
+  --product-item-badge-font: var(--type-heading-font-family);
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.product-item .product-item-info,
+.product-card .product-item-info {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Photo Link & Image */
+.product-item .product-item-photo,
+.product-card .product-item-photo {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--shape-border-radius-2, 8px);
+  overflow: hidden;
+  background-color: var(--product-item-photo-bg);
+  text-decoration: none;
+}
+
+.product-item .product-image-photo,
+.product-card .product-image-photo {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+/* Badge (e.g. Save %) */
+.product-item .product-item-label,
+.product-card .product-item-label {
+  position: absolute;
+  top: var(--spacing-xsmall, 8px);
+  left: var(--spacing-xsmall, 8px);
+  background-color: var(--product-item-badge-bg);
+  color: var(--product-item-badge-color);
+  font-family: var(--product-item-badge-font);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px var(--spacing-xsmall, 8px);
+  border-radius: var(--shape-border-radius-1, 4px);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 2;
+}
+
+/* Details Wrapper */
+.product-item .product-item-details,
+.product-card .product-item-details {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  padding: 12px 0 0 0;
+  box-sizing: border-box;
+}
+
+/* Brand Row + Wishlist */
+.product-item .product-item-meta,
+.product-card .product-item-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-xsmall, 8px);
+  margin-bottom: 6px;
+  min-height: 24px;
+}
+
+.product-item .brand,
+.product-card .brand {
+  font-family: var(--product-item-font-family);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+  color: var(--product-item-brand-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.product-item .action.towishlist,
+.product-item .towishlist,
+.product-card .action.towishlist,
+.product-card .towishlist {
+  background: transparent url('../icons/littlefarms/wishlist-heart.svg') center / contain no-repeat;
+  border: none;
+  width: 18px;
+  height: 16px;
+  padding: 0;
+  cursor: pointer;
+  display: inline-block;
+  flex-shrink: 0;
+  margin-left: auto;
+  transition: transform 0.15s ease;
+}
+
+.product-item .action.towishlist.is-active,
+.product-item .action.towishlist.active,
+.product-item .towishlist.is-active,
+.product-item .towishlist.active,
+.product-card .action.towishlist.is-active,
+.product-card .action.towishlist.active,
+.product-card .towishlist.is-active,
+.product-card .towishlist.active {
+  background-image: url('../icons/littlefarms/wishlist-heart-filled.svg');
+}
+
+/* Product Title */
+.product-item .product-item-name,
+.product-card .product-item-name {
+  font-family: var(--product-item-font-family);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+  color: var(--product-item-title-color);
+  margin: 0 0 var(--spacing-xxsmall, 4px) 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 32px;
+}
+
+.product-item .product-item-link,
+.product-card .product-item-link {
+  color: var(--product-item-title-color);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.product-item .product-item-link:hover,
+.product-card .product-item-link:hover {
+  text-decoration: none;
+}
+
+/* Package / Weight */
+.product-item .package,
+.product-card .package {
+  font-family: var(--product-item-font-family);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+  color: var(--product-item-package-color);
+  margin: 0 0 10px 0;
+  min-height: 18px;
+}
+
+/* Price & Button Inner Row */
+.product-item .product-item-inner,
+.product-card .product-item-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: var(--spacing-xxsmall, 4px);
+  flex-wrap: wrap;
+}
+
+.product-item .price-box,
+.product-card .price-box {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+}
+
+.product-item .actions-primary,
+.product-card .actions-primary {
+  flex-shrink: 0;
+}
+
+.product-item .price-wrapper.final-price .price,
+.product-item .price-box .price,
+.product-card .price-wrapper.final-price .price,
+.product-card .price-box .price {
+  font-family: var(--product-item-font-family);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 18px;
+  color: var(--product-item-price-color);
+  white-space: nowrap;
+}
+
+.product-item .old-price .price,
+.product-card .old-price .price {
+  font-family: var(--product-item-font-family);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--product-item-old-price-color);
+  text-decoration: line-through;
+  margin-right: var(--spacing-xxsmall, 4px);
+}
+
+/* Add to Cart Button with Organic Shape (matching littlefarms.com) */
+.product-item .action.tocart,
+.product-item .action.primary,
+.product-item .tocart,
+.product-card .action.tocart,
+.product-card .action.primary,
+.product-card .tocart {
+  background-color: transparent;
+  background-image: url('../icons/littlefarms/shape-green.svg');
+  background-repeat: no-repeat;
+  background-position: 0% 0%;
+  background-size: 100% 100%;
+  color: var(--product-item-btn-color);
+  font-family: var(--product-item-font-family);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 14px;
+  min-width: 95px;
+  height: 32px;
+  padding: 8px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.product-item .action.tocart span,
+.product-item .action.primary span,
+.product-item .tocart span,
+.product-card .action.tocart span,
+.product-card .action.primary span,
+.product-card .tocart span {
+  display: inline;
+  color: inherit;
+  font: inherit;
+}
+
+.product-item .action.tocart:hover,
+.product-item .action.tocart:active,
+.product-item .action.tocart:focus,
+.product-item .action.primary:hover,
+.product-item .action.primary:active,
+.product-item .action.primary:focus,
+.product-item .tocart:hover,
+.product-item .tocart:active,
+.product-item .tocart:focus,
+.product-card .action.tocart:hover,
+.product-card .action.tocart:active,
+.product-card .action.tocart:focus,
+.product-card .action.primary:hover,
+.product-card .action.primary:active,
+.product-card .action.primary:focus,
+.product-card .tocart:hover,
+.product-card .tocart:active,
+.product-card .tocart:focus {
+  opacity: 0.8;
+  text-decoration: none;
+  transform: none;
+}
+
+.product-item .action.tocart:disabled,
+.product-item .action.primary:disabled,
+.product-item .tocart:disabled,
+.product-card .action.tocart:disabled,
+.product-card .action.primary:disabled,
+.product-card .tocart:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.product-item .action.tocart.is-loading,
+.product-card .action.tocart.is-loading {
+  position: relative;
+  color: transparent !important;
+}
+
+.product-item .action.tocart.is-loading::after,
+.product-card .action.tocart.is-loading::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--product-item-btn-loading-border);
+  border-top-color: var(--product-item-btn-color);
+  border-radius: 50%;
+  animation: tfs-spin 0.6s linear infinite;
+}
+
+@keyframes tfs-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .product-item .actions-primary,
+  .product-card .actions-primary,
+  .product-item .action.tocart,
+  .product-item .action.primary,
+  .product-item .tocart,
+  .product-card .action.tocart,
+  .product-card .action.primary,
+  .product-card .tocart {
+    width: 100%;
+  }
+}
+
+@media (min-width: 768px) {
+  .product-item .product-item-name,
+  .product-card .product-item-name {
+    font-size: 14px;
+    line-height: 18px;
+    min-height: 36px;
+  }
+
+  .product-item .price-wrapper.final-price .price,
+  .product-item .price-box .price,
+  .product-card .price-wrapper.final-price .price,
+  .product-card .price-box .price {
+    font-size: 16px;
+    line-height: 20px;
+  }
+
+  .product-item .action.tocart,
+  .product-item .action.primary,
+  .product-item .tocart,
+  .product-card .action.tocart,
+  .product-card .action.primary,
+  .product-card .tocart {
+    width: 125px;
+    min-width: 125px;
+    height: 46px;
+    padding: 14px 20px;
+    font-size: 14px;
+    line-height: 18px;
+  }
 }
 
