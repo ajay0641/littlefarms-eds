@@ -6,7 +6,7 @@
       "product-reviews-api-base": "https://748062-106maroongoat-stage.adobeioruntime.net/api/v1/web/product-reviews",
       "headers": {
         "all": {
-          "Store": "little_farms_store"
+          "Store": "little_farms_store_view"
         },
         "cs": {
           "Magento-Store-Code": "little_farms_store",
