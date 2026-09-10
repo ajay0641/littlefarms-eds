@@ -1,154 +1,17 @@
-/**
- * Ideas to Inspire block.
- * A heading followed by a slick-style transform carousel of image cards, each
- * with a centered title over the image and a link to a category.
- *
- * Content model (positional rows):
- *   Row 1  → cell 1 = section heading (h2)
- *   Row 2+ → each row is one card: cell 1 = image (wrapped in a link),
- *            cell 2 = title text (falls back to the link/alt text)
- *
- * @param {Element} block The ideas-to-inspire block element
- */
+import Splide from '../../scripts/vendor/splide/splide.esm.js';
+import { loadCSS } from '../../scripts/aem.js';
 
-const GAP = 16;
+// Load splide core styles
+loadCSS('/scripts/vendor/splide/splide-core.min.css');
+
+const CHEVRON_SVG = `
+  <svg width="12" height="7" viewBox="0 0 12 7" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M11.28.22a.75.75,0,0,0-1.06,0L5.75,4.69,1.28.22A.75.75,0,0,0,.22,1.28l5,5a.75.75,0,0,0,1.06,0l5-5A.75.75,0,0,0,11.28.22Z" fill="currentColor"/>
+  </svg>
+`;
 
 /**
- * Slides shown per view at a given viewport width (integer — like slick's
- * responsive slidesToShow, so cards are never partially cut).
- * @param {number} width Viewport width in px
- * @returns {number} whole number of cards to show
- */
-function slidesToShow(width) {
-  if (width >= 1200) return 5;
-  if (width >= 900) return 4;
-  if (width >= 600) return 3;
-  if (width >= 480) return 2;
-  return 1;
-}
-
-/**
- * Sizes each card so exactly N whole cards fill the viewport width.
- * @param {Element} carousel The carousel element
- */
-function layout(carousel) {
-  const track = carousel.querySelector('.ideas-to-inspire-track');
-  const viewport = carousel.querySelector('.ideas-to-inspire-viewport');
-  const show = slidesToShow(window.innerWidth);
-  const width = viewport.clientWidth;
-  const cardW = (width - (show - 1) * GAP) / show;
-  track.style.gap = `${GAP}px`;
-  track.querySelectorAll('.ideas-to-inspire-card').forEach((card) => {
-    card.style.flex = `0 0 ${cardW}px`;
-    card.style.width = `${cardW}px`;
-  });
-  carousel.dataset.show = show;
-  carousel.dataset.step = cardW + GAP;
-}
-
-/**
- * @param {Element} carousel The carousel element
- * @returns {number} the highest first-card index (so the last card ends flush)
- */
-function maxIndex(carousel) {
-  const track = carousel.querySelector('.ideas-to-inspire-track');
-  const total = track.children.length;
-  const show = parseInt(carousel.dataset.show || '1', 10);
-  return Math.max(0, total - show);
-}
-
-/**
- * Moves the carousel to the given card index (clamped) and updates UI.
- * @param {Element} carousel The carousel element
- * @param {number} index Target first-card index
- */
-function goTo(carousel, index) {
-  const track = carousel.querySelector('.ideas-to-inspire-track');
-  const max = maxIndex(carousel);
-  const next = Math.min(Math.max(0, index), max);
-  carousel.dataset.index = next;
-
-  const step = parseFloat(carousel.dataset.step) || 0;
-  track.style.transform = `translateX(-${next * step}px)`;
-
-  const prev = carousel.querySelector('.ideas-to-inspire-arrow-prev');
-  const nextBtn = carousel.querySelector('.ideas-to-inspire-arrow-next');
-  if (prev) prev.disabled = next <= 0;
-  if (nextBtn) nextBtn.disabled = next >= max;
-
-  const fill = carousel.querySelector('.ideas-to-inspire-progress-fill');
-  if (fill) {
-    const show = parseInt(carousel.dataset.show || '1', 10);
-    const total = track.children.length;
-    const widthPct = Math.min(100, Math.max(10, (show / total) * 100));
-    const progress = max > 0 ? next / max : 0;
-    fill.style.width = `${widthPct}%`;
-    fill.style.transform = `translateX(${progress * (100 - widthPct)}%)`;
-  }
-}
-
-/**
- * Adds pointer/touch drag support: follows the finger and snaps to the
- * nearest card on release.
- * @param {Element} carousel The carousel element
- */
-function initDrag(carousel) {
-  const track = carousel.querySelector('.ideas-to-inspire-track');
-  let startX = 0;
-  let deltaX = 0;
-  let baseOffset = 0;
-  let pending = false;
-  let dragging = false;
-  const DRAG_START = 6;
-
-  const onDown = (e) => {
-    pending = true;
-    dragging = false;
-    startX = e.clientX;
-    deltaX = 0;
-    const idx = parseInt(carousel.dataset.index || '0', 10);
-    baseOffset = idx * (parseFloat(carousel.dataset.step) || 0);
-  };
-
-  const onMove = (e) => {
-    if (!pending) return;
-    deltaX = e.clientX - startX;
-    if (!dragging) {
-      if (Math.abs(deltaX) < DRAG_START) return;
-      dragging = true;
-      track.classList.add('is-dragging');
-      carousel.setPointerCapture?.(e.pointerId);
-    }
-    track.style.transform = `translateX(-${baseOffset - deltaX}px)`;
-  };
-
-  const onUp = () => {
-    if (!pending) return;
-    pending = false;
-    if (!dragging) return;
-    dragging = false;
-    track.classList.remove('is-dragging');
-    const step = parseFloat(carousel.dataset.step) || 1;
-    const moved = Math.round(-deltaX / step);
-    goTo(carousel, parseInt(carousel.dataset.index || '0', 10) + moved);
-  };
-
-  carousel.addEventListener('pointerdown', onDown);
-  carousel.addEventListener('pointermove', onMove);
-  carousel.addEventListener('pointerup', onUp);
-  carousel.addEventListener('pointercancel', onUp);
-  carousel.addEventListener('pointerleave', onUp);
-  carousel.addEventListener('dragstart', (e) => e.preventDefault());
-  // A real drag should not trigger the card link.
-  track.querySelectorAll('a').forEach((a) => {
-    a.addEventListener('click', (e) => {
-      if (Math.abs(deltaX) > DRAG_START) e.preventDefault();
-    });
-  });
-}
-
-/**
- * loads and decorates the ideas-to-inspire block
+ * loads and decorates the ideas-to-inspire block using Splide
  * @param {Element} block The block element
  */
 export default function decorate(block) {
@@ -157,39 +20,45 @@ export default function decorate(block) {
 
   block.textContent = '';
 
-  // --- Heading ---
+  // 1. Heading row
   const headingRow = rows[0];
   const heading = document.createElement('div');
   heading.className = 'ideas-to-inspire-heading';
-  while (headingRow.firstChild) heading.append(headingRow.firstChild);
+  while (headingRow.firstChild) {
+    heading.append(headingRow.firstChild);
+  }
   block.append(heading);
 
-  // --- Carousel ---
-  const carousel = document.createElement('div');
-  carousel.className = 'ideas-to-inspire-carousel';
-  carousel.dataset.index = '0';
-
-  const viewport = document.createElement('div');
-  viewport.className = 'ideas-to-inspire-viewport';
+  // 2. Splide HTML structure
+  const splideEl = document.createElement('div');
+  splideEl.className = 'splide ideas-to-inspire-splide';
+  splideEl.setAttribute('aria-label', 'Ideas to Inspire');
 
   const track = document.createElement('div');
-  track.className = 'ideas-to-inspire-track';
+  track.className = 'splide__track';
 
+  const list = document.createElement('ul');
+  list.className = 'splide__list';
+
+  // 3. Slides
   rows.slice(1).forEach((row) => {
     const cells = [...row.children];
     const link = cells[0]?.querySelector('a');
     const media = cells[0]?.querySelector('picture, img');
     if (!media) return;
 
+    const href = link?.getAttribute('href') || '#';
+    const slide = document.createElement('li');
+    slide.className = 'splide__slide';
+
     const card = document.createElement('a');
     card.className = 'ideas-to-inspire-card';
-    const href = link?.getAttribute('href');
-    if (href) card.setAttribute('href', href);
+    card.setAttribute('href', href);
 
-    const imageWrap = document.createElement('span');
-    imageWrap.className = 'ideas-to-inspire-image';
-    imageWrap.append(media);
-    card.append(imageWrap);
+    const imageWrapper = document.createElement('span');
+    imageWrapper.className = 'ideas-to-inspire-image';
+    imageWrapper.append(media);
+    card.append(imageWrapper);
 
     const titleText = (cells[1]?.textContent || link?.textContent || media.querySelector('img')?.alt || '').trim();
     if (titleText) {
@@ -199,44 +68,72 @@ export default function decorate(block) {
       card.append(title);
     }
 
-    track.append(card);
+    card.setAttribute('aria-label', titleText || 'Idea');
+    slide.append(card);
+    list.append(slide);
   });
 
-  viewport.append(track);
+  track.append(list);
 
-  // --- Arrows ---
-  const prev = document.createElement('button');
-  prev.className = 'ideas-to-inspire-arrow ideas-to-inspire-arrow-prev';
-  prev.type = 'button';
-  prev.setAttribute('aria-label', 'Previous ideas');
+  // 4. Custom arrows
+  const arrows = document.createElement('div');
+  arrows.className = 'splide__arrows splide__arrows--ltr';
 
-  const next = document.createElement('button');
-  next.className = 'ideas-to-inspire-arrow ideas-to-inspire-arrow-next';
-  next.type = 'button';
-  next.setAttribute('aria-label', 'Next ideas');
+  const prevBtn = document.createElement('button');
+  prevBtn.className = 'splide__arrow splide__arrow--prev ideas-to-inspire-arrow ideas-to-inspire-arrow-prev';
+  prevBtn.type = 'button';
+  prevBtn.setAttribute('aria-label', 'Previous slide');
+  prevBtn.innerHTML = CHEVRON_SVG;
 
-  prev.addEventListener('click', () => goTo(carousel, parseInt(carousel.dataset.index || '0', 10) - 1));
-  next.addEventListener('click', () => goTo(carousel, parseInt(carousel.dataset.index || '0', 10) + 1));
+  const nextBtn = document.createElement('button');
+  nextBtn.className = 'splide__arrow splide__arrow--next ideas-to-inspire-arrow ideas-to-inspire-arrow-next';
+  nextBtn.type = 'button';
+  nextBtn.setAttribute('aria-label', 'Next slide');
+  nextBtn.innerHTML = CHEVRON_SVG;
 
-  // --- Progress bar ---
-  const progress = document.createElement('div');
-  progress.className = 'ideas-to-inspire-progress';
-  const fill = document.createElement('div');
-  fill.className = 'ideas-to-inspire-progress-fill';
-  progress.append(fill);
+  arrows.append(prevBtn, nextBtn);
+  splideEl.append(track, arrows);
+  block.append(splideEl);
 
-  carousel.append(viewport, prev, next, progress);
-  block.append(carousel);
+  // 5. Initialize Splide with littlefarms.com specs
+  const splide = new Splide(splideEl, {
+    type: 'slide',
+    rewind: false,
+    perPage: 4,
+    perMove: 4,
+    gap: '20px',
+    padding: { right: '20px' },
+    arrows: true,
+    pagination: true,
+    drag: true,
+    keyboard: 'focused',
+    speed: 400,
+    breakpoints: {
+      1199: {
+        perPage: 3,
+        perMove: 3,
+        padding: { right: '20px' },
+        gap: '20px',
+      },
+      768: {
+        perPage: 3,
+        perMove: 3,
+        padding: { right: '30px' },
+        arrows: false,
+        gap: '15px',
+      },
+      560: {
+        perPage: 1,
+        perMove: 1,
+        padding: { right: '102px' },
+        arrows: false,
+        gap: '15px',
+      },
+    },
+  });
 
-  initDrag(carousel);
-
-  const refresh = () => {
-    layout(carousel);
-    goTo(carousel, parseInt(carousel.dataset.index || '0', 10));
-  };
-  requestAnimationFrame(refresh);
-  window.addEventListener('resize', refresh);
-  track.querySelectorAll('img').forEach((img) => {
-    if (!img.complete) img.addEventListener('load', refresh, { once: true });
+  splide.mount();
+  requestAnimationFrame(() => {
+    splide.refresh();
   });
 }

@@ -71,55 +71,63 @@ main > .category-icons-container {
   text-decoration: underline;
 }
 
-/* ---- Track ---- */
+/* ---- Track (Splide) ---- */
 .category-icons .category-icons-viewport {
   overflow: hidden;
+  position: relative;
 }
 
 .category-icons .category-icons-track {
-  --category-icons-visible: 4;
-  --category-icons-gap: 16px;
-
   display: flex;
-  gap: var(--category-icons-gap);
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
+  margin: 0;
   padding: 4px 0;
+  list-style: none;
 }
 
-.category-icons .category-icons-track::-webkit-scrollbar {
-  display: none;
+.category-icons .category-icons-slide {
+  display: flex;
+  justify-content: center;
+  list-style: none;
+  margin: 0;
+  box-sizing: border-box;
 }
 
-/* Each item is sized so exactly N (--category-icons-visible) fit in the row */
 .category-icons .category-icons-item {
-  flex: 0 0 calc((100% - (var(--category-icons-visible) - 1) * var(--category-icons-gap)) / var(--category-icons-visible));
-  scroll-snap-align: start;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
   text-decoration: none;
   color: var(--category-icons-text-color);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
 }
 
 .category-icons .category-icons-item:hover {
   text-decoration: none;
 }
 
-.category-icons .category-icons-item:last-child .category-icons-icon {
+.category-icons .splide__arrow:disabled,
+.category-icons .category-icons-arrow[disabled] {
+  opacity: 0;
+  visibility: hidden;
+  cursor: default;
+  pointer-events: none;
+}
+
+.category-icons .category-icons-slide:last-child .category-icons-icon {
   background: none;
 }
 
-.category-icons .category-icons-item:last-child .category-icons-icon img {
+.category-icons .category-icons-slide:last-child .category-icons-icon img {
   width: 100%;
 }
 
 .category-icons .category-icons-icon {
-  width: 69px;
-  height: 68px;
+  width: 70px;
+  height: 70px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -136,6 +144,9 @@ main > .category-icons-container {
   display: block;
   object-fit: contain;
   width: 44px;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
 }
 
 .category-icons .category-icons-label {
@@ -148,9 +159,14 @@ main > .category-icons-container {
 }
 
 /* ---- Arrows ---- */
+.category-icons .category-icons-splide {
+  position: relative;
+}
+
 .category-icons .category-icons-arrow {
   position: absolute;
-  top: calc(50% + 12px);
+  top: 34px;
+  transform: translateY(-50%);
   width: 32px;
   height: 32px;
   border: none;
@@ -172,7 +188,7 @@ main > .category-icons-container {
 }
 
 .category-icons .category-icons-arrow-prev {
-  left: -4px;
+  left: -20px;
 }
 
 .category-icons .category-icons-arrow-prev::before {
@@ -181,17 +197,12 @@ main > .category-icons-container {
 }
 
 .category-icons .category-icons-arrow-next {
-  right: -4px;
+  right: -20px;
 }
 
 .category-icons .category-icons-arrow-next::before {
   transform: rotate(45deg);
   margin-right: 3px;
-}
-
-.category-icons .category-icons-arrow[disabled] {
-  opacity: 0;
-  pointer-events: none;
 }
 
 /* breakpoint-exception: visible items per breakpoint 4/5/6/8; reference site uses 480/768 for the aisle carousel */
@@ -206,6 +217,11 @@ main > .category-icons-container {
   .category-icons .category-icons-track {
     --category-icons-visible: 6;
     --category-icons-gap: 24px;
+  }
+
+  .category-icons .category-icons-icon {
+    width: 85px;
+    height: 85px;
   }
 
   .category-icons .category-icons-header {
