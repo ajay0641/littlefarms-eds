@@ -21,7 +21,7 @@ function buildCategoryTree(categories, parentId) {
     .map((category) => {
       // Clean up leading/trailing slashes from the original backend data token
       const cleanUrlPath = category.urlPath.replace(/^\//, '').replace(/\/$/, '');
-      console.log(category);
+
       return {
         id: category.id,
         name: category.name,
@@ -35,9 +35,7 @@ function buildCategoryTree(categories, parentId) {
 
 export async function fetchCommerceCategories() {
   try {
-
     const rootCategoryId = await getConfigValue('plugins.picker.rootCategory') || '2';
-    console.log(rootCategoryId);
     const response = await CS_FETCH_GRAPHQL.fetchGraphQl(
       CATEGORY_TREE_QUERY,
       { variables: { rootCategoryIds: [rootCategoryId] } },
@@ -47,10 +45,11 @@ export async function fetchCommerceCategories() {
       console.error('Category navigation mesh query execution errors:', response.errors);
       return [];
     }
-    console.log(response.data);
+
     return buildCategoryTree(response.data?.categories || [], rootCategoryId);
   } catch (error) {
     console.error('Critical operational failure pulling commerce metadata maps:', error);
     return [];
   }
 }
+
