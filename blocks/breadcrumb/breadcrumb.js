@@ -97,6 +97,12 @@ export default async function decorate(block) {
     return;
   }
 
+  const wrapper = block.closest('.breadcrumb-wrapper');
+  const section = wrapper?.parentElement;
+  if (section && section.firstElementChild !== wrapper) {
+    section.prepend(wrapper);
+  }
+
   block.innerHTML = '';
   block.closest('.section')?.classList.add('breadcrumb-container');
 

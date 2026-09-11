@@ -15,8 +15,8 @@ import {
 import { getMetadata } from '../aem.js';
 
 export const IMAGES_SIZES = {
-  width: 960,
-  height: 1191,
+  width: 500,
+  height: 500,
 };
 
 /**

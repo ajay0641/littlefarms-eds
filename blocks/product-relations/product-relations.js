@@ -1,6 +1,7 @@
 import { events } from '@dropins/tools/event-bus.js';
 import * as wishlistApi from '@dropins/storefront-wishlist/api.js';
-import { readBlockConfig } from '../../scripts/aem.js';
+import { loadCSS, readBlockConfig } from '../../scripts/aem.js';
+import { Splide } from '../../scripts/vendor/splide/splide.esm.js';
 import {
   checkIsAuthenticated,
   CORE_FETCH_GRAPHQL,
@@ -10,19 +11,18 @@ import {
   getProductSku,
   rootLink,
 } from '../../scripts/commerce.js';
+import { getUserTokenCookie } from '../../scripts/initializers/index.js';
 import '../../scripts/initializers/wishlist.js';
 import {
+  showCartErrorToast,
+  showCartSuccessToast,
   showWishlistErrorToast,
   showWishlistLoginToast,
   showWishlistSuccessToast,
 } from '../../scripts/components/tfs-wishlist-toast/tfs-wishlist-toast.js';
 import { showWishlistAuthModal } from '../../scripts/wishlist-auth-modal.js';
 
-function showNotification(options) {
-  if (typeof window.showNotification === 'function') {
-    window.showNotification(options);
-  }
-}
+loadCSS('/scripts/vendor/splide/splide-core.min.css');
 
 /**
  * Standard relationship parameter registry mappings
@@ -39,67 +39,178 @@ const RELATION_REGISTRY = {
   },
 };
 
-events.on('wishlist/alert', ({ action, item }) => {
-  const productName = item?.product?.name || 'Product';
-  const routeToWishlist = rootLink('/wishlist');
-  if (action === 'add') {
-    showNotification({
-      type: 'success',
-      message: `${productName} has been added to your Wish List.`,
-      linkText: 'View Wish List',
-      linkUrl: routeToWishlist,
-    });
-  } else if (action === 'remove') {
-    showNotification({
-      type: 'info',
-      message: `${productName} has been removed from your Wish List.`,
-      linkText: 'View Wish List',
-      linkUrl: routeToWishlist,
-    });
-  } else if (action === 'addError') {
-    showNotification({
-      type: 'error',
-      message: `Could not add ${productName} to your Wish List.`,
-    });
-  } else if (action === 'removeError') {
-    showNotification({
-      type: 'error',
-      message: `Could not remove ${productName} from your Wish List.`,
-    });
-  }
-}, { eager: true });
+/**
+ * @param {{ isPriceRange?: boolean, addToCartAllowed?: boolean }} product
+ * @returns {boolean}
+ */
+function requiresPdpConfiguration(product) {
+  return product.isPriceRange === true || product.addToCartAllowed === false;
+}
 
-function updateWishlistButtonState(button, sku) {
-  if (!button || !sku) return;
-  if (!checkIsAuthenticated()) {
-    button.classList.remove('is-active');
-    button.setAttribute('aria-pressed', 'false');
-    const path = button.querySelector('path');
-    if (path) path.setAttribute('fill', 'none');
-    return;
-  }
-  const inWishlist = !!wishlistApi.findInPersistedAllWishlistItems(sku);
-  button.classList.toggle('is-active', inWishlist);
-  button.setAttribute('aria-pressed', inWishlist ? 'true' : 'false');
-  const path = button.querySelector('path');
-  if (path) {
-    path.setAttribute('fill', inWishlist ? 'currentColor' : 'none');
+/**
+ * @param {HTMLElement|null} button
+ * @param {boolean} loading
+ */
+function setActionLoading(button, loading) {
+  if (!button) return;
+  button.classList.toggle('is-loading', loading);
+  button.toggleAttribute('aria-busy', loading);
+  if (loading) {
+    button.setAttribute('disabled', '');
+  } else {
+    button.removeAttribute('disabled');
   }
 }
 
-function formatPrice(value, currency = 'USD') {
-  if (value === undefined || value === null || Number.isNaN(value)) return '';
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currency || 'USD',
-    minimumFractionDigits: 2,
-  }).format(value);
+/**
+ * @param {typeof import('@dropins/storefront-cart/api.js')} cartApi
+ */
+function syncCartAuthHeaders(cartApi) {
+  if (!cartApi?.setFetchGraphQlHeader) return;
+  const token = getUserTokenCookie();
+  if (token) {
+    cartApi.setFetchGraphQlHeader('Authorization', `Bearer ${token}`);
+  } else {
+    cartApi.removeFetchGraphQlHeader('Authorization');
+  }
+}
+
+/**
+ * @param {typeof import('@dropins/storefront-cart/api.js')} cartApi
+ */
+async function ensureCartReady(cartApi) {
+  if (!cartApi || cartApi.getCartDataFromCache()) return;
+
+  await new Promise((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+
+    events.on('cart/initialized', finish, { eager: true });
+    window.setTimeout(finish, 5000);
+  });
+}
+
+/**
+ * @param {import('@dropins/storefront-cart/data/models').CartModel|null|undefined} cart
+ * @param {string} sku
+ * @param {number} previousQuantity
+ * @returns {boolean}
+ */
+function wasProductAddedToCart(cart, sku, previousQuantity) {
+  if (!cart) return false;
+
+  const normalizedSku = sku.toUpperCase();
+  const itemAdded = (cart.items || []).some((item) => {
+    const itemSku = (item.product?.sku || item.sku || '').toUpperCase();
+    const topSku = (item.product?.topLevelSku || item.topLevelSku || '').toUpperCase();
+    return itemSku === normalizedSku || topSku === normalizedSku;
+  });
+
+  return itemAdded || (cart.totalQuantity ?? 0) > previousQuantity;
+}
+
+/**
+ * @param {typeof import('@dropins/storefront-wishlist/api.js')} api
+ */
+function syncWishlistAuthHeaders(api) {
+  if (!api?.setFetchGraphQlHeader) return;
+  const token = getUserTokenCookie();
+  if (token) {
+    api.setFetchGraphQlHeader('Authorization', `Bearer ${token}`);
+  } else {
+    api.removeFetchGraphQlHeader('Authorization');
+  }
+}
+
+/**
+ * @param {HTMLElement} button
+ * @param {string} sku
+ * @param {typeof import('@dropins/storefront-wishlist/api.js')} api
+ */
+function updateWishlistButtonState(button, sku, api) {
+  if (!checkIsAuthenticated()) {
+    button.classList.remove('is-active');
+    button.setAttribute('aria-pressed', 'false');
+    return;
+  }
+
+  const inWishlist = !!api.findInPersistedAllWishlistItems(sku);
+  button.classList.toggle('is-active', inWishlist);
+  button.setAttribute('aria-pressed', inWishlist ? 'true' : 'false');
+}
+
+/**
+ * @param {Element} block
+ * @param {typeof import('@dropins/storefront-wishlist/api.js')} api
+ */
+function resyncWishlistButtons(block, api) {
+  block.querySelectorAll('.action.towishlist, .towishlist').forEach((button) => {
+    if (!(button instanceof HTMLElement)) return;
+    const { sku } = button.dataset;
+    if (sku) updateWishlistButtonState(button, sku, api);
+  });
+}
+
+/**
+ * @param {typeof import('@dropins/storefront-wishlist/api.js')} api
+ * @returns {boolean}
+ */
+function canUseWishlistApi(api) {
+  const cfg = api.getConfig?.() || api.config;
+  return cfg?.wishlistIsEnabled !== false;
+}
+
+/**
+ * @param {unknown} error
+ * @returns {string}
+ */
+function getWishlistErrorMessage(error) {
+  if (error instanceof Error && error.message) return error.message;
+  return 'We could not update your wishlist. Please try again.';
+}
+
+/**
+ * @param {unknown} error
+ * @returns {string}
+ */
+function getCartErrorMessage(error) {
+  if (error instanceof Error && error.message) return error.message;
+  return 'We could not add this item to your cart. Please try again.';
+}
+
+/**
+ * Formats a currency amount.
+ * @param {number|undefined} amount
+ * @param {string} currency
+ * @returns {string}
+ */
+function formatPrice(amount, currency = 'USD') {
+  if (typeof amount !== 'number') return '';
+  try {
+    return new Intl.NumberFormat('en-SG', {
+      style: 'currency',
+      currency,
+    }).format(amount);
+  } catch {
+    return `$${amount.toFixed(2)}`;
+  }
 }
 
 function resolveImageUrl(url = '') {
   if (!url) return '';
   if (url.startsWith('//')) return `https:${url}`;
   return url;
+}
+
+function findAttribute(attributes, names) {
+  if (!attributes || !attributes.length) return undefined;
+  const lowerNames = names.map((n) => n.toLowerCase());
+  const match = attributes.find((a) => a?.name && lowerNames.includes(a.name.toLowerCase()));
+  return match?.value;
 }
 
 function matchesRelationType(linkTypes = [], targetType = 'related') {
@@ -111,7 +222,7 @@ function matchesRelationType(linkTypes = [], targetType = 'related') {
 }
 
 function normalizeProductView(pv) {
-  if (!pv) return null;
+  if (!pv || !pv.sku || !pv.name) return null;
 
   let imageUrl = '';
   let imageLabel = pv.name || 'Product';
@@ -119,11 +230,14 @@ function normalizeProductView(pv) {
     imageUrl = pv.small_image.url;
     imageLabel = pv.small_image.label || imageLabel;
   } else if (Array.isArray(pv.images)) {
-    const primaryImg = pv.images.find((img) => img.roles?.includes('image')) || pv.images[0];
+    const primaryImg = pv.images.find((img) => img.roles?.includes('image'))
+      || pv.images.find((img) => img.roles?.includes('small_image'))
+      || pv.images[0];
     imageUrl = primaryImg?.url || '';
     imageLabel = primaryImg?.label || imageLabel;
   }
 
+  const isPriceRange = !!pv.priceRange;
   const priceObj = pv.price || pv.priceRange?.minimum || pv.price_range?.minimum_price || {};
   const finalPrice = priceObj.final?.amount?.value ?? priceObj.final_price?.value;
   const regularPrice = priceObj.regular?.amount?.value ?? priceObj.regular_price?.value;
@@ -133,26 +247,36 @@ function normalizeProductView(pv) {
     || priceObj.regular_price?.currency
     || 'USD';
 
+  let savePercent = 0;
+  if (typeof regularPrice === 'number' && typeof finalPrice === 'number'
+    && regularPrice > finalPrice && regularPrice > 0) {
+    savePercent = Math.round(((regularPrice - finalPrice) / regularPrice) * 100);
+  }
+
+  const rawSubtitle = findAttribute(
+    pv.attributes,
+    ['subtitle', 'brand', 'manufacturer', 'short_description'],
+  );
+  const subtitle = rawSubtitle ? rawSubtitle.replace(/<[^>]*>/g, '').trim() : '';
+  const rawPackage = findAttribute(pv.attributes, ['package', 'weight', 'net_weight', 'size']);
+  const pkg = rawPackage ? rawPackage.replace(/<[^>]*>/g, '').trim() : '';
+
   return {
     sku: pv.sku,
     name: pv.name || 'Product',
-    url_key: pv.urlKey || pv.url_key || pv.sku,
-    small_image: {
-      url: resolveImageUrl(imageUrl),
-      label: imageLabel,
-    },
-    price_range: {
-      minimum_price: {
-        final_price: {
-          value: finalPrice,
-          currency,
-        },
-        regular_price: {
-          value: regularPrice,
-          currency,
-        },
-      },
-    },
+    subtitle,
+    brand: subtitle,
+    package: pkg,
+    urlKey: pv.urlKey || pv.url_key || pv.sku,
+    imageUrl: resolveImageUrl(imageUrl),
+    imageLabel,
+    finalPrice,
+    regularPrice,
+    currency,
+    isPriceRange,
+    savePercent,
+    inStock: pv.inStock !== false && pv.stock_status !== 'OUT_OF_STOCK',
+    addToCartAllowed: pv.addToCartAllowed !== false,
   };
 }
 
@@ -165,10 +289,17 @@ async function fetchProductsBySkus(skus = []) {
         sku
         name
         urlKey
+        inStock
+        addToCartAllowed
         images {
           url
           label
           roles
+        }
+        attributes {
+          name
+          label
+          value
         }
         ... on SimpleProductView {
           price {
@@ -243,10 +374,17 @@ async function fetchAssignedRelationsCS(skuInput, relationType = 'related') {
             sku
             name
             urlKey
+            inStock
+            addToCartAllowed
             images {
               url
               label
               roles
+            }
+            attributes {
+              name
+              label
+              value
             }
             ... on SimpleProductView {
               price {
@@ -310,7 +448,7 @@ async function fetchAssignedRelationsCS(skuInput, relationType = 'related') {
 
       matchingLinks.forEach((link) => {
         const item = link.product;
-        if (item && item.sku && !inputSkuSet.has(item.sku) && !seenSkus.has(item.sku)) {
+        if (item?.sku && !inputSkuSet.has(item.sku) && !seenSkus.has(item.sku)) {
           seenSkus.add(item.sku);
           const normalized = normalizeProductView(item);
           if (normalized) {
@@ -386,8 +524,7 @@ async function fetchAssignedRelationsCore(skuInput, relationType = 'related') {
     response.data.products.items.forEach((item) => {
       const relatedItems = item[targetField] || [];
       relatedItems.forEach((relItem) => {
-        const isValid = relItem
-          && relItem.sku
+        const isValid = relItem?.sku
           && !inputSkuSet.has(relItem.sku)
           && !seenSkus.has(relItem.sku);
         if (isValid) {
@@ -408,7 +545,8 @@ async function fetchAssignedRelationsCore(skuInput, relationType = 'related') {
 
 async function fetchRelationProducts(sku, config, relationType = 'related') {
   // 1. Check if author specified explicit SKUs in block config
-  const skuConfig = config.productskus || config['product-skus'] || config.productSkus || config.skus;
+  const skuConfig = config.productskus || config['product-skus']
+    || config.productSkus || config.skus;
   const specifiedSkus = skuConfig
     ? String(skuConfig).split(',').map((s) => s.trim()).filter(Boolean)
     : [];
@@ -434,51 +572,231 @@ async function fetchRelationProducts(sku, config, relationType = 'related') {
     }
   }
 
-  // If no assigned relations found, do not render block
   return [];
 }
 
-function setupSlider(track, prevBtn, nextBtn) {
-  const getMaxScroll = () => Math.max(0, track.scrollWidth - track.clientWidth);
+/**
+ * Builds a Little Farms styled product card slide for Splide matching styles.css.
+ * @param {any} product
+ * @param {typeof import('@dropins/storefront-cart/api.js')} cartApi
+ * @param {typeof import('@dropins/storefront-wishlist/api.js')} api
+ * @returns {HTMLElement}
+ */
+function buildProductSlide(product, cartApi, api) {
+  const slide = document.createElement('li');
+  slide.className = 'splide__slide product-relations__slide tfs-product-slider__slide';
 
-  const updateButtons = () => {
-    requestAnimationFrame(() => {
-      const maxScroll = getMaxScroll();
-      const atStart = track.scrollLeft <= 0;
-      const atEnd = track.scrollLeft >= Math.max(0, maxScroll - 1);
-      prevBtn.disabled = atStart;
-      nextBtn.disabled = atEnd;
-    });
-  };
+  const productUrl = getProductLink(product.urlKey, product.sku);
+  const card = document.createElement('div');
+  card.className = 'product-item';
 
-  const scrollStep = () => Math.max(track.clientWidth * 0.75, 280);
+  const itemInfo = document.createElement('div');
+  itemInfo.className = 'product-item-info';
 
-  prevBtn.addEventListener('click', () => {
-    track.scrollBy({ left: -scrollStep(), behavior: 'smooth' });
-  });
+  // --- Photo + Badge Link ---
+  const photoLink = document.createElement('a');
+  photoLink.className = 'product photo product-item-photo';
+  photoLink.href = productUrl;
+  photoLink.setAttribute('aria-label', product.name);
 
-  nextBtn.addEventListener('click', () => {
-    track.scrollBy({ left: scrollStep(), behavior: 'smooth' });
-  });
+  const img = document.createElement('img');
+  img.className = 'product-image-photo';
+  img.src = product.imageUrl || '/styles/images/placeholder.jpg';
+  img.alt = product.imageLabel || product.name;
+  img.loading = 'lazy';
+  img.width = 255;
+  img.height = 255;
+  photoLink.append(img);
 
-  track.addEventListener('scroll', updateButtons, { passive: true });
-  window.addEventListener('resize', updateButtons);
-
-  if ('ResizeObserver' in window) {
-    const resizeObserver = new ResizeObserver(updateButtons);
-    resizeObserver.observe(track);
+  // Optional Badge (e.g. Save %)
+  if (product.savePercent && product.savePercent > 0) {
+    const badge = document.createElement('div');
+    badge.className = 'product-item-label product-item-label--save';
+    badge.textContent = `Save ${product.savePercent}%`;
+    photoLink.append(badge);
   }
 
-  track.querySelectorAll('img').forEach((img) => {
-    if (img.complete) {
-      updateButtons();
-    } else {
-      img.addEventListener('load', updateButtons, { once: true });
+  itemInfo.append(photoLink);
+
+  // --- Details Wrapper ---
+  const details = document.createElement('div');
+  details.className = 'product-item-details';
+
+  // Brand row with wishlist heart
+  const metaRow = document.createElement('div');
+  metaRow.className = 'product-item-meta';
+
+  if (product.subtitle || product.brand) {
+    const brand = document.createElement('span');
+    brand.className = 'brand';
+    brand.textContent = product.subtitle || product.brand;
+    metaRow.append(brand);
+  }
+
+  const wishlistBtn = document.createElement('button');
+  wishlistBtn.type = 'button';
+  wishlistBtn.className = 'action towishlist';
+  wishlistBtn.dataset.sku = product.sku;
+  wishlistBtn.setAttribute('aria-label', 'Add to Shopping List');
+
+  wishlistBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!checkIsAuthenticated()) {
+      showWishlistLoginToast(() => {
+        showWishlistAuthModal();
+      });
+      return;
+    }
+
+    if (requiresPdpConfiguration(product)) {
+      window.location.href = productUrl;
+      return;
+    }
+
+    if (!canUseWishlistApi(api)) {
+      showWishlistErrorToast('Wishlist is not available for this store.');
+      return;
+    }
+
+    syncWishlistAuthHeaders(api);
+    const existing = api.findInPersistedAllWishlistItems(product.sku);
+    const isRemove = !!existing;
+
+    setActionLoading(wishlistBtn, true);
+    try {
+      if (isRemove) {
+        await api.removeProductsFromWishlist([existing]);
+      } else {
+        await api.addProductsToWishlist([{ sku: product.sku, quantity: 1 }]);
+      }
+      updateWishlistButtonState(wishlistBtn, product.sku, api);
+      await showWishlistSuccessToast(isRemove ? 'remove' : 'add', product.name);
+    } catch (err) {
+      await showWishlistErrorToast(getWishlistErrorMessage(err));
+      console.error('Product Relations: wishlist toggle failed', err);
+    } finally {
+      setActionLoading(wishlistBtn, false);
     }
   });
 
-  requestAnimationFrame(updateButtons);
-  window.setTimeout(updateButtons, 100);
+  metaRow.append(wishlistBtn);
+  details.append(metaRow);
+
+  // Title Link
+  const titleWrap = document.createElement('strong');
+  titleWrap.className = 'product name product-item-name';
+  const titleLink = document.createElement('a');
+  titleLink.className = 'product-item-link';
+  titleLink.href = productUrl;
+  titleLink.title = product.name;
+  titleLink.textContent = product.name;
+  titleWrap.append(titleLink);
+  details.append(titleWrap);
+
+  // Package / weight value if present
+  if (product.package) {
+    const packageEl = document.createElement('div');
+    packageEl.className = 'package';
+    packageEl.textContent = product.package;
+    details.append(packageEl);
+  }
+
+  // Price and Add to Cart row
+  const innerRow = document.createElement('div');
+  innerRow.className = 'product-item-inner';
+
+  const leftBox = document.createElement('div');
+  leftBox.className = 'left';
+
+  const priceBox = document.createElement('div');
+  priceBox.className = 'price-box price-final_price';
+
+  const isDiscounted = product.regularPrice && product.finalPrice
+    && product.regularPrice > product.finalPrice;
+  if (isDiscounted) {
+    const oldPrice = document.createElement('span');
+    oldPrice.className = 'old-price';
+    const oldVal = document.createElement('span');
+    oldVal.className = 'price';
+    oldVal.textContent = formatPrice(product.regularPrice, product.currency);
+    oldPrice.append(oldVal);
+    priceBox.append(oldPrice);
+  }
+
+  const finalPrice = document.createElement('span');
+  finalPrice.className = `price-wrapper final-price${isDiscounted ? ' special-price' : ''}`;
+  const priceVal = document.createElement('span');
+  priceVal.className = 'price';
+  priceVal.textContent = formatPrice(product.finalPrice, product.currency);
+  finalPrice.append(priceVal);
+  priceBox.append(finalPrice);
+  leftBox.append(priceBox);
+  innerRow.append(leftBox);
+
+  // Add to Cart Button
+  const actionsWrap = document.createElement('div');
+  actionsWrap.className = 'actions-primary';
+
+  const atcBtn = document.createElement('button');
+  atcBtn.type = 'button';
+  atcBtn.className = 'action tocart primary';
+  atcBtn.title = 'Add to Cart';
+  atcBtn.innerHTML = '<span>Add to Cart</span>';
+
+  atcBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (requiresPdpConfiguration(product)) {
+      window.location.href = productUrl;
+      return;
+    }
+
+    if (product.inStock === false) {
+      showCartErrorToast('This product is currently out of stock.');
+      return;
+    }
+
+    setActionLoading(atcBtn, true);
+    try {
+      syncCartAuthHeaders(cartApi);
+      await ensureCartReady(cartApi);
+
+      const previousQuantity = cartApi?.getCartDataFromCache()?.totalQuantity ?? 0;
+      const cart = await cartApi?.addProductsToCart([{ sku: product.sku, quantity: 1 }]);
+
+      if (!wasProductAddedToCart(cart, product.sku, previousQuantity)) {
+        throw new Error('Product was not added to your cart. Please try again.');
+      }
+
+      try {
+        await cartApi?.getCartData();
+      } catch {
+        // Cart refresh is best-effort
+      }
+
+      await showCartSuccessToast(product.name, () => {
+        window.location.href = rootLink('/cart');
+      });
+    } catch (err) {
+      await showCartErrorToast(getCartErrorMessage(err));
+      console.error('Product Relations: add to cart failed', err);
+    } finally {
+      setActionLoading(atcBtn, false);
+    }
+  });
+
+  actionsWrap.append(atcBtn);
+  innerRow.append(actionsWrap);
+
+  details.append(innerRow);
+  itemInfo.append(details);
+  card.append(itemInfo);
+  slide.append(card);
+
+  return slide;
 }
 
 /**
@@ -486,12 +804,16 @@ function setupSlider(track, prevBtn, nextBtn) {
  * @param {HTMLElement} block
  */
 export default async function decorate(block) {
-  // 1. Extract block configuration BEFORE clearing HTML
   const config = readBlockConfig(block);
-
-  // 2. IMMEDIATELY clear original block table HTML so un-decorated table is hidden instantly
   const rawContent = block.textContent;
   block.textContent = '';
+
+  let cartApi = null;
+  try {
+    cartApi = await import('@dropins/storefront-cart/api.js');
+  } catch (err) {
+    console.debug('Failed to import storefront-cart:', err);
+  }
 
   const labels = await fetchPlaceholders();
 
@@ -520,9 +842,8 @@ export default async function decorate(block) {
 
   const relation = RELATION_REGISTRY[authorInput] || RELATION_REGISTRY.related;
   const headingTitle = config.title || config.heading || relation.defaultTitle;
-  const subtitle = config.subtitle || config.subTitle || config['sub-title'];
 
-  // 3. Resolve product SKU (PDP or Cart)
+  // Resolve product SKU (PDP or Cart)
   let sku = getProductSku();
   if (!sku) {
     sku = document.querySelector('meta[name="product-sku"]')?.content
@@ -541,28 +862,29 @@ export default async function decorate(block) {
 
   if (!sku || (Array.isArray(sku) && sku.length === 0)) {
     try {
-      const cartApi = await import('@dropins/storefront-cart/api.js');
-      let cartData = cartApi.getCartDataFromCache();
-      if (!cartData || !cartData.items || cartData.items.length === 0) {
-        cartData = await Promise.race([
-          cartApi.getCartData(),
-          new Promise((resolve) => {
-            events.on('cart/data', (data) => resolve(data), { eager: true });
-            setTimeout(() => resolve(null), 1500);
-          }),
-        ]);
-      }
-      if (cartData?.items && cartData.items.length > 0) {
-        sku = cartData.items
-          .map((item) => item.topLevelSku || item.sku)
-          .filter(Boolean);
+      if (cartApi) {
+        let cartData = cartApi.getCartDataFromCache();
+        if (!cartData || !cartData.items || cartData.items.length === 0) {
+          cartData = await Promise.race([
+            cartApi.getCartData(),
+            new Promise((resolve) => {
+              events.on('cart/data', (data) => resolve(data), { eager: true });
+              setTimeout(() => resolve(null), 1500);
+            }),
+          ]);
+        }
+        if (cartData?.items && cartData.items.length > 0) {
+          sku = cartData.items
+            .map((item) => item.topLevelSku || item.sku)
+            .filter(Boolean);
+        }
       }
     } catch (err) {
       // Ignore error
     }
   }
 
-  // 4. Fetch related products
+  // Fetch related products
   const items = await fetchRelationProducts(sku, config, authorInput);
 
   // Remove loading indicator
@@ -577,219 +899,110 @@ export default async function decorate(block) {
     return;
   }
 
-  // 5. Render product relations heading/subtitle and slider container
+  // Render product relations slider container as per tfs-product-slider
   block.setAttribute('data-relation-type', authorInput);
+  block.replaceChildren();
 
-  const headerContainer = document.createElement('div');
-  headerContainer.className = 'product-relations-header';
+  const container = document.createElement('div');
+  container.className = 'product-relations__container tfs-product-slider__container';
 
-  const sectionHeading = document.createElement('h3');
-  sectionHeading.className = 'product-relations-heading';
-  sectionHeading.textContent = headingTitle;
-  headerContainer.appendChild(sectionHeading);
+  if (headingTitle) {
+    const panel = document.createElement('div');
+    panel.className = 'product-relations__panel tfs-product-slider__panel block-heading';
 
-  if (subtitle) {
-    const subtitleEl = document.createElement('p');
-    subtitleEl.className = 'product-relations-subtitle';
-    subtitleEl.textContent = subtitle;
-    headerContainer.appendChild(subtitleEl);
+    const titleBox = document.createElement('div');
+    titleBox.className = 'block-title';
+    const h = document.createElement('h2');
+    h.className = 'product-relations__panel-title tfs-product-slider__panel-title';
+    h.textContent = headingTitle;
+    titleBox.append(h);
+    panel.append(titleBox);
+
+    container.append(panel);
   }
 
-  block.appendChild(headerContainer);
+  const sliderMount = document.createElement('div');
+  sliderMount.className = 'product-relations__slider tfs-product-slider__slider slider-wrap';
 
-  const sliderContainer = document.createElement('div');
-  sliderContainer.className = 'product-relations-container';
+  const splideEl = document.createElement('div');
+  splideEl.className = 'splide product-relations__splide tfs-product-slider__splide';
+  splideEl.setAttribute('aria-label', headingTitle || 'Related Products');
+
+  const track = document.createElement('div');
+  track.className = 'splide__track';
+
+  const list = document.createElement('ul');
+  list.className = 'splide__list';
+
+  track.append(list);
+
+  const arrows = document.createElement('div');
+  arrows.className = 'splide__arrows product-relations__arrows tfs-product-slider__arrows';
 
   const prevBtn = document.createElement('button');
   prevBtn.type = 'button';
-  prevBtn.className = 'product-relations-arrow product-relations-prev';
-  prevBtn.setAttribute('aria-label', 'Previous products');
-  prevBtn.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>';
-
-  const gridContainer = document.createElement('div');
-  gridContainer.className = 'product-relations-grid';
+  prevBtn.className = 'splide__arrow splide__arrow--prev product-relations__arrow product-relations__arrow--prev';
+  prevBtn.setAttribute('aria-label', 'Previous');
 
   const nextBtn = document.createElement('button');
   nextBtn.type = 'button';
-  nextBtn.className = 'product-relations-arrow product-relations-next';
-  nextBtn.setAttribute('aria-label', 'Next products');
-  nextBtn.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M9 6 7.59 7.41 12.17 12l-4.58 4.59L9 18l6-6z"/></svg>';
+  nextBtn.className = 'splide__arrow splide__arrow--next product-relations__arrow product-relations__arrow--next';
+  nextBtn.setAttribute('aria-label', 'Next');
 
-  items.forEach((item) => {
-    const productUrl = getProductLink(item.url_key, item.sku);
+  arrows.append(prevBtn, nextBtn);
+  splideEl.append(track, arrows);
+  sliderMount.append(splideEl);
+  container.append(sliderMount);
+  block.append(container);
 
-    const card = document.createElement('div');
-    card.className = 'product-relations-card dropin-product-item-card';
-
-    const imgUrl = resolveImageUrl(item.small_image?.url) || '/styles/images/placeholder.jpg';
-    const imgAlt = item.small_image?.label || item.name || 'Product';
-
-    const minPrice = item.price_range?.minimum_price;
-    const finalPriceVal = minPrice?.final_price?.value;
-    const regularPriceVal = minPrice?.regular_price?.value;
-    const currency = minPrice?.final_price?.currency || 'USD';
-
-    const formattedFinalPrice = formatPrice(finalPriceVal, currency);
-    const formattedRegularPrice = (regularPriceVal && regularPriceVal > finalPriceVal)
-      ? formatPrice(regularPriceVal, currency)
-      : '';
-
-    const imageContainer = document.createElement('div');
-    imageContainer.className = 'dropin-product-item-card__image-container relation-media-container';
-
-    const imageAnchor = document.createElement('a');
-    imageAnchor.className = 'relation-image-anchor dropin-product-item-card__image';
-    imageAnchor.href = productUrl;
-    imageAnchor.setAttribute('aria-label', item.name || 'Product');
-
-    const img = document.createElement('img');
-    img.src = imgUrl;
-    img.alt = imgAlt;
-    img.loading = 'lazy';
-    img.width = 240;
-    img.height = 240;
-    imageAnchor.appendChild(img);
-    imageContainer.appendChild(imageAnchor);
-
-    const cardActions = document.createElement('div');
-    cardActions.className = 'product-relations-card__actions dropin-product-item-card__action';
-
-    const addToCartBtn = document.createElement('button');
-    addToCartBtn.type = 'button';
-    addToCartBtn.className = 'product-relations-card__action-btn product-relations-card__atc';
-    addToCartBtn.setAttribute('aria-label', labels.Global?.AddProductToCart || 'Add to Cart');
-    addToCartBtn.innerHTML = '<svg class="product-relations-card__action-btn-icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 30 30" fill="none"><g transform="translate(-0.066 0.212)"><circle cx="2" cy="2" r="2" transform="translate(7.066 23.788)" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="2" cy="2" r="2" transform="translate(20.066 23.788)" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11.983,36.645H32.818L29.752,47.376a1.847,1.847,0,0,1-1.788,1.347H16.838a1.847,1.847,0,0,1-1.788-1.347l-4.2-14.7A.929.929,0,0,0,9.951,32H8" transform="translate(-7.063 -28.309)" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></g></svg>';
-
-    addToCartBtn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (addToCartBtn.disabled) return;
-      addToCartBtn.disabled = true;
-      try {
-        const cartApi = await import('@dropins/storefront-cart/api.js');
-        await cartApi.addProductsToCart([{ sku: item.sku, quantity: 1 }]);
-        showNotification({
-          type: 'success',
-          message: `${item.name || 'Product'} has been added to your cart.`,
-          linkText: 'View Cart',
-          linkUrl: rootLink('/cart'),
-        });
-      } catch (err) {
-        showNotification({
-          type: 'error',
-          message: `Could not add ${item.name || 'Product'} to cart.`,
-        });
-      } finally {
-        addToCartBtn.disabled = false;
-      }
-    });
-
-    const wishlistBtn = document.createElement('button');
-    wishlistBtn.type = 'button';
-    wishlistBtn.className = 'product-relations-card__action-btn product-relations-card__wishlist';
-    wishlistBtn.dataset.sku = item.sku;
-    wishlistBtn.setAttribute('aria-label', labels.Global?.AddToWishlist || 'Add to Wishlist');
-    wishlistBtn.innerHTML = '<svg class="product-relations-card__action-btn-icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 30 30" fill="none"><g transform="translate(-0.393)"><path d="M39.827,60.811S28,54.188,28,46.146A6.15,6.15,0,0,1,39.827,43.78h0a6.15,6.15,0,0,1,11.827,2.365C51.654,54.188,39.827,60.811,39.827,60.811Z" transform="translate(-24.688 -35.265)" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></g></svg>';
-
-    updateWishlistButtonState(wishlistBtn, item.sku);
-
-    wishlistBtn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      if (!checkIsAuthenticated()) {
-        showWishlistLoginToast(() => {
-          showWishlistAuthModal();
-        });
-        return;
-      }
-
-      if (wishlistBtn.disabled) return;
-      wishlistBtn.disabled = true;
-
-      try {
-        wishlistApi.setEndpoint(CORE_FETCH_GRAPHQL);
-        const existing = wishlistApi.findInPersistedAllWishlistItems(item.sku);
-        const isRemove = !!existing;
-
-        if (isRemove) {
-          await wishlistApi.removeProductsFromWishlist([existing]);
-        } else {
-          await wishlistApi.addProductsToWishlist([{ sku: item.sku, quantity: 1 }]);
-        }
-        updateWishlistButtonState(wishlistBtn, item.sku);
-        await showWishlistSuccessToast(isRemove ? 'remove' : 'add', item.name);
-      } catch (err) {
-        await showWishlistErrorToast(err?.message || 'Could not update wishlist.');
-      } finally {
-        wishlistBtn.disabled = false;
-      }
-    });
-
-    cardActions.append(addToCartBtn, wishlistBtn);
-    imageContainer.appendChild(cardActions);
-
-    const details = document.createElement('div');
-    details.className = 'relation-card-details dropin-product-item-card__content';
-
-    const titleAnchor = document.createElement('a');
-    titleAnchor.className = 'relation-title-anchor dropin-product-item-card__title';
-    titleAnchor.href = productUrl;
-
-    const nameEl = document.createElement('h4');
-    nameEl.className = 'relation-product-name';
-    nameEl.textContent = item.name || 'Product';
-    titleAnchor.appendChild(nameEl);
-
-    const priceContainer = document.createElement('div');
-    priceContainer.className = 'relation-price-container dropin-product-item-card__price';
-
-    if (formattedFinalPrice) {
-      const fromEl = document.createElement('span');
-      fromEl.className = 'relation-price-from';
-      fromEl.textContent = 'From: ';
-      priceContainer.appendChild(fromEl);
-
-      if (formattedRegularPrice) {
-        const regularPriceEl = document.createElement('span');
-        regularPriceEl.className = 'relation-product-price-regular';
-        regularPriceEl.textContent = formattedRegularPrice;
-        priceContainer.appendChild(regularPriceEl);
-      }
-
-      const finalPriceEl = document.createElement('span');
-      finalPriceEl.className = 'relation-product-price';
-      finalPriceEl.textContent = formattedFinalPrice;
-      priceContainer.appendChild(finalPriceEl);
-    }
-
-    details.append(titleAnchor, priceContainer);
-
-    if (regularPriceVal && regularPriceVal > finalPriceVal) {
-      const savePercent = Math.round(((regularPriceVal - finalPriceVal) / regularPriceVal) * 100);
-      if (savePercent > 0) {
-        const saveEl = document.createElement('div');
-        saveEl.className = 'relation-save-badge';
-        saveEl.textContent = `Save up to ${savePercent}%`;
-        details.appendChild(saveEl);
-      }
-    }
-
-    card.append(imageContainer, details);
-    gridContainer.appendChild(card);
+  items.forEach((product) => {
+    const slide = buildProductSlide(product, cartApi, wishlistApi);
+    list.append(slide);
   });
 
-  sliderContainer.append(prevBtn, gridContainer, nextBtn);
-  block.appendChild(sliderContainer);
+  const splide = new Splide(splideEl, {
+    type: 'slide',
+    rewind: false,
+    perPage: 5,
+    perMove: 1,
+    gap: '25px',
+    padding: { right: '100px' },
+    pagination: true,
+    arrows: true,
+    drag: true,
+    speed: 400,
+    breakpoints: {
+      1200: {
+        perPage: 3,
+        perMove: 1,
+        padding: { right: '90px' },
+      },
+      768: {
+        perPage: 2,
+        perMove: 1,
+        padding: { right: '50px' },
+        arrows: false,
+        pagination: true,
+      },
+      576: {
+        perPage: 2,
+        perMove: 1,
+        padding: { right: '35px' },
+        gap: '15px',
+        arrows: false,
+        pagination: true,
+      },
+    },
+  });
 
-  const resyncWishlist = () => {
-    block.querySelectorAll('.product-relations-card__wishlist').forEach((btn) => {
-      if (btn.dataset.sku) updateWishlistButtonState(btn, btn.dataset.sku);
-    });
-  };
+  splide.mount();
 
-  events.on('wishlist/data', resyncWishlist);
-  events.on('authenticated', resyncWishlist);
+  resyncWishlistButtons(block, wishlistApi);
 
-  setupSlider(gridContainer, prevBtn, nextBtn);
+  events.on('wishlist/data', () => {
+    resyncWishlistButtons(block, wishlistApi);
+  });
+  events.on('authenticated', () => {
+    resyncWishlistButtons(block, wishlistApi);
+  });
 }

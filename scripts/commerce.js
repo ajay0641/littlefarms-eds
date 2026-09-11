@@ -224,17 +224,36 @@ function initializeAdobeDataLayer(pageType) {
  */
 export async function fetchIndex(indexFile, pageSize = 500) {
   const handleIndex = async (offset) => {
-    const resp = await fetch(`/${indexFile}.json?limit=${pageSize}&offset=${offset}`);
-    const json = await resp.json();
+    try {
+      const resp = await fetch(`/${indexFile}.json?limit=${pageSize}&offset=${offset}`);
+      if (!resp.ok) {
+        return {
+          complete: true,
+          offset: 0,
+          promise: null,
+          data: window.index[indexFile].data,
+        };
+      }
+      const json = await resp.json();
 
-    const newIndex = {
-      complete: (json.limit + json.offset) === json.total,
-      offset: json.offset + pageSize,
-      promise: null,
-      data: [...window.index[indexFile].data, ...json.data],
-    };
+      const newIndex = {
+        complete: (json.limit + json.offset) === json.total,
+        offset: json.offset + pageSize,
+        promise: null,
+        data: [...window.index[indexFile].data, ...(json.data || [])],
+      };
 
-    return newIndex;
+      return newIndex;
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(`Failed to fetch index: ${indexFile}`, error);
+      return {
+        complete: true,
+        offset: 0,
+        promise: null,
+        data: window.index[indexFile].data,
+      };
+    }
   };
 
   window.index = window.index || {};

@@ -148,7 +148,7 @@ function buildAutoBlocks(main) {
 
 /**
  * Injects a breadcrumb block into the existing PLP/PDP/cart section.
- * Appended after the main block so eager loadSection fetches products first.
+ * Prepended so it is placed at the top of the section using JavaScript.
  * @param {Element} main
  */
 function buildBreadcrumbBlock(main) {
@@ -164,7 +164,7 @@ function buildBreadcrumbBlock(main) {
 
   const breadcrumb = document.createElement('div');
   breadcrumb.className = 'breadcrumb';
-  section.append(breadcrumb);
+  section.prepend(breadcrumb);
 }
 /**
  * Decorates formatted links to style them as buttons.

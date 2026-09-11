@@ -4,21 +4,27 @@
   margin-block: 0;
 }
 
-.section:has(.product-list-page):has(.breadcrumb),
-.section:has(.product-details):has(.breadcrumb),
-.section:has(.commerce-cart):has(.breadcrumb) {
-  display: flex;
-  flex-direction: column;
-}
-
-.section.product-list-page-container > .breadcrumb-wrapper,
-.section:has(.product-list-page) > .breadcrumb-wrapper {
+.breadcrumb-wrapper,
+.section > .breadcrumb-wrapper {
   background-color: var(--color-neutral-200);
   margin: 0;
   max-width: none;
-  order: -1;
   padding: 20px 0;
   width: 100%;
+}
+
+@media (min-width: 900px) {
+  .breadcrumb-wrapper,
+  .section > .breadcrumb-wrapper {
+    padding: 20px 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .section:has(.product-details) > .breadcrumb-wrapper,
+  .section.product-details-container > .breadcrumb-wrapper {
+    display: none;
+  }
 }
 
 .block.breadcrumb {
@@ -39,7 +45,7 @@
   font-family: var(--type-base-font-family), sans-serif;
   font-size: 12px;
   font-weight: 400;
-  gap: 8px;
+  gap: 0;
   line-height: 16px;
   list-style: none;
   margin: 0;
@@ -49,39 +55,54 @@
 .block.breadcrumb .dropin-breadcrumbs__item {
   align-items: center;
   display: inline-flex;
-  gap: 8px;
+  gap: 0;
 }
 
 .block.breadcrumb .dropin-breadcrumbs__link {
+  align-items: center;
   color: var(--color-brand-300);
+  display: inline-flex;
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
   text-decoration: none;
 }
 
 .block.breadcrumb .dropin-breadcrumbs__link:hover {
   color: var(--color-brand-500);
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .block.breadcrumb .dropin-breadcrumbs__item--last .dropin-breadcrumbs__link,
 .block.breadcrumb .dropin-breadcrumbs__item--last span {
   color: var(--color-neutral-800);
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
   pointer-events: none;
   text-decoration: none;
 }
 
 .block.breadcrumb .dropin-breadcrumbs__separator--default {
+  align-items: center;
+  display: inline-flex;
   font-size: 0;
+  margin: 0 10px;
 }
 
 .block.breadcrumb .dropin-breadcrumbs__separator--default::after {
-  background-image: url("../../icons/chevron-right.svg");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='7.067' viewBox='0 0 4 7.067'%3E%3Cg transform='translate(4) rotate(90)'%3E%3Cpath d='M.135.135a.462.462,0,0,1,.652,0L3.539,2.886,6.291.135a.462.462,0,0,1,.652.652L3.865,3.865a.462.462,0,0,1-.652,0L.135.787a.462.462,0,0,1,0-.652Z' fill='%233a3a3a'/%3E%3C/g%3E%3C/svg%3E");
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
   content: "";
   display: inline-block;
   height: 7px;
-  opacity: 0.55;
+  opacity: 0.8;
+  transform: rotate(180deg);
   vertical-align: middle;
   width: 4px;
 }
+

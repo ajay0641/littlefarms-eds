@@ -39,6 +39,12 @@ main .section:has(.tfs-product-slider) > div {
   box-sizing: border-box;
 }
 
+.tfs-product-slider__empty {
+  position: relative;
+  font-size: 18px;  
+  padding: 20px 10px;
+}
+
 /* ==========================================================================
    Mobile & Tablet Layout (Default / Mobile-first, <= 768px)
    ========================================================================== */
