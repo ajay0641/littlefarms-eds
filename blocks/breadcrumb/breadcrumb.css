@@ -1,0 +1,87 @@
+.section.breadcrumb-container,
+.section:has(.breadcrumb) {
+  background-color: transparent;
+  margin-block: 0;
+}
+
+.section:has(.product-list-page):has(.breadcrumb),
+.section:has(.product-details):has(.breadcrumb),
+.section:has(.commerce-cart):has(.breadcrumb) {
+  display: flex;
+  flex-direction: column;
+}
+
+.section.product-list-page-container > .breadcrumb-wrapper,
+.section:has(.product-list-page) > .breadcrumb-wrapper {
+  background-color: var(--color-neutral-200);
+  margin: 0;
+  max-width: none;
+  order: -1;
+  padding: 20px 0;
+  width: 100%;
+}
+
+.block.breadcrumb {
+  margin: 0 auto;
+  max-width: 1400px;
+  padding: 0 20px;
+}
+
+.block.breadcrumb .dropin-breadcrumbs__container {
+  display: block;
+}
+
+.block.breadcrumb .dropin-breadcrumbs__items {
+  align-items: center;
+  color: var(--color-neutral-800);
+  display: flex;
+  flex-wrap: wrap;
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  gap: 8px;
+  line-height: 16px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.block.breadcrumb .dropin-breadcrumbs__item {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+}
+
+.block.breadcrumb .dropin-breadcrumbs__link {
+  color: var(--color-brand-300);
+  text-decoration: none;
+}
+
+.block.breadcrumb .dropin-breadcrumbs__link:hover {
+  color: var(--color-brand-500);
+  text-decoration: underline;
+}
+
+.block.breadcrumb .dropin-breadcrumbs__item--last .dropin-breadcrumbs__link,
+.block.breadcrumb .dropin-breadcrumbs__item--last span {
+  color: var(--color-neutral-800);
+  pointer-events: none;
+  text-decoration: none;
+}
+
+.block.breadcrumb .dropin-breadcrumbs__separator--default {
+  font-size: 0;
+}
+
+.block.breadcrumb .dropin-breadcrumbs__separator--default::after {
+  background-image: url("../../icons/chevron-right.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: "";
+  display: inline-block;
+  height: 7px;
+  opacity: 0.55;
+  vertical-align: middle;
+  width: 4px;
+}

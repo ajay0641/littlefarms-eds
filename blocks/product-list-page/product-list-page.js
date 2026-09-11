@@ -17,6 +17,15 @@ import { events } from '@dropins/tools/event-bus.js';
 // AEM
 import { readBlockConfig } from '../../scripts/aem.js';
 import { fetchPlaceholders, getCategoryFromUrl, getProductLink } from '../../scripts/commerce.js';
+import { getCategoryAncestors } from '../../scripts/menu-data.js';
+import { PLP_IMAGE_DIMENSIONS, withProductImageFallback } from '../../scripts/product-image.js';
+import { fetchCategoryDetails } from './category-details.js';
+import {
+  createAddToCartButton,
+  createProductDetails,
+  markProductItemCard,
+  replaceWithEmpty,
+} from './plp-product-card.js';
 import { getSearchStateFromUrl, applySearchStateToUrl } from './search-url.js';
 
 // Initializers
@@ -57,6 +66,66 @@ export default async function decorate(block) {
 
   block.innerHTML = '';
   block.appendChild(fragment);
+
+  const plpWrapper = block.parentElement;
+  let $categoryHero = plpWrapper?.previousElementSibling;
+  if (!$categoryHero?.classList.contains('category-hero')) {
+    $categoryHero = document.createElement('div');
+    $categoryHero.className = 'category-hero';
+    $categoryHero.innerHTML = `
+      <div class="search__category-title"></div>
+      <div class="search__category-description"></div>
+    `;
+    plpWrapper?.before($categoryHero);
+  }
+
+  const $categoryTitle = $categoryHero.querySelector('.search__category-title');
+  const $categoryDescription = $categoryHero.querySelector('.search__category-description');
+
+  const renderCategoryHeading = (name) => {
+    if (!name || !$categoryTitle) return;
+    let heading = $categoryTitle.querySelector('h1');
+    if (!heading) {
+      heading = document.createElement('h1');
+      $categoryTitle.append(heading);
+    }
+    heading.textContent = name;
+  };
+
+  /**
+   * Renders Magento category description under the H1.
+   * @param {string|null} descriptionHtml
+   */
+  const renderCategoryDescription = (descriptionHtml) => {
+    if (!$categoryDescription) return;
+    const html = (descriptionHtml || '').trim();
+    if (!html) {
+      $categoryDescription.replaceChildren();
+      return;
+    }
+    $categoryDescription.innerHTML = html;
+  };
+
+  if (config.urlpath) {
+    window.setTimeout(() => {
+      fetchCategoryDetails(config.urlpath)
+        .then((details) => {
+          if (!details) {
+            getCategoryAncestors(config.urlpath)
+              .then((ancestors) => renderCategoryHeading(ancestors.at(-1)?.name || null))
+              .catch(() => {});
+            return;
+          }
+          renderCategoryHeading(details.name);
+          renderCategoryDescription(details.description);
+        })
+        .catch(() => {
+          getCategoryAncestors(config.urlpath)
+            .then((ancestors) => renderCategoryHeading(ancestors.at(-1)?.name || null))
+            .catch(() => {});
+        });
+    }, 0);
+  }
 
   // Add url path back to the block for enrichment, incase enrichment block is
   // executed after the plp block and block config is not available
@@ -112,31 +181,13 @@ export default async function decorate(block) {
   const requiresPdpConfiguration = (product) => product.typename === 'ComplexProductView'
     || product.attributes?.some((attr) => attr.name === 'ac_giftcard');
 
-  const getAddToCartButton = (product) => {
-    const productName = product.name || product.sku;
-    const addToCartLabel = `${labels.Global?.AddProductToCart} ${productName}`;
-
+  const handleAddToCart = (product) => {
     if (requiresPdpConfiguration(product)) {
-      const button = document.createElement('div');
-      UI.render(Button, {
-        'aria-label': addToCartLabel,
-        children: labels.Global?.AddProductToCart,
-        icon: Icon({ source: 'Cart' }),
-        href: getProductLink(product.urlKey, product.sku),
-        variant: 'primary',
-      })(button);
-      return button;
+      window.location.href = getProductLink(product.urlKey, product.sku);
+      return;
     }
-    const button = document.createElement('div');
-    UI.render(Button, {
-      'aria-label': addToCartLabel,
-      children: labels.Global?.AddProductToCart,
-      icon: Icon({ source: 'Cart' }),
-      onClick: () => cartApi.addProductsToCart([{ sku: product.sku, quantity: 1 }]),
-      variant: 'primary',
-      disabled: !product.inStock,
-    })(button);
-    return button;
+    if (!product.inStock) return;
+    cartApi.addProductsToCart([{ sku: product.sku, quantity: 1 }]);
   };
 
   await Promise.all([
@@ -166,40 +217,67 @@ export default async function decorate(block) {
     // Product List
     provider.render(SearchResults, {
       routeProduct: (product) => getProductLink(product.urlKey, product.sku),
+      imageWidth: 255,
+      imageHeight: 255,
+      onSearchResult: () => {
+        requestAnimationFrame(() => {
+          $productList.querySelectorAll('.dropin-product-item-card').forEach((card) => {
+            card.classList.add('product-item');
+          });
+        });
+      },
       slots: {
         ProductImage: (ctx) => {
           const { product, defaultImageProps } = ctx;
+          const width = Number(defaultImageProps?.width) || PLP_IMAGE_DIMENSIONS.width;
+          const height = Number(defaultImageProps?.height) || PLP_IMAGE_DIMENSIONS.height;
+          const productUrl = getProductLink(product.urlKey, product.sku);
           const anchorWrapper = document.createElement('a');
-          anchorWrapper.href = getProductLink(product.urlKey, product.sku);
+          anchorWrapper.className = 'product photo product-item-photo';
+          anchorWrapper.href = productUrl;
           anchorWrapper.setAttribute('aria-label', product.name || product.sku);
+
+          const imageProps = withProductImageFallback(defaultImageProps, product);
 
           tryRenderAemAssetsImage(ctx, {
             alias: product.sku,
-            imageProps: defaultImageProps,
-            wrapper: anchorWrapper,
-            params: {
-              width: defaultImageProps.width,
-              height: defaultImageProps.height,
+            imageProps: {
+              ...imageProps,
+              className: 'product-image-photo',
+              width,
+              height,
+              params: { ...imageProps.params, width, height },
             },
+            wrapper: anchorWrapper,
+            params: { width, height },
           });
+          anchorWrapper.querySelector('img')?.classList.add('product-image-photo');
+          markProductItemCard(anchorWrapper);
         },
-        ProductActions: (ctx) => {
-          const actionsWrapper = document.createElement('div');
-          actionsWrapper.className = 'product-discovery-product-actions';
-          // Add to Cart Button
-          const addToCartBtn = getAddToCartButton(ctx.product);
-          addToCartBtn.className = 'product-discovery-product-actions__add-to-cart';
-          // Wishlist Button
+        ProductName: (ctx) => {
+          const { product } = ctx;
+          const productUrl = getProductLink(product.urlKey, product.sku);
+          const productName = product.name || product.sku;
           const $wishlistToggle = document.createElement('div');
-          $wishlistToggle.classList.add('product-discovery-product-actions__wishlist-toggle');
+          $wishlistToggle.className = 'product-item-wishlist';
           wishlistRender.render(WishlistToggle, {
-            product: ctx.product,
+            product,
             variant: 'tertiary',
           })($wishlistToggle);
-          actionsWrapper.appendChild(addToCartBtn);
-          actionsWrapper.appendChild($wishlistToggle);
-          ctx.replaceWith(actionsWrapper);
+          const atcEl = createAddToCartButton(product, {
+            label: `${labels.Global?.AddProductToCart || 'Add to Cart'} ${productName}`,
+            disabled: !product.inStock && !requiresPdpConfiguration(product),
+            onClick: handleAddToCart,
+          });
+          const details = createProductDetails(product, productUrl, {
+            wishlistEl: $wishlistToggle,
+            atcEl,
+          });
+          ctx.replaceWith(details);
+          markProductItemCard(details);
         },
+        ProductPrice: (ctx) => replaceWithEmpty(ctx),
+        ProductActions: (ctx) => replaceWithEmpty(ctx),
       },
     })($productList),
   ]);

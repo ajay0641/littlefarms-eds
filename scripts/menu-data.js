@@ -298,6 +298,7 @@ async function fetchBreadcrumbCategories(parentId = getConfiguredRootCategoryId(
   }
 
   await import('./initializers/menu.js');
+  applyCatalogServiceHeaders();
 
   const promise = CS_FETCH_GRAPHQL.fetchGraphQl(GET_BREADCRUMB_CATEGORIES_QUERY, {
     method: 'POST',

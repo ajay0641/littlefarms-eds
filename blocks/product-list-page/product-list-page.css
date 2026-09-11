@@ -1,3 +1,64 @@
+.section.product-list-page-container {
+  margin-top: 0;
+}
+
+.section.product-list-page-container > .category-hero {
+  background-color: var(--color-neutral-200);
+  box-sizing: border-box;
+  margin: 0 0 30px;
+  max-width: none;
+  padding: 15px 0 40px;
+  text-align: center;
+  width: 100%;
+}
+
+.section.product-list-page-container > .category-hero .search__category-title,
+.section.product-list-page-container > .category-hero .search__category-description {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 631px;
+  padding: 0 20px;
+}
+
+.section.product-list-page-container > .category-hero .search__category-title:empty,
+.section.product-list-page-container > .category-hero .search__category-description:empty {
+  display: none;
+}
+
+.section.product-list-page-container > .category-hero .search__category-title h1 {
+  color: var(--color-neutral-800);
+  font-family: var(--type-heading-font-family), cursive;
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 38px;
+  margin: 0;
+}
+
+.section.product-list-page-container > .category-hero .search__category-description {
+  color: var(--color-neutral-800);
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 21px;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.section.product-list-page-container > .category-hero .search__category-description p {
+  margin: 0 0 21px;
+}
+
+.section.product-list-page-container > .category-hero .search__category-description p:last-child {
+  margin-bottom: 0;
+}
+
+@media (min-width: 768px) {
+  .section.product-list-page-container > .category-hero .search__category-title h1 {
+    font-size: 40px;
+    line-height: 46px;
+  }
+}
 
 .block.product-list-page .search__wrapper {
     display: grid;
@@ -75,10 +136,91 @@
     margin-block-end: var(--spacing-small);
 }
 
-.block.product-list-page .product-discovery-product-actions {
-    display: flex;
-    flex-direction: row;
-    gap: var(--spacing-xxsmall);
+/* Little Farms product cards — Magento product-item layout */
+.block.product-list-page .product-discovery-product-list__grid {
+  gap: 24px 16px;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.block.product-list-page .dropin-product-item-card {
+  background: transparent;
+  border: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  font: inherit;
+  letter-spacing: normal;
+  margin: 0;
+  width: 100%;
+}
+
+.block.product-list-page .dropin-product-item-card__image-container,
+.block.product-list-page .dropin-product-item-card__image,
+.block.product-list-page .dropin-product-item-card__image a {
+  background: transparent;
+  border-radius: 0;
+  display: block;
+  overflow: visible;
+  width: 100%;
+}
+
+.block.product-list-page .dropin-product-item-card__image img,
+.block.product-list-page .product-discovery-product-list__grid .dropin-product-item-card img {
+  aspect-ratio: 1 / 1;
+  background: transparent;
+  border-radius: 0;
+  height: auto;
+  max-height: none;
+  object-fit: contain;
+  width: 100%;
+}
+
+.block.product-list-page .dropin-product-item-card__content {
+  display: block;
+  padding: 0;
+}
+
+.block.product-list-page .dropin-product-item-card__price,
+.block.product-list-page .dropin-product-item-card__action {
+  display: none;
+}
+
+.block.product-list-page .product-item-wishlist button {
+  background: transparent url('../../icons/littlefarms/wishlist-heart.svg') center / contain no-repeat;
+  border: none;
+  box-shadow: none;
+  color: transparent;
+  cursor: pointer;
+  display: block;
+  height: 18px;
+  min-height: inherit;
+  min-width: inherit;
+  padding: 0;
+  width: 24px;
+}
+
+.block.product-list-page .product-item-wishlist button[aria-pressed='true'],
+.block.product-list-page .product-item-wishlist button[aria-checked='true'],
+.block.product-list-page .product-item-wishlist .dropin-button--selected {
+  background-image: url('../../icons/littlefarms/wishlist-heart-filled.svg');
+}
+
+.block.product-list-page .product-item-wishlist svg,
+.block.product-list-page .product-item-wishlist .dropin-icon,
+.block.product-list-page .product-item-wishlist span {
+  display: none !important;
+}
+
+@media (min-width: 900px) {
+  .block.product-list-page .product-discovery-product-list__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1200px) {
+  .block.product-list-page .product-discovery-product-list__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 /* Empty State */
@@ -104,7 +246,7 @@
             "result-info product-sort"
             "facets product-list"
             ". pagination";
-        grid-template-columns: 270px 1fr;
+        grid-template-columns: 300px 1fr;
     }
 
     .block.product-list-page .search__view-facets {
@@ -113,7 +255,7 @@
 
     .block.product-list-page .search__facets {
         display: unset;
-        margin-right: var(--spacing-small);
+        margin-right: 80px;
     }
 
     .block.product-list-page .search__product-sort {
