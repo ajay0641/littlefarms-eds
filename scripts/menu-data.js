@@ -1,7 +1,7 @@
 import { getConfigValue, getHeaders } from '@dropins/tools/lib/aem/configs.js';
-import { CS_FETCH_GRAPHQL } from './commerce.js';
+import { applyCatalogServiceHeaders, CS_FETCH_GRAPHQL } from './commerce.js';
 
-const MENU_SESSION_PREFIX = 'hlx-menu-categories-v4';
+const MENU_SESSION_PREFIX = 'hlx-menu-categories-v5';
 
 /**
  * Root category from config.json (`plugins.picker.rootCategory`).
@@ -70,6 +70,7 @@ function readMenuFromSession(parentId) {
     sessionStorage.removeItem(`hlx-menu-categories:${parentId}`);
     sessionStorage.removeItem(`hlx-menu-categories-v2:${parentId}`);
     sessionStorage.removeItem(`hlx-menu-categories-v3:${parentId}`);
+    sessionStorage.removeItem(`hlx-menu-categories-v4:${parentId}`);
     const stored = sessionStorage.getItem(getSessionKey(parentId));
     return stored ? JSON.parse(stored) : null;
   } catch {
@@ -154,6 +155,7 @@ function orderCategoriesForMenu(categories, rootId) {
  */
 async function loadMenuCategoriesFromApi(parentId) {
   await import('./initializers/menu.js');
+  applyCatalogServiceHeaders();
 
   const { data, errors } = await CS_FETCH_GRAPHQL.fetchGraphQl(GET_MENU_QUERY, {
     method: 'POST',

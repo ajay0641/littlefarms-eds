@@ -1,6 +1,6 @@
 import { getConfigValue } from '@dropins/tools/lib/aem/configs.js';
 import { CATEGORY_TREE_QUERY } from './categoryQuery.js';
-import { CS_FETCH_GRAPHQL } from '../../scripts/commerce.js';
+import { applyCatalogServiceHeaders, CS_FETCH_GRAPHQL } from '../../scripts/commerce.js';
 
 function shouldShowCategory(category) {
   return category?.name && category?.urlPath;
@@ -17,7 +17,7 @@ function getSortedCategories(categories) {
 
 function buildCategoryTree(categories, parentId) {
   return getSortedCategories(categories)
-    .filter((category) => category.parentId === parentId && shouldShowCategory(category))
+    .filter((category) => String(category.parentId) === String(parentId) && shouldShowCategory(category))
     .map((category) => {
       // Clean up leading/trailing slashes from the original backend data token
       const cleanUrlPath = category.urlPath.replace(/^\//, '').replace(/\/$/, '');
@@ -35,6 +35,7 @@ function buildCategoryTree(categories, parentId) {
 
 export async function fetchCommerceCategories() {
   try {
+    applyCatalogServiceHeaders();
     const rootCategoryId = await getConfigValue('plugins.picker.rootCategory') || '2';
     const response = await CS_FETCH_GRAPHQL.fetchGraphQl(
       CATEGORY_TREE_QUERY,

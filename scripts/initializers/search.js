@@ -1,7 +1,7 @@
 import { initializers } from '@dropins/tools/initializer.js';
 import { initialize, setEndpoint } from '@dropins/storefront-product-discovery/api.js';
 import { initializeDropin } from './index.js';
-import { CS_FETCH_GRAPHQL, fetchPlaceholders } from '../commerce.js';
+import { applyCatalogServiceHeaders, CS_FETCH_GRAPHQL, fetchPlaceholders } from '../commerce.js';
 
 await initializeDropin(async () => {
   // Inherit Fetch GraphQL Instance (Catalog Service)
@@ -16,5 +16,6 @@ await initializeDropin(async () => {
   };
 
   // Initialize search
-  return initializers.mountImmediately(initialize, { langDefinitions });
+  await initializers.mountImmediately(initialize, { langDefinitions });
+  applyCatalogServiceHeaders();
 })();

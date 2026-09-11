@@ -341,9 +341,18 @@ export async function initializeCommerce() {
 
   // Set Fetch GraphQL (Catalog Service)
   CS_FETCH_GRAPHQL.setEndpoint(await commerceEndpointWithQueryParams());
-  CS_FETCH_GRAPHQL.setFetchGraphQlHeaders((prev) => ({ ...prev, ...getHeaders('cs') }));
+  applyCatalogServiceHeaders();
 
   return initializeDropins();
+}
+
+/**
+ * Re-applies Catalog Service headers from config.json.
+ * Custom drop-ins that `setEndpoint(CS_FETCH_GRAPHQL)` and then `initialize()`
+ * can replace these with Magento default store codes.
+ */
+export function applyCatalogServiceHeaders() {
+  CS_FETCH_GRAPHQL.setFetchGraphQlHeaders((prev) => ({ ...prev, ...getHeaders('cs') }));
 }
 
 /**
