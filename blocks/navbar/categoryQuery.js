@@ -13,4 +13,3 @@ export const CATEGORY_TREE_QUERY = `
     }
   }
 `;
-

@@ -1,7 +1,7 @@
-import Splide from '../../scripts/vendor/splide/splide.esm.js';
-import { loadCSS, readBlockConfig } from '../../scripts/aem.js';
 import { getProductSlider } from '@ajay0641/tfs-product-slider/api.js';
 import { events } from '@dropins/tools/event-bus.js';
+import Splide from '../../scripts/vendor/splide/splide.esm.js';
+import { loadCSS, readBlockConfig } from '../../scripts/aem.js';
 import {
   checkIsAuthenticated,
   CORE_FETCH_GRAPHQL,

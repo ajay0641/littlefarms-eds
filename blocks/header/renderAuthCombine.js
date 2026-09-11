@@ -329,4 +329,3 @@ const renderAuthCombine = (navSections, toggleMenu, accountButton) => {
 };
 
 export default renderAuthCombine;
-

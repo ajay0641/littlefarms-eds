@@ -85,4 +85,3 @@ export function blendNavigationTrees(placeholderBlock, commerceTree = []) {
 
   return unifiedMenu;
 }
-

@@ -76,4 +76,3 @@ export function renderMobileMenu(unifiedTree, container) {
   drawer.appendChild(body);
   container.appendChild(drawer);
 }
-

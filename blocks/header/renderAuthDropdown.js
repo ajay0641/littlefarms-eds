@@ -82,4 +82,3 @@ export function renderAuthDropdown(navTools) {
   updateAccountUI();
   events.on('authenticated', updateAccountUI);
 }
-

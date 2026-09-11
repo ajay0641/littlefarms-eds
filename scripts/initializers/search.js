@@ -12,6 +12,18 @@ await initializeDropin(async () => {
   const langDefinitions = {
     default: {
       ...labels,
+      Search: {
+        ...(labels.Search || {}),
+        Facet: {
+          ...(labels.Search?.Facet || {}),
+          showMore: 'Show all',
+          showLess: 'Show less',
+        },
+        SortBy: {
+          ...(labels.Search?.SortBy || {}),
+          title: 'Sort By',
+        },
+      },
     },
   };
 
