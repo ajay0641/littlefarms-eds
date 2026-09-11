@@ -5,6 +5,7 @@ import { tryRenderAemAssetsImage } from '@dropins/tools/lib/aem/assets.js';
 import { getMetadata } from '../../scripts/aem.js';
 import { loadFragment } from '../fragment/fragment.js';
 import { fetchPlaceholders, getProductLink, rootLink } from '../../scripts/commerce.js';
+import { PLP_IMAGE_DIMENSIONS, withProductImageFallback } from '../../scripts/product-image.js';
 
 import renderAuthCombine from './renderAuthCombine.js';
 import { renderAuthDropdown } from './renderAuthDropdown.js';
@@ -241,17 +242,23 @@ export default async function decorate(block) {
           slots: {
             ProductImage: (ctx) => {
               const { product, defaultImageProps } = ctx;
+              const width = Number(defaultImageProps?.width) || PLP_IMAGE_DIMENSIONS.width;
+              const height = Number(defaultImageProps?.height) || PLP_IMAGE_DIMENSIONS.height;
               const anchorWrapper = document.createElement('a');
               anchorWrapper.href = getProductLink(product.urlKey, product.sku);
 
+              const imageProps = withProductImageFallback(defaultImageProps, product);
+
               tryRenderAemAssetsImage(ctx, {
                 alias: product.sku,
-                imageProps: defaultImageProps,
-                wrapper: anchorWrapper,
-                params: {
-                  width: defaultImageProps.width,
-                  height: defaultImageProps.height,
+                imageProps: {
+                  ...imageProps,
+                  width,
+                  height,
+                  params: { ...imageProps.params, width, height },
                 },
+                wrapper: anchorWrapper,
+                params: { width, height },
               });
             },
             Footer: async (ctx) => {

@@ -155,7 +155,7 @@
   src: local("Helvetica Neue"), local("Helvetica"), local("Arial");
 }
 
-* {
+*, ::before, ::after {
   box-sizing: border-box;
 }
 
@@ -494,6 +494,7 @@ main > .section > div {
   max-width: 1400px;
   margin: auto;
   padding: 0 var(--spacing-medium);
+  width: 100%;
 }
 
 main > .section:first-of-type {
@@ -713,14 +714,12 @@ main[hidden] {
 .product-item .product-item-photo,
 .product-card .product-item-photo {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   width: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: var(--shape-border-radius-2, 8px);
+  margin: 0 0 12px;
   overflow: hidden;
-  background-color: var(--product-item-photo-bg);
+  background-color: transparent;
   text-decoration: none;
 }
 
@@ -732,58 +731,69 @@ main[hidden] {
   max-height: 100%;
   object-fit: contain;
   display: block;
-  transition: transform 0.3s ease;
 }
 
-/* Badge (e.g. Save %) */
+/* Promo / freshness label — shape-green + AppleJuice */
+.product-item .product-item-photo .label,
 .product-item .product-item-label,
+.product-card .product-item-photo .label,
 .product-card .product-item-label {
   position: absolute;
-  top: var(--spacing-xsmall, 8px);
-  left: var(--spacing-xsmall, 8px);
-  background-color: var(--product-item-badge-bg);
-  color: var(--product-item-badge-color);
-  font-family: var(--product-item-badge-font);
-  font-size: 11px;
-  font-weight: 700;
-  padding: 4px var(--spacing-xsmall, 8px);
-  border-radius: var(--shape-border-radius-1, 4px);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  top: 0;
+  left: 0;
   z-index: 2;
+  background-color: transparent;
+  background-image: url('../icons/littlefarms/shape-green.svg');
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-size: 100% 100%;
+  color: var(--color-neutral-50);
+  font-family: var(--product-item-badge-font), cursive;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 14px;
+  padding: 5px 10px;
+  border-radius: 0;
+  text-transform: none;
+  letter-spacing: normal;
+  white-space: nowrap;
 }
 
 /* Details Wrapper */
 .product-item .product-item-details,
 .product-card .product-item-details {
-  display: flex;
-  flex-direction: column;
+  display: block;
+  position: relative;
   flex-grow: 1;
-  padding: 12px 0 0;
+  padding: 0;
   box-sizing: border-box;
-}
-
-/* Brand Row + Wishlist */
-.product-item .product-item-meta,
-.product-card .product-item-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-xsmall, 8px);
-  margin-bottom: 6px;
-  min-height: 24px;
 }
 
 .product-item .brand,
 .product-card .brand {
+  display: block;
   font-family: var(--product-item-font-family);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
   line-height: 18px;
   color: var(--product-item-brand-color);
+  margin: 0 30px 10px 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-decoration: none;
+}
+
+.product-item .wishlist-container,
+.product-item .product-item-wishlist,
+.product-card .wishlist-container,
+.product-card .product-item-wishlist {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 21px;
+  height: 18px;
+  margin: 0;
 }
 
 .product-item .action.towishlist,
@@ -792,14 +802,13 @@ main[hidden] {
 .product-card .towishlist {
   background: transparent url('../icons/littlefarms/wishlist-heart.svg') center / contain no-repeat;
   border: none;
-  width: 18px;
-  height: 16px;
+  width: 21px;
+  height: 18px;
   padding: 0;
   cursor: pointer;
-  display: inline-block;
+  display: block;
   flex-shrink: 0;
-  margin-left: auto;
-  transition: transform 0.15s ease;
+  margin: 0;
 }
 
 .product-item .action.towishlist.is-active,
@@ -816,17 +825,17 @@ main[hidden] {
 /* Product Title */
 .product-item .product-item-name,
 .product-card .product-item-name {
-  font-family: var(--product-item-font-family);
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 16px;
-  color: var(--product-item-title-color);
-  margin: 0 0 var(--spacing-xxsmall, 4px) 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  min-height: 32px;
+  min-height: 36px;
+  margin: 0;
+  font-family: var(--product-item-font-family);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 18px;
+  color: var(--product-item-title-color);
 }
 
 .product-item .product-item-link,
@@ -845,11 +854,11 @@ main[hidden] {
 .product-item .package,
 .product-card .package {
   font-family: var(--product-item-font-family);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
   line-height: 18px;
-  color: var(--product-item-package-color);
-  margin: 0 0 10px;
+  color: var(--product-item-title-color);
+  margin: 5px 0 15px;
   min-height: 18px;
 }
 
@@ -859,17 +868,24 @@ main[hidden] {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
-  margin-top: auto;
-  padding-top: var(--spacing-xxsmall, 4px);
-  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.product-item .product-item-inner .left,
+.product-card .product-item-inner .left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
 }
 
 .product-item .price-box,
 .product-card .price-box {
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
+  align-items: flex-start;
 }
 
 .product-item .actions-primary,
@@ -877,26 +893,65 @@ main[hidden] {
   flex-shrink: 0;
 }
 
-.product-item .price-wrapper.final-price .price,
 .product-item .price-box .price,
-.product-card .price-wrapper.final-price .price,
 .product-card .price-box .price {
   font-family: var(--product-item-font-family);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
-  line-height: 18px;
+  line-height: 20px;
   color: var(--product-item-price-color);
   white-space: nowrap;
+}
+
+.product-item .special-price .price,
+.product-card .special-price .price {
+  color: var(--product-item-special-price-color, #b9314f);
 }
 
 .product-item .old-price .price,
 .product-card .old-price .price {
   font-family: var(--product-item-font-family);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 400;
-  color: var(--product-item-old-price-color);
-  text-decoration: line-through;
-  margin-right: var(--spacing-xxsmall, 4px);
+  line-height: 18px;
+  color: var(--product-item-old-price-color, #9d9d9d);
+  text-decoration: none;
+  margin-right: 0;
+}
+
+.product-item .minimal-price-link,
+.product-card .minimal-price-link {
+  display: block;
+  color: var(--product-item-promo-color, #4d7f71);
+  font-family: var(--product-item-font-family);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  text-decoration: none;
+}
+
+.product-item .minimal-price-link .price-label,
+.product-card .minimal-price-link .price-label {
+  font-weight: 700;
+  color: inherit;
+}
+
+.product-item .minimal-price-link .price-wrapper,
+.product-item .minimal-price-link .price,
+.product-card .minimal-price-link .price-wrapper,
+.product-card .minimal-price-link .price {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  color: inherit;
+}
+
+.product-item .product-item-inner .ecom-weight,
+.product-card .product-item-inner .ecom-weight {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  color: var(--product-item-title-color);
 }
 
 /* Add to Cart Button with Organic Shape (matching littlefarms.com) */
@@ -1016,21 +1071,6 @@ main[hidden] {
 }
 
 @media (min-width: 768px) {
-  .product-item .product-item-name,
-  .product-card .product-item-name {
-    font-size: 14px;
-    line-height: 18px;
-    min-height: 36px;
-  }
-
-  .product-item .price-wrapper.final-price .price,
-  .product-item .price-box .price,
-  .product-card .price-wrapper.final-price .price,
-  .product-card .price-box .price {
-    font-size: 16px;
-    line-height: 20px;
-  }
-
   .product-item .action.tocart,
   .product-item .action.primary,
   .product-item .tocart,

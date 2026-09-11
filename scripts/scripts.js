@@ -140,9 +140,31 @@ function buildAutoBlocks(main) {
       });
     }
     buildWidgetAutoBlocks(main);
+    buildBreadcrumbBlock(main);
   } catch (error) {
     console.error('Auto Blocking failed', error);
   }
+}
+
+/**
+ * Injects a breadcrumb block into the existing PLP/PDP/cart section.
+ * Appended after the main block so eager loadSection fetches products first.
+ * @param {Element} main
+ */
+function buildBreadcrumbBlock(main) {
+  if (main.querySelector('.breadcrumb')) return;
+
+  const targetBlock = main.querySelector(
+    '.product-list-page, .product-details, .commerce-cart',
+  );
+  if (!targetBlock) return;
+
+  const section = targetBlock.parentElement;
+  if (!section) return;
+
+  const breadcrumb = document.createElement('div');
+  breadcrumb.className = 'breadcrumb';
+  section.append(breadcrumb);
 }
 /**
  * Decorates formatted links to style them as buttons.
