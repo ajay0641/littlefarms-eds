@@ -141,6 +141,13 @@ export default function decorate(block) {
       speed: 600,
     });
     splide.mount();
+
+    carousel.querySelectorAll('img').forEach((img) => {
+      if (!img.complete) {
+        img.addEventListener('load', () => splide.refresh(), { once: true });
+      }
+    });
+
     requestAnimationFrame(() => {
       splide.refresh();
     });
