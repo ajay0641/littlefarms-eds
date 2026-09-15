@@ -67,6 +67,15 @@ export default function decorate(block) {
       desktopEl.classList.add('hero-img-desktop');
     }
 
+    // LCP: the first slide's image must load eagerly with high priority so it
+    // is discoverable immediately (not lazy-loaded).
+    if (i === 0) {
+      imgs.forEach((img) => {
+        img.setAttribute('loading', 'eager');
+        img.setAttribute('fetchpriority', 'high');
+      });
+    }
+
     // Disable native HTML5 drag on media to allow Splide pointer drag
     media.querySelectorAll('img, a').forEach((el) => {
       el.setAttribute('draggable', 'false');
