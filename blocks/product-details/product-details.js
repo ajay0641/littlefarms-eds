@@ -31,10 +31,7 @@ import {
   getProductLink,
   checkIsAuthenticated,
 } from '../../scripts/commerce.js';
-import {
-  showWishlistLoginToast,
-} from '../../scripts/components/tfs-wishlist-toast/tfs-wishlist-toast.js';
-import { showWishlistAuthModal } from '../../scripts/wishlist-auth-modal.js';
+import { showShoppingListAlert } from '../../scripts/components/shopping-list-alert/shopping-list-alert.js';
 
 // Initializers
 import { IMAGES_SIZES } from '../../scripts/initializers/pdp.js';
@@ -658,9 +655,7 @@ export default async function decorate(block) {
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
-      showWishlistLoginToast(() => {
-        showWishlistAuthModal();
-      });
+      showShoppingListAlert();
     }
   };
 

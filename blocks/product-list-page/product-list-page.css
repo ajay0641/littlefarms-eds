@@ -390,7 +390,6 @@
   flex-direction: column;
   font-family: var(--type-base-font-family), sans-serif;
   height: 48px;
-  justify-content: center;
   padding: 8px 20px;
   position: relative;
   text-align: left;
@@ -672,7 +671,8 @@
   display: none;
 }
 
-.block.product-list-page .product-item-wishlist button {
+.block.product-list-page .product-item-wishlist button,
+.block.product-list-page .product-item-wishlist .action.towishlist {
   background: transparent url('../../icons/littlefarms/wishlist-heart.svg') center / contain no-repeat;
   border: none;
   box-shadow: none;
@@ -686,8 +686,11 @@
   width: 24px;
 }
 
+.block.product-list-page .product-item-wishlist button.is-active,
 .block.product-list-page .product-item-wishlist button[aria-pressed='true'],
 .block.product-list-page .product-item-wishlist button[aria-checked='true'],
+.block.product-list-page .product-item-wishlist button[aria-label*='remove' i],
+.block.product-list-page .product-item-wishlist .action.towishlist.is-active,
 .block.product-list-page .product-item-wishlist .dropin-button--selected {
   background-image: url('../../icons/littlefarms/wishlist-heart-filled.svg');
 }

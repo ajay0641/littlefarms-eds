@@ -12,7 +12,12 @@ import { tryRenderAemAssetsImage } from '@dropins/tools/lib/aem/assets.js';
 import { events } from '@dropins/tools/event-bus.js';
 // AEM
 import { readBlockConfig } from '../../scripts/aem.js';
-import { fetchPlaceholders, getCategoryFromUrl, getProductLink } from '../../scripts/commerce.js';
+import {
+  fetchPlaceholders,
+  getCategoryFromUrl,
+  getProductLink,
+  checkIsAuthenticated,
+} from '../../scripts/commerce.js';
 import { getCategoryAncestors } from '../../scripts/menu-data.js';
 import { PLP_IMAGE_DIMENSIONS, withProductImageFallback } from '../../scripts/product-image.js';
 import { fetchCategoryDetails } from './category-details.js';
@@ -27,10 +32,16 @@ import { initSortDropdown } from './plp-sort-dropdown.js';
 import PlpSearchResults from './plp-search-results.js';
 import { createLoadMoreController } from './load-more.js';
 import { createScrollPageUrlSync } from './scroll-page-url.js';
+import { showShoppingListAlert } from '../../scripts/components/shopping-list-alert/shopping-list-alert.js';
+import {
+  showWishlistErrorToast,
+  showWishlistSuccessToast,
+} from '../../scripts/components/tfs-wishlist-toast/tfs-wishlist-toast.js';
 
 // Initializers
 import '../../scripts/initializers/search.js';
 import '../../scripts/initializers/wishlist.js';
+import '../../scripts/initializers/cart.js';
 
 export default async function decorate(block) {
   const labels = await fetchPlaceholders();
@@ -328,14 +339,66 @@ export default async function decorate(block) {
   const requiresPdpConfiguration = (product) => product.typename === 'ComplexProductView'
     || product.attributes?.some((attr) => attr.name === 'ac_giftcard');
 
-  const handleAddToCart = (product) => {
+  /**
+   * Sync all visible PLP ATC controls from cart data.
+   *
+   * @param {Object|null|undefined} cart
+   * @return {void}
+   */
+  const syncPlpCartControls = (cart) => {
+    $productList.querySelectorAll('.actions-primary').forEach((el) => {
+      if (typeof el.syncFromCart === 'function') {
+        el.syncFromCart(cart);
+      }
+    });
+  };
+
+  /**
+   * Add a simple product to cart (complex products redirect to PDP).
+   *
+   * @param {Object} product
+   * @return {Promise<Object|null|undefined>}
+   */
+  const handleAddToCart = async (product) => {
     if (requiresPdpConfiguration(product)) {
       window.location.href = getProductLink(product.urlKey, product.sku);
+      return null;
+    }
+    if (!product.inStock) return null;
+    return cartApi.addProductsToCart([{ sku: product.sku, quantity: 1 }]);
+  };
+
+  /**
+   * Update or remove a cart line item quantity.
+   *
+   * @param {string} uid
+   * @param {number} quantity
+   * @return {Promise<Object|null|undefined>}
+   */
+  const handleUpdateCartQty = async (uid, quantity) => cartApi.updateProductsFromCart([
+    { uid, quantity },
+  ]);
+
+  events.on('cart/data', syncPlpCartControls, { eager: true });
+  syncPlpCartControls(cartApi.getCartDataFromCache());
+
+  /**
+   * Show success / error toast when wishlist drop-in emits an alert.
+   */
+  events.on('wishlist/alert', ({ action, item }) => {
+    const productName = item?.product?.name || 'Product';
+    if (action === 'add' || action === 'remove') {
+      showWishlistSuccessToast(action, productName);
       return;
     }
-    if (!product.inStock) return;
-    cartApi.addProductsToCart([{ sku: product.sku, quantity: 1 }]);
-  };
+    if (action === 'addError' || action === 'removeError') {
+      showWishlistErrorToast(
+        action === 'addError'
+          ? 'We could not add this product to your wishlist. Please try again.'
+          : 'We could not remove this product from your wishlist. Please try again.',
+      );
+    }
+  });
 
   await Promise.all([
     // Facets
@@ -398,15 +461,57 @@ export default async function decorate(block) {
           const productName = product.name || product.sku;
           const $wishlistToggle = document.createElement('div');
           $wishlistToggle.className = 'product-item-wishlist';
-          wishlistRender.render(WishlistToggle, {
-            product,
-            variant: 'tertiary',
-          })($wishlistToggle);
+
+          if (!checkIsAuthenticated()) {
+            const guestWishlistBtn = document.createElement('button');
+            guestWishlistBtn.type = 'button';
+            guestWishlistBtn.className = 'action towishlist';
+            guestWishlistBtn.setAttribute('aria-label', 'Add to Shopping List');
+            guestWishlistBtn.addEventListener('click', (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              showShoppingListAlert();
+            });
+            $wishlistToggle.append(guestWishlistBtn);
+          } else {
+            wishlistRender.render(WishlistToggle, {
+              product,
+              variant: 'tertiary',
+            })($wishlistToggle);
+
+            /**
+             * Keep Little Farms heart icon filled when drop-in marks item as wishlisted.
+             *
+             * @return {void}
+             */
+            const syncWishlistHeart = () => {
+              const toggleBtn = $wishlistToggle.querySelector('button, [data-testid="wishlist-toggle"]');
+              if (!toggleBtn) return;
+              const label = (toggleBtn.getAttribute('aria-label') || '').toLowerCase();
+              const wishlisted = label.includes('remove') || label.includes('wishlisted');
+              toggleBtn.classList.toggle('is-active', wishlisted);
+              toggleBtn.setAttribute('aria-pressed', String(wishlisted));
+            };
+            syncWishlistHeart();
+            const wishlistObserver = new MutationObserver(syncWishlistHeart);
+            wishlistObserver.observe($wishlistToggle, {
+              attributes: true,
+              childList: true,
+              subtree: true,
+              attributeFilter: ['aria-label', 'class'],
+            });
+          }
+
           const atcEl = createAddToCartButton(product, {
             label: `${labels.Global?.AddProductToCart || 'Add to Cart'} ${productName}`,
+            addLabel: labels.Global?.AddToCart || 'Add to Cart',
+            addingLabel: labels.Global?.Adding || 'Adding...',
+            addedLabel: labels.Global?.Added || 'Added',
             disabled: !product.inStock && !requiresPdpConfiguration(product),
-            onClick: handleAddToCart,
+            onAdd: handleAddToCart,
+            onUpdateQty: handleUpdateCartQty,
           });
+          atcEl.syncFromCart?.(cartApi.getCartDataFromCache());
           const details = createProductDetails(product, productUrl, {
             wishlistEl: $wishlistToggle,
             atcEl,
