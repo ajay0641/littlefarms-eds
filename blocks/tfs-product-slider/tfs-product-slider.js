@@ -1,6 +1,6 @@
 import { getProductSlider } from '@ajay0641/tfs-product-slider/api.js';
 import { events } from '@dropins/tools/event-bus.js';
-import Splide from '../../scripts/vendor/splide/splide.esm.js';
+import SplideCarousel from '../../scripts/vendor/splide/splide.esm.js';
 import { loadCSS, readBlockConfig } from '../../scripts/aem.js';
 import {
   checkIsAuthenticated,
@@ -11,12 +11,11 @@ import {
 import { getUserTokenCookie } from '../../scripts/initializers/index.js';
 import {
   showCartErrorToast,
-  showCartSuccessToast,
   showWishlistErrorToast,
-  showWishlistLoginToast,
   showWishlistSuccessToast,
 } from '../../scripts/components/tfs-wishlist-toast/tfs-wishlist-toast.js';
-import { showWishlistAuthModal } from '../../scripts/wishlist-auth-modal.js';
+import { showShoppingListAlert } from '../../scripts/components/shopping-list-alert/shopping-list-alert.js';
+import { createAddToCartButton } from '../product-list-page/plp-product-card.js';
 
 import '../../scripts/initializers/product-slider.js';
 
@@ -240,14 +239,6 @@ function getWishlistErrorMessage(error) {
   return 'We could not update your wishlist. Please try again.';
 }
 
-/**
- * @param {unknown} error
- * @returns {string}
- */
-function getCartErrorMessage(error) {
-  if (error instanceof Error && error.message) return error.message;
-  return 'We could not add this item to your cart. Please try again.';
-}
 
 /**
  * Builds a Little Farms styled product card slide for Splide.
@@ -296,16 +287,17 @@ function buildProductSlide(product, cartApi, wishlistApi) {
   const details = document.createElement('div');
   details.className = 'product-item-details';
 
-  // Brand row with wishlist heart
-  const metaRow = document.createElement('div');
-  metaRow.className = 'product-item-meta';
-
+  // Brand
   if (product.subtitle) {
-    const brand = document.createElement('span');
+    const brand = document.createElement('div');
     brand.className = 'brand';
     brand.textContent = product.subtitle;
-    metaRow.append(brand);
+    details.append(brand);
   }
+
+  // Wishlist Container
+  const wishlistContainer = document.createElement('div');
+  wishlistContainer.className = 'wishlist-container';
 
   const wishlistBtn = document.createElement('button');
   wishlistBtn.type = 'button';
@@ -318,9 +310,7 @@ function buildProductSlide(product, cartApi, wishlistApi) {
     e.stopPropagation();
 
     if (!checkIsAuthenticated()) {
-      showWishlistLoginToast(() => {
-        showWishlistAuthModal();
-      });
+      showShoppingListAlert();
       return;
     }
 
@@ -355,8 +345,8 @@ function buildProductSlide(product, cartApi, wishlistApi) {
     }
   });
 
-  metaRow.append(wishlistBtn);
-  details.append(metaRow);
+  wishlistContainer.append(wishlistBtn);
+  details.append(wishlistContainer);
 
   // Title Link
   const titleWrap = document.createElement('strong');
@@ -381,6 +371,9 @@ function buildProductSlide(product, cartApi, wishlistApi) {
   const innerRow = document.createElement('div');
   innerRow.className = 'product-item-inner';
 
+  const left = document.createElement('div');
+  left.className = 'left';
+
   const priceBox = document.createElement('div');
   priceBox.className = 'price-box price-final_price';
 
@@ -401,62 +394,44 @@ function buildProductSlide(product, cartApi, wishlistApi) {
   priceVal.textContent = formatPrice(product.finalPrice, product.currency);
   finalPrice.append(priceVal);
   priceBox.append(finalPrice);
-  innerRow.append(priceBox);
+  left.append(priceBox);
+  innerRow.append(left);
 
-  // Add to Cart Button
-  const actionsWrap = document.createElement('div');
-  actionsWrap.className = 'actions-primary';
-
-  const atcBtn = document.createElement('button');
-  atcBtn.type = 'button';
-  atcBtn.className = 'action tocart primary';
-  atcBtn.title = 'Add to Cart';
-  atcBtn.innerHTML = '<span>Add to Cart</span>';
-
-  atcBtn.addEventListener('click', async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (requiresPdpConfiguration(product)) {
-      window.location.href = productUrl;
-      return;
-    }
-
-    if (product.inStock === false) {
-      showCartErrorToast('This product is currently out of stock.');
-      return;
-    }
-
-    setActionLoading(atcBtn, true);
-    try {
+  // Add to Cart Button (reused from PLP)
+  const actionsWrap = createAddToCartButton(product, {
+    label: `Add to Cart ${product.name || product.sku}`,
+    addLabel: 'Add to Cart',
+    addingLabel: 'Adding...',
+    addedLabel: 'Added',
+    disabled: product.inStock === false && !requiresPdpConfiguration(product),
+    onAdd: async () => {
+      if (requiresPdpConfiguration(product)) {
+        window.location.href = productUrl;
+        return null;
+      }
+      if (product.inStock === false) {
+        showCartErrorToast('This product is currently out of stock.');
+        return null;
+      }
       syncCartAuthHeaders(cartApi);
       await ensureCartReady(cartApi);
-
       const previousQuantity = cartApi.getCartDataFromCache()?.totalQuantity ?? 0;
       const cart = await cartApi.addProductsToCart([{ sku: product.sku, quantity: 1 }]);
-
       if (!wasProductAddedToCart(cart, product.sku, previousQuantity)) {
         throw new Error('Product was not added to your cart. Please try again.');
       }
-
-      try {
-        await cartApi.getCartData();
-      } catch {
-        // Cart refresh is best-effort
-      }
-
-      await showCartSuccessToast(product.name, () => {
-        window.location.href = rootLink('/cart');
-      });
-    } catch (err) {
-      await showCartErrorToast(getCartErrorMessage(err));
-      console.error('TFS Product Slider: add to cart failed', err);
-    } finally {
-      setActionLoading(atcBtn, false);
-    }
+      try { await cartApi.getCartData(); } catch (err) { /* noop */ }
+      return cart;
+    },
+    onUpdateQty: async (uid, quantity) => {
+      syncCartAuthHeaders(cartApi);
+      await ensureCartReady(cartApi);
+      const cart = await cartApi.updateProductsFromCart([{ uid, quantity }]);
+      try { await cartApi.getCartData(); } catch (err) { /* noop */ }
+      return cart;
+    },
   });
-
-  actionsWrap.append(atcBtn);
+  actionsWrap.syncFromCart?.(cartApi.getCartDataFromCache());
   innerRow.append(actionsWrap);
   details.append(innerRow);
 
@@ -616,7 +591,7 @@ export default async function decorate(block) {
     });
 
     // Mount Splide with pagination enabled (styled like ideas-to-inspire on mobile)
-    const splide = new Splide(splideEl, {
+    const splide = new SplideCarousel(splideEl, {
       type: 'slide',
       rewind: false,
       perPage: 4,
@@ -648,6 +623,14 @@ export default async function decorate(block) {
 
     splide.mount();
     resyncWishlistButtons(block, wishlistApi);
+
+    events.on('cart/data', (cart) => {
+      block.querySelectorAll('.actions-primary').forEach((el) => {
+        if (typeof el.syncFromCart === 'function') {
+          el.syncFromCart(cart);
+        }
+      });
+    });
   } catch (err) {
     console.error('TFS Product Slider: Failed to load products', err);
     const errorMsg = document.createElement('p');

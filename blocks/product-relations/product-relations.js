@@ -15,12 +15,11 @@ import { getUserTokenCookie } from '../../scripts/initializers/index.js';
 import '../../scripts/initializers/wishlist.js';
 import {
   showCartErrorToast,
-  showCartSuccessToast,
   showWishlistErrorToast,
-  showWishlistLoginToast,
   showWishlistSuccessToast,
 } from '../../scripts/components/tfs-wishlist-toast/tfs-wishlist-toast.js';
-import { showWishlistAuthModal } from '../../scripts/wishlist-auth-modal.js';
+import { showShoppingListAlert } from '../../scripts/components/shopping-list-alert/shopping-list-alert.js';
+import { createAddToCartButton } from '../product-list-page/plp-product-card.js';
 
 loadCSS('/scripts/vendor/splide/splide-core.min.css');
 
@@ -173,14 +172,6 @@ function getWishlistErrorMessage(error) {
   return 'We could not update your wishlist. Please try again.';
 }
 
-/**
- * @param {unknown} error
- * @returns {string}
- */
-function getCartErrorMessage(error) {
-  if (error instanceof Error && error.message) return error.message;
-  return 'We could not add this item to your cart. Please try again.';
-}
 
 /**
  * Formats a currency amount.
@@ -644,9 +635,7 @@ function buildProductSlide(product, cartApi, api) {
     e.stopPropagation();
 
     if (!checkIsAuthenticated()) {
-      showWishlistLoginToast(() => {
-        showWishlistAuthModal();
-      });
+      showShoppingListAlert();
       return;
     }
 
@@ -735,60 +724,41 @@ function buildProductSlide(product, cartApi, api) {
   leftBox.append(priceBox);
   innerRow.append(leftBox);
 
-  // Add to Cart Button
-  const actionsWrap = document.createElement('div');
-  actionsWrap.className = 'actions-primary';
-
-  const atcBtn = document.createElement('button');
-  atcBtn.type = 'button';
-  atcBtn.className = 'action tocart primary';
-  atcBtn.title = 'Add to Cart';
-  atcBtn.innerHTML = '<span>Add to Cart</span>';
-
-  atcBtn.addEventListener('click', async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (requiresPdpConfiguration(product)) {
-      window.location.href = productUrl;
-      return;
-    }
-
-    if (product.inStock === false) {
-      showCartErrorToast('This product is currently out of stock.');
-      return;
-    }
-
-    setActionLoading(atcBtn, true);
-    try {
+  // Add to Cart Button (reused from PLP)
+  const actionsWrap = createAddToCartButton(product, {
+    label: `Add to Cart ${product.name || product.sku}`,
+    addLabel: 'Add to Cart',
+    addingLabel: 'Adding...',
+    addedLabel: 'Added',
+    disabled: product.inStock === false && !requiresPdpConfiguration(product),
+    onAdd: async () => {
+      if (requiresPdpConfiguration(product)) {
+        window.location.href = productUrl;
+        return null;
+      }
+      if (product.inStock === false) {
+        showCartErrorToast('This product is currently out of stock.');
+        return null;
+      }
       syncCartAuthHeaders(cartApi);
       await ensureCartReady(cartApi);
-
       const previousQuantity = cartApi?.getCartDataFromCache()?.totalQuantity ?? 0;
       const cart = await cartApi?.addProductsToCart([{ sku: product.sku, quantity: 1 }]);
-
       if (!wasProductAddedToCart(cart, product.sku, previousQuantity)) {
         throw new Error('Product was not added to your cart. Please try again.');
       }
-
-      try {
-        await cartApi?.getCartData();
-      } catch {
-        // Cart refresh is best-effort
-      }
-
-      await showCartSuccessToast(product.name, () => {
-        window.location.href = rootLink('/cart');
-      });
-    } catch (err) {
-      await showCartErrorToast(getCartErrorMessage(err));
-      console.error('Product Relations: add to cart failed', err);
-    } finally {
-      setActionLoading(atcBtn, false);
-    }
+      try { await cartApi?.getCartData(); } catch (err) { /* noop */ }
+      return cart;
+    },
+    onUpdateQty: async (uid, quantity) => {
+      syncCartAuthHeaders(cartApi);
+      await ensureCartReady(cartApi);
+      const cart = await cartApi.updateProductsFromCart([{ uid, quantity }]);
+      try { await cartApi?.getCartData(); } catch (err) { /* noop */ }
+      return cart;
+    },
   });
-
-  actionsWrap.append(atcBtn);
+  actionsWrap.syncFromCart?.(cartApi?.getCartDataFromCache());
   innerRow.append(actionsWrap);
 
   details.append(innerRow);
@@ -1004,5 +974,13 @@ export default async function decorate(block) {
   });
   events.on('authenticated', () => {
     resyncWishlistButtons(block, wishlistApi);
+  });
+
+  events.on('cart/data', (cart) => {
+    block.querySelectorAll('.actions-primary').forEach((el) => {
+      if (typeof el.syncFromCart === 'function') {
+        el.syncFromCart(cart);
+      }
+    });
   });
 }
