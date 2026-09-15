@@ -1,7 +1,6 @@
 // Product Discovery Dropins
 import Facets from '@dropins/storefront-product-discovery/containers/Facets.js';
 import { render as provider } from '@dropins/storefront-product-discovery/render.js';
-import { Button, Icon, provider as UI } from '@dropins/tools/components.js';
 import { search } from '@dropins/storefront-product-discovery/api.js';
 // Wishlist Dropin
 import { WishlistToggle } from '@dropins/storefront-wishlist/containers/WishlistToggle.js';
@@ -13,7 +12,12 @@ import { tryRenderAemAssetsImage } from '@dropins/tools/lib/aem/assets.js';
 import { events } from '@dropins/tools/event-bus.js';
 // AEM
 import { readBlockConfig } from '../../scripts/aem.js';
-import { fetchPlaceholders, getCategoryFromUrl, getProductLink } from '../../scripts/commerce.js';
+import {
+  fetchPlaceholders,
+  getCategoryFromUrl,
+  getProductLink,
+  checkIsAuthenticated,
+} from '../../scripts/commerce.js';
 import { getCategoryAncestors } from '../../scripts/menu-data.js';
 import { PLP_IMAGE_DIMENSIONS, withProductImageFallback } from '../../scripts/product-image.js';
 import { fetchCategoryDetails } from './category-details.js';
@@ -28,10 +32,16 @@ import { initSortDropdown } from './plp-sort-dropdown.js';
 import PlpSearchResults from './plp-search-results.js';
 import { createLoadMoreController } from './load-more.js';
 import { createScrollPageUrlSync } from './scroll-page-url.js';
+import { showShoppingListAlert } from '../../scripts/components/shopping-list-alert/shopping-list-alert.js';
+import {
+  showWishlistErrorToast,
+  showWishlistSuccessToast,
+} from '../../scripts/components/tfs-wishlist-toast/tfs-wishlist-toast.js';
 
 // Initializers
 import '../../scripts/initializers/search.js';
 import '../../scripts/initializers/wishlist.js';
+import '../../scripts/initializers/cart.js';
 
 export default async function decorate(block) {
   const labels = await fetchPlaceholders();
@@ -49,17 +59,29 @@ export default async function decorate(block) {
 
   const fragment = document.createRange().createContextualFragment(`
     <div class="search__wrapper">
-      <div class="search__view-facets"></div>
-      <div class="search__facets">
+      <div class="search__facets-overlay" hidden></div>
+      <div class="search__facets" id="search-facets-panel">
         <div class="search__filters-heading">
           <h2 class="search__filters-title">${labels.Global?.Filters || 'Filters'}</h2>
-          <button type="button" class="search__filters-clear" aria-label="Clear all filters" hidden>Clear All</button>
+          <button type="button" class="search__filters-clear search__filters-clear--inline" aria-label="Clear all filters" hidden>Clear All</button>
+          <button type="button" class="search__filters-close" aria-label="Close filters"></button>
         </div>
-        <div class="search__facets-list"></div>
+        <div class="search__facets-scroll">
+          <div class="search__facets-list"></div>
+        </div>
+        <div class="search__filters-footer">
+          <button type="button" class="search__filters-clear search__filters-clear--footer" aria-label="Clear all filters" hidden>Clear All</button>
+          <button type="button" class="search__filters-apply">Show 0 products</button>
+        </div>
       </div>
+      <div class="search__toolbar-sentinel" aria-hidden="true"></div>
       <div class="search__toolbar">
-        <div class="search__result-info"></div>
         <div class="search__product-sort"></div>
+        <button type="button" class="search__filter-trigger" aria-expanded="false" aria-controls="search-facets-panel">
+          <span class="search__filter-trigger-icon" aria-hidden="true"></span>
+          <span class="search__filter-trigger-label">${labels.Global?.Filter || 'Filter'}</span>
+        </button>
+        <div class="search__result-info"></div>
       </div>
       <div class="search__product-list"></div>
       <div class="search__pagination"></div>
@@ -67,10 +89,14 @@ export default async function decorate(block) {
   `);
 
   const $resultInfo = fragment.querySelector('.search__result-info');
-  const $viewFacets = fragment.querySelector('.search__view-facets');
+  const $facetsOverlay = fragment.querySelector('.search__facets-overlay');
   const $facets = fragment.querySelector('.search__facets');
-  const $filtersClear = fragment.querySelector('.search__filters-clear');
+  const $filtersClearButtons = [...fragment.querySelectorAll('.search__filters-clear')];
+  const $filtersClose = fragment.querySelector('.search__filters-close');
+  const $filtersApply = fragment.querySelector('.search__filters-apply');
   const $facetsList = fragment.querySelector('.search__facets-list');
+  const $toolbarSentinel = fragment.querySelector('.search__toolbar-sentinel');
+  const $filterTrigger = fragment.querySelector('.search__filter-trigger');
   const $productSort = fragment.querySelector('.search__product-sort');
   const $productList = fragment.querySelector('.search__product-list');
   const $pagination = fragment.querySelector('.search__pagination');
@@ -96,17 +122,51 @@ export default async function decorate(block) {
     (item) => !SYSTEM_FILTERS.has(item.attribute),
   );
 
-  $filtersClear.addEventListener('click', () => {
-    loadMoreController?.reset();
-    scrollPageUrlSync?.reset();
-    search({
-      ...lastSearchRequest,
-      filter: (lastSearchRequest.filter || []).filter((item) => SYSTEM_FILTERS.has(item.attribute)),
-      currentPage: 1,
-      pageSize,
-    }).catch(() => {
-      console.error('Error searching for products');
+  /**
+   * Open or close the mobile filter drawer (Magento `.sidebar-main.active`).
+   *
+   * @param {Boolean} [force]
+   * @return {void}
+   */
+  const setFacetsOpen = (force) => {
+    const visible = typeof force === 'boolean'
+      ? force
+      : !$facets.classList.contains('search__facets--visible');
+    $facets.classList.toggle('search__facets--visible', visible);
+    $facetsOverlay.hidden = !visible;
+    $filterTrigger.setAttribute('aria-expanded', String(visible));
+    document.body.classList.toggle('search-facets-open', visible);
+  };
+
+  $filtersClearButtons.forEach(($btn) => {
+    $btn.addEventListener('click', () => {
+      loadMoreController?.reset();
+      scrollPageUrlSync?.reset();
+      search({
+        ...lastSearchRequest,
+        filter: (lastSearchRequest.filter || [])
+          .filter((item) => SYSTEM_FILTERS.has(item.attribute)),
+        currentPage: 1,
+        pageSize,
+      }).catch(() => {
+        console.error('Error searching for products');
+      });
     });
+  });
+
+  $filterTrigger.addEventListener('click', () => setFacetsOpen());
+  $filtersClose.addEventListener('click', () => setFacetsOpen(false));
+  $facetsOverlay.addEventListener('click', () => setFacetsOpen(false));
+  $filtersApply.addEventListener('click', () => setFacetsOpen(false));
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && $facets.classList.contains('search__facets--visible')) {
+      setFacetsOpen(false);
+    }
+  });
+
+  window.matchMedia('(min-width: 768px)').addEventListener('change', (event) => {
+    if (event.matches) setFacetsOpen(false);
   });
 
   const collapsedFacets = new Set();
@@ -279,26 +339,68 @@ export default async function decorate(block) {
   const requiresPdpConfiguration = (product) => product.typename === 'ComplexProductView'
     || product.attributes?.some((attr) => attr.name === 'ac_giftcard');
 
-  const handleAddToCart = (product) => {
-    if (requiresPdpConfiguration(product)) {
-      window.location.href = getProductLink(product.urlKey, product.sku);
-      return;
-    }
-    if (!product.inStock) return;
-    cartApi.addProductsToCart([{ sku: product.sku, quantity: 1 }]);
+  /**
+   * Sync all visible PLP ATC controls from cart data.
+   *
+   * @param {Object|null|undefined} cart
+   * @return {void}
+   */
+  const syncPlpCartControls = (cart) => {
+    $productList.querySelectorAll('.actions-primary').forEach((el) => {
+      if (typeof el.syncFromCart === 'function') {
+        el.syncFromCart(cart);
+      }
+    });
   };
 
-  await Promise.all([
-    // View Facets Button
-    UI.render(Button, {
-      children: labels.Global?.Filters,
-      icon: Icon({ source: 'Burger' }),
-      variant: 'secondary',
-      onClick: () => {
-        $facets.classList.toggle('search__facets--visible');
-      },
-    })($viewFacets),
+  /**
+   * Add a simple product to cart (complex products redirect to PDP).
+   *
+   * @param {Object} product
+   * @return {Promise<Object|null|undefined>}
+   */
+  const handleAddToCart = async (product) => {
+    if (requiresPdpConfiguration(product)) {
+      window.location.href = getProductLink(product.urlKey, product.sku);
+      return null;
+    }
+    if (!product.inStock) return null;
+    return cartApi.addProductsToCart([{ sku: product.sku, quantity: 1 }]);
+  };
 
+  /**
+   * Update or remove a cart line item quantity.
+   *
+   * @param {string} uid
+   * @param {number} quantity
+   * @return {Promise<Object|null|undefined>}
+   */
+  const handleUpdateCartQty = async (uid, quantity) => cartApi.updateProductsFromCart([
+    { uid, quantity },
+  ]);
+
+  events.on('cart/data', syncPlpCartControls, { eager: true });
+  syncPlpCartControls(cartApi.getCartDataFromCache());
+
+  /**
+   * Show success / error toast when wishlist drop-in emits an alert.
+   */
+  events.on('wishlist/alert', ({ action, item }) => {
+    const productName = item?.product?.name || 'Product';
+    if (action === 'add' || action === 'remove') {
+      showWishlistSuccessToast(action, productName);
+      return;
+    }
+    if (action === 'addError' || action === 'removeError') {
+      showWishlistErrorToast(
+        action === 'addError'
+          ? 'We could not add this product to your wishlist. Please try again.'
+          : 'We could not remove this product from your wishlist. Please try again.',
+      );
+    }
+  });
+
+  await Promise.all([
     // Facets
     provider.render(Facets, {
       slots: {
@@ -359,15 +461,57 @@ export default async function decorate(block) {
           const productName = product.name || product.sku;
           const $wishlistToggle = document.createElement('div');
           $wishlistToggle.className = 'product-item-wishlist';
-          wishlistRender.render(WishlistToggle, {
-            product,
-            variant: 'tertiary',
-          })($wishlistToggle);
+
+          if (!checkIsAuthenticated()) {
+            const guestWishlistBtn = document.createElement('button');
+            guestWishlistBtn.type = 'button';
+            guestWishlistBtn.className = 'action towishlist';
+            guestWishlistBtn.setAttribute('aria-label', 'Add to Shopping List');
+            guestWishlistBtn.addEventListener('click', (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              showShoppingListAlert();
+            });
+            $wishlistToggle.append(guestWishlistBtn);
+          } else {
+            wishlistRender.render(WishlistToggle, {
+              product,
+              variant: 'tertiary',
+            })($wishlistToggle);
+
+            /**
+             * Keep Little Farms heart icon filled when drop-in marks item as wishlisted.
+             *
+             * @return {void}
+             */
+            const syncWishlistHeart = () => {
+              const toggleBtn = $wishlistToggle.querySelector('button, [data-testid="wishlist-toggle"]');
+              if (!toggleBtn) return;
+              const label = (toggleBtn.getAttribute('aria-label') || '').toLowerCase();
+              const wishlisted = label.includes('remove') || label.includes('wishlisted');
+              toggleBtn.classList.toggle('is-active', wishlisted);
+              toggleBtn.setAttribute('aria-pressed', String(wishlisted));
+            };
+            syncWishlistHeart();
+            const wishlistObserver = new MutationObserver(syncWishlistHeart);
+            wishlistObserver.observe($wishlistToggle, {
+              attributes: true,
+              childList: true,
+              subtree: true,
+              attributeFilter: ['aria-label', 'class'],
+            });
+          }
+
           const atcEl = createAddToCartButton(product, {
             label: `${labels.Global?.AddProductToCart || 'Add to Cart'} ${productName}`,
+            addLabel: labels.Global?.AddToCart || 'Add to Cart',
+            addingLabel: labels.Global?.Adding || 'Adding...',
+            addedLabel: labels.Global?.Added || 'Added',
             disabled: !product.inStock && !requiresPdpConfiguration(product),
-            onClick: handleAddToCart,
+            onAdd: handleAddToCart,
+            onUpdateQty: handleUpdateCartQty,
           });
+          atcEl.syncFromCart?.(cartApi.getCartDataFromCache());
           const details = createProductDetails(product, productUrl, {
             wishlistEl: $wishlistToggle,
             atcEl,
@@ -398,6 +542,19 @@ export default async function decorate(block) {
     getLastRequest: () => loadMoreController?.getLastRequest() ?? lastSearchRequest,
     buildUrl: () => new URL(window.location.href),
   });
+
+  // Sticky mobile Sort/Filter bar (matches Magento `.show-filter`)
+  if ($toolbarSentinel && typeof IntersectionObserver !== 'undefined') {
+    const stickyObserver = new IntersectionObserver(
+      ([entry]) => {
+        const sticky = !entry.isIntersecting && window.matchMedia('(max-width: 767px)').matches;
+        block.classList.toggle('product-list-page--toolbar-sticky', sticky);
+        document.body.classList.toggle('plp-toolbar-sticky', sticky);
+      },
+      { rootMargin: '-60px 0px 0px 0px', threshold: 0 },
+    );
+    stickyObserver.observe($toolbarSentinel);
+  }
 
   let restoringFromHistory = false;
 
@@ -435,18 +592,24 @@ export default async function decorate(block) {
     block.classList.toggle('product-list-page--empty', totalCount === 0);
 
     lastSearchRequest = payload.request || {};
-    $filtersClear.hidden = !hasUserFilters(payload.request?.filter);
+    const showClear = hasUserFilters(payload.request?.filter);
+    $filtersClearButtons.forEach(($btn) => {
+      $btn.hidden = !showClear;
+    });
+    $filtersApply.textContent = `Show ${totalCount} products`;
 
     const phrase = payload.request?.phrase;
     $resultInfo.textContent = phrase
       ? `${totalCount} products found for "${phrase}"`
       : `${totalCount} products found`;
 
-    // Update the view facets button with the number of filters
-    if (payload.request.filter.length > 0) {
-      $viewFacets.querySelector('button').setAttribute('data-count', payload.request.filter.length);
+    // Update the filter trigger with the number of shopper filters
+    const userFilterCount = (payload.request?.filter || [])
+      .filter((item) => !SYSTEM_FILTERS.has(item.attribute)).length;
+    if (userFilterCount > 0) {
+      $filterTrigger.setAttribute('data-count', String(userFilterCount));
     } else {
-      $viewFacets.querySelector('button').removeAttribute('data-count');
+      $filterTrigger.removeAttribute('data-count');
     }
 
     requestAnimationFrame(() => {

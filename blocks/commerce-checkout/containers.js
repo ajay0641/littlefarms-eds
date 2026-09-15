@@ -246,6 +246,8 @@ export const renderOutOfStock = async (container) => renderContainer(
 export const renderLoginForm = async (container) => renderContainer(
   CONTAINERS.LOGIN_FORM,
   async () => CheckoutProvider.render(LoginForm, {
+    // Magento section title is rendered in the fragment; hide drop-in heading
+    displayTitle: false,
     name: LOGIN_FORM_NAME,
     onSignInClick: async (initialEmailValue) => {
       const signInForm = document.createElement('div');

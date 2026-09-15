@@ -1,0 +1,130 @@
+/* Magento `.wishlist-popup` — guest shopping list login alert */
+.shopping-list-alert {
+  align-items: flex-start;
+  background-color: rgb(51 51 51 / 55%);
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  left: 0;
+  overflow: auto;
+  padding: 50px 20px;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 1200;
+}
+
+.shopping-list-alert__dialog {
+  background: var(--color-neutral-50, #fff);
+  box-sizing: border-box;
+  margin: 0 auto;
+  max-width: 960px;
+  position: relative;
+  text-align: center;
+  width: 100%;
+}
+
+.shopping-list-alert__header {
+  border-bottom: 1px solid #ebebeb;
+  box-sizing: border-box;
+  padding: 20px 48px 10px;
+  position: relative;
+}
+
+.shopping-list-alert__title {
+  color: var(--color-neutral-800, #3a3a3a);
+  font-family: var(--type-heading-font-family), cursive;
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 46px;
+  margin: 0;
+  text-transform: none;
+}
+
+.shopping-list-alert__close {
+  appearance: none;
+  background: transparent url('../../../icons/littlefarms/close.svg') center / 16px 16px no-repeat;
+  border: 0;
+  cursor: pointer;
+  height: 16px;
+  padding: 0;
+  position: absolute;
+  right: 20px;
+  top: 28px;
+  width: 16px;
+}
+
+.shopping-list-alert__message {
+  color: var(--color-neutral-800, #3a3a3a);
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 21px;
+  margin: 0;
+  padding: 20px 20px 6px;
+}
+
+.shopping-list-alert__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  padding: 20px;
+}
+
+.shopping-list-alert__action {
+  appearance: none;
+  background-color: transparent;
+  background-image: url('../../../icons/littlefarms/shape-green-border.svg');
+  background-position: 0 0;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--color-brand-300, #4d7f71);
+  cursor: pointer;
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 18px;
+  min-height: 46px;
+  min-width: 125px;
+  padding: 14px 20px;
+  text-align: center;
+}
+
+.shopping-list-alert__action:hover,
+.shopping-list-alert__action:focus-visible {
+  opacity: 0.85;
+  outline: none;
+}
+
+@media (max-width: 767px) {
+  .shopping-list-alert {
+    align-items: center;
+    padding: 20px;
+  }
+
+  .shopping-list-alert__header {
+    padding: 16px 40px 10px;
+  }
+
+  .shopping-list-alert__title {
+    font-size: 18px;
+    line-height: 28px;
+  }
+
+  .shopping-list-alert__close {
+    top: 18px;
+  }
+
+  .shopping-list-alert__actions {
+    flex-direction: column;
+  }
+
+  .shopping-list-alert__action {
+    width: 100%;
+  }
+}

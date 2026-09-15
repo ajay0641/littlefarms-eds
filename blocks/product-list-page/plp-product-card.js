@@ -149,13 +149,68 @@ export function createPriceBox(product) {
 }
 
 /**
- * @param {object} product
- * @param {{ onClick: Function, disabled?: boolean, label: string }} options
- * @returns {HTMLElement}
+ * Find a cart line item for the given product SKU.
+ *
+ * @param {Object|null|undefined} cart
+ * @param {string} sku
+ * @return {{uid: string, quantity: number}|null}
  */
-export function createAddToCartButton(product, { onClick, disabled, label }) {
+export function findCartItemBySku(cart, sku) {
+  if (!cart?.items?.length || !sku) return null;
+  const target = String(sku).toUpperCase();
+  const match = cart.items.find((item) => {
+    const itemSku = String(item?.sku || '').toUpperCase();
+    const topSku = String(item?.topLevelSku || '').toUpperCase();
+    return itemSku === target || topSku === target;
+  });
+  if (!match || !(match.quantity > 0)) return null;
+  return { uid: match.uid, quantity: match.quantity };
+}
+
+/**
+ * Creates Magento-style Add to Cart control with loading + qty stepper.
+ *
+ * Flow: Add to Cart → Adding... → Added → qty stepper.
+ *
+ * @param {Object} product
+ * @param {{
+ *   label: string,
+ *   disabled?: boolean,
+ *   addLabel?: string,
+ *   addingLabel?: string,
+ *   addedLabel?: string,
+ *   addedDelayMs?: number,
+ *   onAdd: (product: Object) => Promise<Object|null|undefined>,
+ *   onUpdateQty: (uid: string, quantity: number) => Promise<Object|null|undefined>,
+ * }} options
+ * @return {HTMLElement}
+ */
+export function createAddToCartButton(product, {
+  label,
+  disabled = false,
+  addLabel = 'Add to Cart',
+  addingLabel = 'Adding...',
+  addedLabel = 'Added',
+  addedDelayMs = 1000,
+  onAdd,
+  onUpdateQty,
+}) {
+  /** @type {string|null} */
+  let cartItemUid = null;
+  /** @type {number} */
+  let currentQty = 0;
+  /** @type {boolean} */
+  let busy = false;
+  /** @type {Object|null|undefined} */
+  let pendingCart = null;
+  /** @type {ReturnType<typeof setTimeout>|null} */
+  let qtyDebounceTimer = null;
+  /** @type {ReturnType<typeof setTimeout>|null} */
+  let addedTimer = null;
+
   const actionsWrap = document.createElement('div');
   actionsWrap.className = 'actions-primary';
+  actionsWrap.dataset.sku = product.sku || '';
 
   const atcBtn = document.createElement('button');
   atcBtn.type = 'button';
@@ -163,14 +218,210 @@ export function createAddToCartButton(product, { onClick, disabled, label }) {
   atcBtn.title = label;
   atcBtn.setAttribute('aria-label', label);
   atcBtn.disabled = !!disabled;
-  atcBtn.innerHTML = '<span>Add to Cart</span>';
-  atcBtn.addEventListener('click', (event) => {
+  atcBtn.innerHTML = `<span>${addLabel}</span>`;
+  const atcLabel = atcBtn.querySelector('span');
+
+  const qtyBlock = document.createElement('div');
+  qtyBlock.className = 'addtocart-qty-block';
+  qtyBlock.hidden = true;
+  qtyBlock.innerHTML = `
+    <button type="button" class="action decrease" aria-label="Decrease quantity">
+      <span class="minus"></span>
+    </button>
+    <div class="input-text qty">
+      <input type="number" min="0" value="1" class="input-text" aria-label="Quantity" />
+    </div>
+    <button type="button" class="action increase" aria-label="Increase quantity">
+      <span class="plus"></span>
+    </button>
+  `;
+
+  const $decBtn = qtyBlock.querySelector('.action.decrease');
+  const $incBtn = qtyBlock.querySelector('.action.increase');
+  const $qtyInput = qtyBlock.querySelector('input');
+
+  /**
+   * @param {boolean} isBusy
+   * @param {string} [busyLabel]
+   * @return {void}
+   */
+  const setBusy = (isBusy, busyLabel) => {
+    busy = isBusy;
+    const qtyVisible = !qtyBlock.hidden;
+    atcBtn.disabled = (isBusy && !qtyVisible) || !!disabled;
+    atcBtn.classList.toggle('disabled', isBusy && !qtyVisible);
+    atcBtn.classList.toggle('is-adding', isBusy && !qtyVisible);
+    if (atcLabel) {
+      if (isBusy && !qtyVisible) {
+        atcLabel.textContent = busyLabel || addingLabel;
+      } else if (!isBusy) {
+        atcLabel.textContent = addLabel;
+      }
+    }
+    if ($decBtn) $decBtn.disabled = isBusy;
+    if ($incBtn) $incBtn.disabled = isBusy;
+    if ($qtyInput) $qtyInput.disabled = isBusy;
+  };
+
+  /**
+   * @param {number} qty
+   * @return {void}
+   */
+  const showQty = (qty) => {
+    currentQty = qty;
+    atcBtn.hidden = true;
+    qtyBlock.hidden = false;
+    if ($qtyInput) $qtyInput.value = String(qty);
+  };
+
+  /**
+   * @return {void}
+   */
+  const showAtc = () => {
+    cartItemUid = null;
+    currentQty = 0;
+    qtyBlock.hidden = true;
+    atcBtn.hidden = false;
+    if ($qtyInput) $qtyInput.value = '1';
+  };
+
+  /**
+   * Apply cart line state to the control (no "Added" delay).
+   *
+   * @param {Object|null|undefined} cart
+   * @return {void}
+   */
+  const applyCartState = (cart) => {
+    const item = findCartItemBySku(cart, product.sku);
+    if (item) {
+      cartItemUid = item.uid;
+      showQty(item.quantity);
+      setBusy(false);
+      return;
+    }
+    showAtc();
+    setBusy(false);
+  };
+
+  /**
+   * Sync control UI from cart drop-in data (Magento qty block visibility).
+   *
+   * @param {Object|null|undefined} cart
+   * @return {void}
+   */
+  const syncFromCart = (cart) => {
+    if (busy) {
+      pendingCart = cart;
+      return;
+    }
+    applyCartState(cart);
+  };
+
+  /**
+   * After a successful add: show "Added", then reveal the qty stepper.
+   *
+   * @param {Object|null|undefined} cart
+   * @return {void}
+   */
+  const showAddedThenQty = (cart) => {
+    const item = findCartItemBySku(cart, product.sku);
+    if (!item) {
+      busy = false;
+      applyCartState(cart);
+      return;
+    }
+
+    pendingCart = cart;
+    cartItemUid = item.uid;
+    currentQty = item.quantity;
+    setBusy(true, addedLabel);
+
+    clearTimeout(addedTimer);
+    addedTimer = setTimeout(() => {
+      busy = false;
+      applyCartState(pendingCart || cart);
+      pendingCart = null;
+      addedTimer = null;
+    }, addedDelayMs);
+  };
+
+  /**
+   * @param {number} targetQty
+   * @return {Promise<void>}
+   */
+  const updateQuantity = async (targetQty) => {
+    if (busy || !cartItemUid || typeof onUpdateQty !== 'function') return;
+    const nextQty = Number.isFinite(targetQty) && targetQty > 0 ? targetQty : 0;
+    setBusy(true);
+    if ($qtyInput) $qtyInput.value = String(nextQty || currentQty);
+    try {
+      const cart = await onUpdateQty(cartItemUid, nextQty);
+      busy = false;
+      applyCartState(cart);
+    } catch (error) {
+      console.error('Error updating cart quantity', error);
+      if ($qtyInput) $qtyInput.value = String(currentQty);
+      setBusy(false);
+    }
+  };
+
+  atcBtn.addEventListener('click', async (event) => {
     event.preventDefault();
     event.stopPropagation();
-    onClick(product, atcBtn);
+    if (busy || atcBtn.disabled || typeof onAdd !== 'function') return;
+
+    setBusy(true, addingLabel);
+    try {
+      const cart = await onAdd(product);
+      if (!findCartItemBySku(cart, product.sku)) {
+        busy = false;
+        applyCartState(cart);
+        return;
+      }
+      showAddedThenQty(cart);
+    } catch (error) {
+      console.error('Error adding product to cart', error);
+      setBusy(false);
+    }
   });
 
-  actionsWrap.append(atcBtn);
+  $incBtn?.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    updateQuantity(currentQty + 1);
+  });
+
+  $decBtn?.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    updateQuantity(currentQty - 1);
+  });
+
+  $qtyInput?.addEventListener('click', (event) => {
+    event.stopPropagation();
+  });
+
+  $qtyInput?.addEventListener('change', () => {
+    const val = parseInt($qtyInput.value, 10);
+    updateQuantity(Number.isNaN(val) || val < 0 ? 0 : val);
+  });
+
+  $qtyInput?.addEventListener('keyup', (event) => {
+    if (event.key === 'Enter') {
+      $qtyInput.blur();
+      return;
+    }
+    clearTimeout(qtyDebounceTimer);
+    qtyDebounceTimer = setTimeout(() => {
+      const val = parseInt($qtyInput.value, 10);
+      if (!Number.isNaN(val)) {
+        updateQuantity(val < 0 ? 0 : val);
+      }
+    }, 400);
+  });
+
+  actionsWrap.append(atcBtn, qtyBlock);
+  actionsWrap.syncFromCart = syncFromCart;
   return actionsWrap;
 }
 

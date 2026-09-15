@@ -1,4 +1,4 @@
-import Splide from '../../scripts/vendor/splide/splide.esm.js';
+import SplideCarousel from '../../scripts/vendor/splide/splide.esm.js';
 import { loadCSS } from '../../scripts/aem.js';
 
 loadCSS('/scripts/vendor/splide/splide-core.min.css');
@@ -67,6 +67,15 @@ export default function decorate(block) {
       desktopEl.classList.add('hero-img-desktop');
     }
 
+    // LCP: the first slide's image must load eagerly with high priority so it
+    // is discoverable immediately (not lazy-loaded).
+    if (i === 0) {
+      imgs.forEach((img) => {
+        img.setAttribute('loading', 'eager');
+        img.setAttribute('fetchpriority', 'high');
+      });
+    }
+
     // Disable native HTML5 drag on media to allow Splide pointer drag
     media.querySelectorAll('img, a').forEach((el) => {
       el.setAttribute('draggable', 'false');
@@ -114,7 +123,7 @@ export default function decorate(block) {
   block.append(promo, carousel);
 
   if (slideRows.length > 1) {
-    const splide = new Splide(carousel, {
+    const splide = new SplideCarousel(carousel, {
       type: 'loop',
       autoplay: true,
       interval: 5000,
@@ -132,6 +141,13 @@ export default function decorate(block) {
       speed: 600,
     });
     splide.mount();
+
+    carousel.querySelectorAll('img').forEach((img) => {
+      if (!img.complete) {
+        img.addEventListener('load', () => splide.refresh(), { once: true });
+      }
+    });
+
     requestAnimationFrame(() => {
       splide.refresh();
     });

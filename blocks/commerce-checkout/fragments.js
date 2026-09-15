@@ -38,6 +38,8 @@ export const selectors = Object.freeze({
 
 /**
  * Creates the main checkout fragment with all checkout blocks.
+ * Visual section cards match Magento one-page checkout styling
+ * while keeping the existing one-step flow.
  * @returns {DocumentFragment} The complete checkout fragment.
  */
 export function createCheckoutFragment() {
@@ -51,20 +53,33 @@ export function createCheckoutFragment() {
           <div class="checkout__heading ${CHECKOUT_BLOCK}"></div>
           <div class="checkout__server-error ${CHECKOUT_BLOCK}"></div>
           <div class="checkout__out-of-stock ${CHECKOUT_BLOCK}"></div>
-          <div class="checkout__login ${CHECKOUT_BLOCK}"></div>
-          <div class="checkout__shipping-form ${CHECKOUT_BLOCK}"></div>
-          <div class="checkout__bill-to-shipping ${CHECKOUT_BLOCK}"></div>
-          <div class="checkout__delivery ${CHECKOUT_BLOCK}"></div>
-          <div class="checkout__payment-methods ${CHECKOUT_BLOCK}"></div>
-          <div class="checkout__billing-form ${CHECKOUT_BLOCK}"></div>
-          <div class="checkout__terms-and-conditions ${CHECKOUT_BLOCK}"></div>
-          <div class="checkout__place-order ${CHECKOUT_BLOCK}"></div>
+
+          <section class="checkout__section checkout__section--delivery" aria-label="Delivery">
+            <h2 class="checkout__section-title">Delivery Address</h2>
+            <div class="checkout__login ${CHECKOUT_BLOCK}"></div>
+            <div class="checkout__shipping-form ${CHECKOUT_BLOCK}"></div>
+            <div class="checkout__bill-to-shipping ${CHECKOUT_BLOCK}"></div>
+
+            <h2 class="checkout__section-title checkout__section-title--methods">Shipping Methods</h2>
+            <div class="checkout__delivery ${CHECKOUT_BLOCK}"></div>
+          </section>
+
+          <section class="checkout__section checkout__section--payment" aria-label="Payment">
+            <h2 class="checkout__section-title">Select Payment Method</h2>
+            <div class="checkout__payment-methods ${CHECKOUT_BLOCK}"></div>
+            <div class="checkout__billing-form ${CHECKOUT_BLOCK}"></div>
+            <div class="checkout__terms-and-conditions ${CHECKOUT_BLOCK}"></div>
+            <div class="checkout__place-order ${CHECKOUT_BLOCK}"></div>
+          </section>
         </div>
-        <div class="checkout__aside">
-          <div class="checkout__order-summary ${CHECKOUT_BLOCK}"></div>
-          <div class="checkout__gift-options ${CHECKOUT_BLOCK}"></div>
-          <div class="checkout__cart-summary ${CHECKOUT_BLOCK}"></div>
-        </div>
+        <aside class="checkout__aside">
+          <section class="checkout__section checkout__section--summary" aria-label="Order summary">
+            <h2 class="checkout__section-title">Order Summary</h2>
+            <div class="checkout__order-summary ${CHECKOUT_BLOCK}"></div>
+            <div class="checkout__gift-options ${CHECKOUT_BLOCK}"></div>
+            <div class="checkout__cart-summary ${CHECKOUT_BLOCK}"></div>
+          </section>
+        </aside>
       </div>
     </div>
   `);

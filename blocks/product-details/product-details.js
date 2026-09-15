@@ -31,10 +31,7 @@ import {
   getProductLink,
   checkIsAuthenticated,
 } from '../../scripts/commerce.js';
-import {
-  showWishlistLoginToast,
-} from '../../scripts/components/tfs-wishlist-toast/tfs-wishlist-toast.js';
-import { showWishlistAuthModal } from '../../scripts/wishlist-auth-modal.js';
+import { showShoppingListAlert } from '../../scripts/components/shopping-list-alert/shopping-list-alert.js';
 
 // Initializers
 import { IMAGES_SIZES } from '../../scripts/initializers/pdp.js';
@@ -658,9 +655,7 @@ export default async function decorate(block) {
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
-      showWishlistLoginToast(() => {
-        showWishlistAuthModal();
-      });
+      showShoppingListAlert();
     }
   };
 
@@ -689,6 +684,7 @@ export default async function decorate(block) {
   let currentCartQty = 0;
   let isActionInProgress = false;
   let lastCartData = null;
+  let pendingCartData = null;
 
   const getMatchingCartItem = (cartData) => {
     if (!cartData?.items?.length) return null;
@@ -702,6 +698,10 @@ export default async function decorate(block) {
   };
 
   const syncWithCart = (cartData) => {
+    if (isActionInProgress) {
+      pendingCartData = cartData;
+      return;
+    }
     lastCartData = cartData;
     const cartItem = getMatchingCartItem(cartData);
     const itemIsInCart = Boolean(cartItem && cartItem.quantity > 0);
@@ -734,9 +734,10 @@ export default async function decorate(block) {
 
       isActionInProgress = true;
       $atcButton.disabled = true;
+      $atcButton.classList.add('disabled', 'is-adding');
       const buttonActionText = isUpdateMode
-        ? (labels.Global?.UpdatingInCart ?? 'Updating in Cart')
-        : (labels.Global?.AddingToCart ?? 'Adding to Cart');
+        ? (labels.Global?.UpdatingInCart ?? 'Updating...')
+        : (labels.Global?.Adding ?? 'Adding...');
       const textSpan = $atcButton.querySelector('span');
       if (textSpan) textSpan.textContent = buttonActionText;
       $addToCartStatus.textContent = buttonActionText;
@@ -768,6 +769,9 @@ export default async function decorate(block) {
         const newCart = await addProductsToCart([{ ...values, quantity: 1 }]);
         inlineAlert?.remove();
         if (newCart) {
+          if (textSpan) textSpan.textContent = labels.Global?.Added ?? 'Added';
+          $addToCartStatus.textContent = labels.Global?.Added ?? 'Added';
+          await new Promise((r) => { setTimeout(r, 1000); });
           syncWithCart(newCart);
         }
       } catch (error) {
@@ -788,9 +792,15 @@ export default async function decorate(block) {
         });
       } finally {
         isActionInProgress = false;
+        $atcButton.classList.remove('disabled', 'is-adding');
         updateAddToCartButtonText($atcButton, isUpdateMode, labels);
         $atcButton.disabled = isOutOfStock;
         $addToCartStatus.textContent = '';
+        if (pendingCartData) {
+          const cartToSync = pendingCartData;
+          pendingCartData = null;
+          syncWithCart(cartToSync);
+        }
       }
     });
   }
@@ -835,6 +845,11 @@ export default async function decorate(block) {
       if ($decBtn) $decBtn.disabled = isOutOfStock;
       if ($incBtn) $incBtn.disabled = isOutOfStock;
       if ($qtyInput) $qtyInput.disabled = isOutOfStock;
+      if (pendingCartData) {
+        const cartToSync = pendingCartData;
+        pendingCartData = null;
+        syncWithCart(cartToSync);
+      }
     }
   };
 
