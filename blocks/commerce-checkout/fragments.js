@@ -59,8 +59,10 @@ export function createCheckoutFragment() {
             <div class="checkout__login ${CHECKOUT_BLOCK}"></div>
             <div class="checkout__shipping-form ${CHECKOUT_BLOCK}"></div>
             <div class="checkout__bill-to-shipping ${CHECKOUT_BLOCK}"></div>
+          </section>
 
-            <h2 class="checkout__section-title checkout__section-title--methods">Shipping Methods</h2>
+          <section class="checkout__section checkout__section--shipping" aria-label="Shipping methods">
+            <h2 class="checkout__section-title">Shipping Methods</h2>
             <div class="checkout__delivery ${CHECKOUT_BLOCK}"></div>
           </section>
 

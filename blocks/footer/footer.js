@@ -178,13 +178,17 @@ export default async function decorate(block) {
   block.textContent = '';
   if (!fragment) return;
 
+  const isCheckoutPage = window.location.pathname === '/checkout'
+    || window.location.pathname.startsWith('/checkout/');
+
   const sections = [...fragment.body.children].filter((el) => el.tagName === 'DIV');
   const footer = document.createElement('div');
   footer.className = 'footer-inner';
 
   if (sections[0]) footer.append(buildFeatureRow(sections[0]));
   footer.append(buildBackToTop());
-  if (sections[1]) footer.append(buildLinkColumns(sections[1]));
+  // Checkout keeps feature row + bottom bar; skip link columns for a lighter page.
+  if (sections[1] && !isCheckoutPage) footer.append(buildLinkColumns(sections[1]));
   if (sections[2]) footer.append(buildBottomBar(sections[2]));
 
   block.append(footer);
