@@ -944,3 +944,25 @@ body:has(.seller-assisted-buying-banner) {
       flex-shrink: .5;
   }
 }
+
+/* ---- Minimal header (checkout) ---- */
+header .nav-wrapper-minimal {
+  border-bottom: 1px solid #ebebeb;
+  background: var(--color-neutral-50, #fff);
+}
+
+header nav.nav-minimal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 16px 20px;
+  min-height: 64px;
+}
+
+header nav.nav-minimal .nav-brand img {
+  display: block;
+  height: 40px;
+  width: auto;
+}
