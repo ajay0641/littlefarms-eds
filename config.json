@@ -24,16 +24,16 @@
         "base-currency-code": "USD",
         "environment": "Testing",
         "environment-id": "4XR4RKXgJjQXaxUCMC6TN3",
-        "store-code": "main_website_store",
-        "store-id": "main_website_store",
-        "store-name": "Default Store View",
+        "store-code": "little_farms_store",
+        "store-id": 5,
+        "store-name": "Little Farms Store",
         "store-url": "https://main--littlefarms-eds--ajay0641.aem.live",
-        "store-view-code": "default",
-        "store-view-id": "default",
-        "store-view-name": "Default Store View",
-        "website-code": "base",
-        "website-id": "base",
-        "website-name": "Main Website"
+        "store-view-code": "little_farms_store_view",
+        "store-view-id": 5,
+        "store-view-name": "Little Farms Store View",
+        "website-code": "little_farms",
+        "website-id": 5,
+        "website-name": "Little Farms"
       },
       "plugins": {
         "picker": {
