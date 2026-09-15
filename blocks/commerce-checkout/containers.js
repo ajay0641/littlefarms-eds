@@ -8,7 +8,6 @@
 // Checkout Dropin
 import * as checkoutApi from '@dropins/storefront-checkout/api.js';
 import BillToShippingAddress from '@dropins/storefront-checkout/containers/BillToShippingAddress.js';
-import EstimateShipping from '@dropins/storefront-checkout/containers/EstimateShipping.js';
 import LoginForm from '@dropins/storefront-checkout/containers/LoginForm.js';
 import MergedCartBanner from '@dropins/storefront-checkout/containers/MergedCartBanner.js';
 import OutOfStock from '@dropins/storefront-checkout/containers/OutOfStock.js';
@@ -401,14 +400,91 @@ export const renderTermsAndConditions = async (container) => renderContainer(
 );
 
 /**
- * Renders estimate shipping form for order summary slot
+ * Renders Magento-style shipping row for order summary (label, method, price).
  * @param {HTMLElement} ctx - The slot context element
  * @returns {void}
  */
 export const renderEstimateShipping = (ctx) => {
-  const estimateShippingForm = document.createElement('div');
-  CheckoutProvider.render(EstimateShipping)(estimateShippingForm);
-  ctx.appendChild(estimateShippingForm);
+  const root = document.createElement('div');
+  root.className = 'checkout-summary-shipping';
+  root.hidden = true;
+  root.innerHTML = `
+    <div class="checkout-summary-shipping__main">
+      <div class="checkout-summary-shipping__text">
+        <span class="checkout-summary-shipping__label">Shipping</span>
+        <span class="checkout-summary-shipping__method" hidden></span>
+      </div>
+      <span class="checkout-summary-shipping__price"></span>
+    </div>
+  `;
+
+  const methodEl = root.querySelector('.checkout-summary-shipping__method');
+  const priceEl = root.querySelector('.checkout-summary-shipping__price');
+
+  const formatMoney = (money) => {
+    if (money == null) return '';
+    const value = typeof money === 'object' ? money.value : money;
+    const currency = (typeof money === 'object' && money.currency) || 'SGD';
+    if (value == null || Number.isNaN(Number(value))) return '';
+    // Match Adobe drop-in order summary currency formatting (e.g. "SGD 20.00")
+    return `${currency}\u00a0${Number(value).toFixed(2)}`;
+  };
+
+  const resolveMethod = (payload) => {
+    if (!payload) return null;
+
+    // Prefer selected method on checkout/cart shipping address
+    const selected = payload.shippingAddresses?.[0]?.selectedShippingMethod
+      || payload.addresses?.shipping?.selectedShippingMethod;
+    if (selected) return selected;
+
+    // Fallback: shipping/estimate event payload
+    if (payload.shippingMethod || payload.availableShippingMethods) {
+      const estimated = payload.shippingMethod;
+      const match = payload.availableShippingMethods?.find((method) => (
+        method.code === estimated?.methodCode
+        || method.carrier?.code === estimated?.carrierCode
+        || method.value === `${estimated?.carrierCode} - ${estimated?.methodCode}`
+      )) || payload.availableShippingMethods?.[0];
+
+      if (!match && !estimated) return null;
+
+      return {
+        amount: match?.amountInclTax || match?.amount || estimated?.amountInclTax || estimated?.amount,
+        carrier: match?.carrier || { title: estimated?.carrierCode || '' },
+        title: match?.title || estimated?.methodCode || '',
+      };
+    }
+
+    return null;
+  };
+
+  const update = (payload) => {
+    const method = resolveMethod(payload);
+    if (!method?.amount && method?.amount !== 0) {
+      // Keep previous value if estimate temporarily clears
+      return;
+    }
+
+    root.hidden = false;
+    const carrierTitle = method.carrier?.title || '';
+    const methodTitle = method.title || '';
+    const methodLabel = [carrierTitle, methodTitle].filter(Boolean).join(' - ');
+    methodEl.textContent = methodLabel;
+    methodEl.hidden = !methodLabel;
+    priceEl.textContent = formatMoney(method.amount);
+  };
+
+  events.on('shipping/estimate', update, { eager: true });
+  events.on('checkout/updated', update, { eager: true });
+  events.on('checkout/initialized', update, { eager: true });
+  events.on('cart/data', update, { eager: true });
+
+  // Seed from latest estimate in case events already fired before this slot mounted
+  update(events.lastPayload('shipping/estimate'));
+  update(events.lastPayload('checkout/updated') || events.lastPayload('checkout/initialized'));
+
+  ctx.appendChild(root);
 };
 
 /**
@@ -484,61 +560,54 @@ export const renderOrderSummary = async (container) => renderContainer(
  */
 export const renderCartSummaryList = async (container) => renderContainer(
   CONTAINERS.CART_SUMMARY_LIST,
-  async () => {
-    const placeholders = await fetchPlaceholders('placeholders/checkout.json');
+  async () => CartProvider.render(CartSummaryList, {
+    variant: 'secondary',
+    slots: {
+      Heading: (headingCtx) => {
+        const cartSummaryListHeading = document.createElement('div');
+        cartSummaryListHeading.classList.add('cart-summary-list__heading');
 
-    return CartProvider.render(CartSummaryList, {
-      variant: 'secondary',
-      slots: {
-        Heading: (headingCtx) => {
-          const title = placeholders?.Checkout?.Summary?.heading;
+        const cartSummaryListHeadingText = document.createElement('div');
+        cartSummaryListHeadingText.classList.add(
+          'cart-summary-list__heading-text',
+        );
 
-          const cartSummaryListHeading = document.createElement('div');
-          cartSummaryListHeading.classList.add('cart-summary-list__heading');
+        const formatItemsHeading = (count) => {
+          const qty = Number(count) || 0;
+          return qty === 1 ? '1 Item in Cart' : `${qty} Items in Cart`;
+        };
 
-          const cartSummaryListHeadingText = document.createElement('div');
-          cartSummaryListHeadingText.classList.add(
-            'cart-summary-list__heading-text',
+        cartSummaryListHeadingText.innerText = formatItemsHeading(headingCtx.count);
+
+        const chevron = document.createElement('span');
+        chevron.classList.add('cart-summary-list__chevron');
+        chevron.setAttribute('aria-hidden', 'true');
+
+        cartSummaryListHeading.appendChild(cartSummaryListHeadingText);
+        cartSummaryListHeading.appendChild(chevron);
+        headingCtx.appendChild(cartSummaryListHeading);
+
+        headingCtx.onChange((nextHeadingCtx) => {
+          cartSummaryListHeadingText.innerText = formatItemsHeading(
+            nextHeadingCtx.count,
           );
-
-          cartSummaryListHeadingText.innerText = title?.replace(
-            '({count})',
-            headingCtx.count ? `(${headingCtx.count})` : '',
-          );
-          const editCartLink = document.createElement('a');
-          editCartLink.classList.add('cart-summary-list__edit');
-          editCartLink.href = rootLink('/cart');
-          editCartLink.rel = 'noreferrer';
-          editCartLink.innerText = placeholders?.Checkout?.Summary?.Edit;
-          editCartLink.setAttribute('aria-label', `${placeholders?.Checkout?.Summary?.Edit} cart`);
-
-          cartSummaryListHeading.appendChild(cartSummaryListHeadingText);
-          cartSummaryListHeading.appendChild(editCartLink);
-          headingCtx.appendChild(cartSummaryListHeading);
-
-          headingCtx.onChange((nextHeadingCtx) => {
-            cartSummaryListHeadingText.innerText = title?.replace(
-              '({count})',
-              nextHeadingCtx.count ? `(${nextHeadingCtx.count})` : '',
-            );
-          });
-        },
-        Thumbnail: (ctx) => {
-          const { item, defaultImageProps } = ctx;
-          tryRenderAemAssetsImage(ctx, {
-            alias: item.sku,
-            imageProps: defaultImageProps,
-
-            params: {
-              width: defaultImageProps.width,
-              height: defaultImageProps.height,
-            },
-          });
-        },
-        Footer: renderCartGiftOptions,
+        });
       },
-    })(container);
-  },
+      Thumbnail: (ctx) => {
+        const { item, defaultImageProps } = ctx;
+        tryRenderAemAssetsImage(ctx, {
+          alias: item.sku,
+          imageProps: defaultImageProps,
+
+          params: {
+            width: defaultImageProps.width,
+            height: defaultImageProps.height,
+          },
+        });
+      },
+      Footer: renderCartGiftOptions,
+    },
+  })(container),
 );
 
 /**
