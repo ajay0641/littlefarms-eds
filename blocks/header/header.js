@@ -149,6 +149,28 @@ export default async function decorate(block) {
   nav.id = 'nav';
   while (fragment.firstElementChild) nav.append(fragment.firstElementChild);
 
+  // Minimal header (e.g. checkout): the authored nav fragment holds just the
+  // brand/logo with no navigation lists. The full-nav decoration below assumes
+  // brand/sections/tools rows and would crash on the missing pieces, so render
+  // a simple centered brand-only header and stop here. A full nav always has
+  // link lists (<ul>); the minimal checkout nav does not.
+  const hasNavLists = nav.querySelector('ul');
+  if (!hasNavLists) {
+    nav.classList.add('nav-minimal');
+    // The first non-empty section carries the brand/logo.
+    const brandSection = [...nav.children].find((c) => c.textContent.trim() || c.querySelector('img, picture'));
+    if (brandSection) brandSection.classList.add('nav-brand');
+    // Drop empty authored sections.
+    [...nav.children].forEach((c) => {
+      if (c !== brandSection && !c.textContent.trim() && !c.querySelector('img, picture')) c.remove();
+    });
+    const navWrapperMinimal = document.createElement('div');
+    navWrapperMinimal.className = 'nav-wrapper nav-wrapper-minimal';
+    navWrapperMinimal.append(nav);
+    block.append(navWrapperMinimal);
+    return;
+  }
+
   // The nav doc now authors a notification carousel as the first row, ahead
   // of brand/sections/tools, so every section shifts down by one — the
   // mapping below must include it or brand/sections/tools all get mislabeled.
