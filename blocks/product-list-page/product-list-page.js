@@ -1,7 +1,6 @@
 // Product Discovery Dropins
 import Facets from '@dropins/storefront-product-discovery/containers/Facets.js';
 import { render as provider } from '@dropins/storefront-product-discovery/render.js';
-import { Button, Icon, provider as UI } from '@dropins/tools/components.js';
 import { search } from '@dropins/storefront-product-discovery/api.js';
 // Wishlist Dropin
 import { WishlistToggle } from '@dropins/storefront-wishlist/containers/WishlistToggle.js';
@@ -49,17 +48,29 @@ export default async function decorate(block) {
 
   const fragment = document.createRange().createContextualFragment(`
     <div class="search__wrapper">
-      <div class="search__view-facets"></div>
-      <div class="search__facets">
+      <div class="search__facets-overlay" hidden></div>
+      <div class="search__facets" id="search-facets-panel">
         <div class="search__filters-heading">
           <h2 class="search__filters-title">${labels.Global?.Filters || 'Filters'}</h2>
-          <button type="button" class="search__filters-clear" aria-label="Clear all filters" hidden>Clear All</button>
+          <button type="button" class="search__filters-clear search__filters-clear--inline" aria-label="Clear all filters" hidden>Clear All</button>
+          <button type="button" class="search__filters-close" aria-label="Close filters"></button>
         </div>
-        <div class="search__facets-list"></div>
+        <div class="search__facets-scroll">
+          <div class="search__facets-list"></div>
+        </div>
+        <div class="search__filters-footer">
+          <button type="button" class="search__filters-clear search__filters-clear--footer" aria-label="Clear all filters" hidden>Clear All</button>
+          <button type="button" class="search__filters-apply">Show 0 products</button>
+        </div>
       </div>
+      <div class="search__toolbar-sentinel" aria-hidden="true"></div>
       <div class="search__toolbar">
-        <div class="search__result-info"></div>
         <div class="search__product-sort"></div>
+        <button type="button" class="search__filter-trigger" aria-expanded="false" aria-controls="search-facets-panel">
+          <span class="search__filter-trigger-icon" aria-hidden="true"></span>
+          <span class="search__filter-trigger-label">${labels.Global?.Filter || 'Filter'}</span>
+        </button>
+        <div class="search__result-info"></div>
       </div>
       <div class="search__product-list"></div>
       <div class="search__pagination"></div>
@@ -67,10 +78,14 @@ export default async function decorate(block) {
   `);
 
   const $resultInfo = fragment.querySelector('.search__result-info');
-  const $viewFacets = fragment.querySelector('.search__view-facets');
+  const $facetsOverlay = fragment.querySelector('.search__facets-overlay');
   const $facets = fragment.querySelector('.search__facets');
-  const $filtersClear = fragment.querySelector('.search__filters-clear');
+  const $filtersClearButtons = [...fragment.querySelectorAll('.search__filters-clear')];
+  const $filtersClose = fragment.querySelector('.search__filters-close');
+  const $filtersApply = fragment.querySelector('.search__filters-apply');
   const $facetsList = fragment.querySelector('.search__facets-list');
+  const $toolbarSentinel = fragment.querySelector('.search__toolbar-sentinel');
+  const $filterTrigger = fragment.querySelector('.search__filter-trigger');
   const $productSort = fragment.querySelector('.search__product-sort');
   const $productList = fragment.querySelector('.search__product-list');
   const $pagination = fragment.querySelector('.search__pagination');
@@ -96,17 +111,51 @@ export default async function decorate(block) {
     (item) => !SYSTEM_FILTERS.has(item.attribute),
   );
 
-  $filtersClear.addEventListener('click', () => {
-    loadMoreController?.reset();
-    scrollPageUrlSync?.reset();
-    search({
-      ...lastSearchRequest,
-      filter: (lastSearchRequest.filter || []).filter((item) => SYSTEM_FILTERS.has(item.attribute)),
-      currentPage: 1,
-      pageSize,
-    }).catch(() => {
-      console.error('Error searching for products');
+  /**
+   * Open or close the mobile filter drawer (Magento `.sidebar-main.active`).
+   *
+   * @param {Boolean} [force]
+   * @return {void}
+   */
+  const setFacetsOpen = (force) => {
+    const visible = typeof force === 'boolean'
+      ? force
+      : !$facets.classList.contains('search__facets--visible');
+    $facets.classList.toggle('search__facets--visible', visible);
+    $facetsOverlay.hidden = !visible;
+    $filterTrigger.setAttribute('aria-expanded', String(visible));
+    document.body.classList.toggle('search-facets-open', visible);
+  };
+
+  $filtersClearButtons.forEach(($btn) => {
+    $btn.addEventListener('click', () => {
+      loadMoreController?.reset();
+      scrollPageUrlSync?.reset();
+      search({
+        ...lastSearchRequest,
+        filter: (lastSearchRequest.filter || [])
+          .filter((item) => SYSTEM_FILTERS.has(item.attribute)),
+        currentPage: 1,
+        pageSize,
+      }).catch(() => {
+        console.error('Error searching for products');
+      });
     });
+  });
+
+  $filterTrigger.addEventListener('click', () => setFacetsOpen());
+  $filtersClose.addEventListener('click', () => setFacetsOpen(false));
+  $facetsOverlay.addEventListener('click', () => setFacetsOpen(false));
+  $filtersApply.addEventListener('click', () => setFacetsOpen(false));
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && $facets.classList.contains('search__facets--visible')) {
+      setFacetsOpen(false);
+    }
+  });
+
+  window.matchMedia('(min-width: 768px)').addEventListener('change', (event) => {
+    if (event.matches) setFacetsOpen(false);
   });
 
   const collapsedFacets = new Set();
@@ -289,16 +338,6 @@ export default async function decorate(block) {
   };
 
   await Promise.all([
-    // View Facets Button
-    UI.render(Button, {
-      children: labels.Global?.Filters,
-      icon: Icon({ source: 'Burger' }),
-      variant: 'secondary',
-      onClick: () => {
-        $facets.classList.toggle('search__facets--visible');
-      },
-    })($viewFacets),
-
     // Facets
     provider.render(Facets, {
       slots: {
@@ -399,6 +438,19 @@ export default async function decorate(block) {
     buildUrl: () => new URL(window.location.href),
   });
 
+  // Sticky mobile Sort/Filter bar (matches Magento `.show-filter`)
+  if ($toolbarSentinel && typeof IntersectionObserver !== 'undefined') {
+    const stickyObserver = new IntersectionObserver(
+      ([entry]) => {
+        const sticky = !entry.isIntersecting && window.matchMedia('(max-width: 767px)').matches;
+        block.classList.toggle('product-list-page--toolbar-sticky', sticky);
+        document.body.classList.toggle('plp-toolbar-sticky', sticky);
+      },
+      { rootMargin: '-60px 0px 0px 0px', threshold: 0 },
+    );
+    stickyObserver.observe($toolbarSentinel);
+  }
+
   let restoringFromHistory = false;
 
   const handlePopState = () => {
@@ -435,18 +487,24 @@ export default async function decorate(block) {
     block.classList.toggle('product-list-page--empty', totalCount === 0);
 
     lastSearchRequest = payload.request || {};
-    $filtersClear.hidden = !hasUserFilters(payload.request?.filter);
+    const showClear = hasUserFilters(payload.request?.filter);
+    $filtersClearButtons.forEach(($btn) => {
+      $btn.hidden = !showClear;
+    });
+    $filtersApply.textContent = `Show ${totalCount} products`;
 
     const phrase = payload.request?.phrase;
     $resultInfo.textContent = phrase
       ? `${totalCount} products found for "${phrase}"`
       : `${totalCount} products found`;
 
-    // Update the view facets button with the number of filters
-    if (payload.request.filter.length > 0) {
-      $viewFacets.querySelector('button').setAttribute('data-count', payload.request.filter.length);
+    // Update the filter trigger with the number of shopper filters
+    const userFilterCount = (payload.request?.filter || [])
+      .filter((item) => !SYSTEM_FILTERS.has(item.attribute)).length;
+    if (userFilterCount > 0) {
+      $filterTrigger.setAttribute('data-count', String(userFilterCount));
     } else {
-      $viewFacets.querySelector('button').removeAttribute('data-count');
+      $filterTrigger.removeAttribute('data-count');
     }
 
     requestAnimationFrame(() => {
