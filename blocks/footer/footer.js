@@ -129,6 +129,14 @@ function buildBackToTop() {
   btn.className = 'footer-back-to-top';
   btn.type = 'button';
   btn.setAttribute('aria-label', 'Back to top');
+
+  // Show only when scrolled down past 200px
+  const onScroll = () => {
+    btn.classList.toggle('footer-back-to-top--visible', window.scrollY > 200);
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll(); // run once on load
+
   btn.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
@@ -147,20 +155,11 @@ function buildBottomBar(section) {
   // Top row: copyright (left) + payment icons (right).
   const row = document.createElement('div');
   row.className = 'footer-bottom-row';
-  // Credit row: "Site by ..." centered underneath.
-  const credit = document.createElement('div');
-  credit.className = 'footer-bottom-credit';
-
   [...section.children].forEach((node) => {
-    if (node.querySelector('a[href]')) {
-      credit.append(node);
-    } else {
-      row.append(node);
-    }
+    row.append(node);
   });
 
   bar.append(row);
-  if (credit.childElementCount) bar.append(credit);
 
   // external credit link opens in a new tab
   bar.querySelectorAll('a[href^="http"]').forEach((a) => {

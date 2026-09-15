@@ -70,7 +70,6 @@ main > .hero-container {
   position: relative;
   overflow: hidden;
   user-select: none;
-  user-select: none;
 }
 
 .hero .hero-slides {
@@ -87,14 +86,12 @@ main > .hero-container {
   box-sizing: border-box;
   list-style: none;
   user-select: none;
-  user-select: none;
 }
 
 .hero .hero-slide-media,
 .hero .hero-slide-media a,
 .hero .hero-slide-media picture {
   display: block;
-  user-select: none;
   user-select: none;
   -webkit-user-drag: none;
 }
@@ -106,7 +103,6 @@ main > .hero-container {
   width: 100%;
   min-height: 75vw;
   object-fit: fill;
-  user-select: none;
   user-select: none;
   -webkit-user-drag: none;
 }
@@ -130,7 +126,7 @@ main > .hero-container {
 .hero .hero-slide-info h2,
 .hero .hero-slide-info h3,
 .hero .hero-slide-info h4 {
-  font-family: AppleJuice;
+  font-family: AppleJuice, sans-serif;
   font-size: 20px;
   line-height: 22px;
   margin: 0 0 12px;
@@ -224,12 +220,14 @@ main > .hero-container {
 
 /* Dots */
 .hero .hero-dots,
-.hero .splide__pagination {
+.hero .splide__pagination,
+.hero .hero-carousel .splide__pagination,
+.hero .hero-carousel:not(.is-overflow) .splide__pagination {
   position: absolute;
   bottom: 2px;
   left: 0;
   right: 0;
-  display: flex;
+  display: flex !important;
   justify-content: center;
   gap: 6px;
   margin: 0;
@@ -267,10 +265,6 @@ main > .hero-container {
     display: flex;
   }
 
-  .hero .hero-slide-info {
-    display: block;
-  }
-
   /* Swap to the desktop banner image */
   .hero .hero-slide-media .hero-img-desktop {
     display: block;
@@ -305,6 +299,7 @@ main > .hero-container {
 
   /* Overlay the info as a floating tan card on the right of the banner */
   .hero .hero-slide-info {
+    display: block;
     background: url("../../icons/littlefarms/shape-garlic.svg") center no-repeat;
     background-size: 100% 100%;
     position: absolute;

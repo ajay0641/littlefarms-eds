@@ -102,16 +102,35 @@ footer .footer-feature-text p {
 
 /* ---- Back to top ---- */
 footer .footer-back-to-top {
+  position: fixed;
+  right: 24px;
+  bottom: 100px;
+  z-index: 100;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 0 15px auto;
   border-radius: 50%;
   cursor: pointer;
   width: 56px;
   height: 56px;
   background-color: var(--footer-brand-color);
   border: none;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 20%);
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+footer .footer-back-to-top.footer-back-to-top--visible {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+}
+
+footer .footer-back-to-top:hover {
+  background-color: var(--color-brand-600, #004536);
+  transform: translateY(-2px);
 }
 
 footer .footer-back-to-top::before {
@@ -199,9 +218,6 @@ footer .footer-column a {
   text-decoration: none;
 }
 
-footer .footer-bottom-credit a {
-  color: var(--footer-brand-color);
-}
 
 footer .footer-inner a:hover {
   color: var(--footer-brand-color);
@@ -244,9 +260,6 @@ footer .footer-bottom-row {
   font-size: 12px;
 }
 
-footer .footer-bottom-credit {
-  text-align: center;
-}
 
 footer .footer-bottom p {
   margin: 0;
@@ -276,15 +289,7 @@ footer .footer-bottom img {
     padding-top: 45px;
     padding-bottom: 15px;
   }
-
-  /* Back-to-top floats on the right on desktop */
-  footer .footer-back-to-top {
-    position: absolute;
-    right: 40px;
-    top: 40%;
-    margin: 0;
-  }
-
+  
   footer .footer-back-to-top::before {
     width: 11px;
     height: 11px;
