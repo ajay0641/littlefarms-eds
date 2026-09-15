@@ -116,7 +116,16 @@ footer .footer-back-to-top {
   background-color: var(--footer-brand-color);
   border: none;
   box-shadow: 0 4px 12px rgb(0 0 0 / 20%);
-  transition: background-color 0.2s ease, transform 0.2s ease;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+footer .footer-back-to-top.footer-back-to-top--visible {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
 }
 
 footer .footer-back-to-top:hover {
