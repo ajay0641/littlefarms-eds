@@ -1,4 +1,4 @@
-import Splide from '../../scripts/vendor/splide/splide.esm.js';
+import SplideCarousel from '../../scripts/vendor/splide/splide.esm.js';
 import { loadCSS } from '../../scripts/aem.js';
 
 loadCSS('/scripts/vendor/splide/splide-core.min.css');
@@ -123,7 +123,7 @@ export default function decorate(block) {
   block.append(promo, carousel);
 
   if (slideRows.length > 1) {
-    const splide = new Splide(carousel, {
+    const splide = new SplideCarousel(carousel, {
       type: 'loop',
       autoplay: true,
       interval: 5000,
