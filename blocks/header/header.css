@@ -319,7 +319,8 @@ header nav .nav-tools-panel {
   top: var(--nav-height);
   right: 0;
   width: 100%;
-  display: block;
+  display: none;
+  background: var(--color-neutral-50);
   box-sizing: border-box;
 }
 
