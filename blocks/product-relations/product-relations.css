@@ -1,0 +1,298 @@
+/* Outer section wrapper background and spacing */
+main .section:has(.product-relations) {
+  --slider-section-bg: var(--color-neutral-50);
+  padding: 0 0 35px;
+  margin: 0;
+  overflow: hidden;
+}
+
+main .section:has(.product-relations) > .product-relations-wrapper {
+  margin: 0 auto;
+  max-width: 100%;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.product-relations {
+  --slider-panel-title-color: var(--color-brand-500);
+  --slider-arrow-bg: var(--color-neutral-50);
+  --slider-arrow-border-color: var(--color-neutral-400);
+  --slider-arrow-hover-bg: var(--color-brand-500);
+  --slider-arrow-hover-border-color: var(--color-brand-500);
+  --slider-arrow-shadow: 0 2px 8px rgb(0 0 0 / 8%);
+  --slider-pagination-bg-color: var(--color-neutral-300);
+  --slider-pagination-active-color: var(--color-neutral-800);
+
+  width: 100%;
+  box-sizing: border-box;
+  padding-top: 40px;
+  padding-bottom: 50px;
+  background-color: var(--slider-section-bg);
+  margin-bottom: 20px;
+}
+
+.product-relations__container {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.product-relations-loading,
+.product-relations__empty {
+  position: relative;
+  font-size: 16px;
+  padding: 20px 10px;
+  text-align: center;
+  color: var(--color-neutral-600);
+}
+
+/* ==========================================================================
+   Mobile & Tablet Layout (Default / Mobile-first, <= 768px)
+   ========================================================================== */
+.product-relations__panel {
+  position: relative;
+  width: 100%;
+  padding: 0 20px;
+  margin-bottom: 15px;
+  box-sizing: border-box;
+}
+
+.product-relations__panel .block-title {
+  margin: 0;
+  text-align: center;
+}
+
+.product-relations__panel-title {
+  font-family: var(--type-heading-font-family);
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 30px;
+  color: var(--slider-panel-title-color);
+  margin: 0;
+  text-align: center;
+  text-transform: none;
+  letter-spacing: 0.5px;
+}
+
+
+
+.product-relations__slider {
+  width: 100%;
+  min-width: 0;
+  position: relative;
+  box-sizing: border-box;
+  padding: 0 0 0 20px;
+  margin: 0;
+}
+
+.product-relations__splide {
+  position: relative;
+  width: 100%;
+}
+
+.product-relations__splide .splide__track {
+  overflow: hidden;
+  padding: 0 15px;
+}
+
+.product-relations__splide .splide__list {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.product-relations__slide {
+  box-sizing: border-box;
+}
+
+/* Arrows hidden on mobile/tablet */
+.product-relations__arrow {
+  display: none !important;
+}
+
+/* Splide Pagination for Mobile / Tablet */
+.product-relations .splide__pagination,
+.product-relations .splide .splide__pagination {
+  display: flex !important;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+  position: static;
+  box-sizing: border-box;
+  width: calc(100% - 20px);
+}
+
+@media (min-width: 640px) {
+  .product-relations .splide__pagination,
+  .product-relations .splide .splide__pagination {
+    margin-top: 30px;
+  }
+}
+
+.product-relations .splide__pagination li {
+  flex: 1;
+  height: 4px;
+  margin: 0;
+  padding: 0;
+  display: flex;
+}
+
+.product-relations .splide__pagination__page {
+  flex: 1;
+  width: 100%;
+  height: 4px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background-color: var(--slider-pagination-bg-color);
+  border-radius: 2px;
+  cursor: pointer;
+  opacity: 1;
+  transform: none;
+  transition: background-color 0.25s ease;
+}
+
+.product-relations .splide__pagination__page.is-active {
+  background-color: var(--slider-pagination-active-color);
+}
+
+/* ==========================================================================
+   Desktop Layout (min-width: 769px) - Matching Little Farms Side-Title
+   ========================================================================== */
+@media (min-width: 769px) {
+  main .section:has(.product-relations) {
+    --slider-section-bg: var(--color-neutral-200);
+
+    background-color: var(--slider-section-bg);
+    padding: 40px 0;
+  }
+
+  main .section:has(.product-relations) > .product-relations-wrapper {
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+
+  .product-relations__panel {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto 20px;
+    padding: 0 20px;
+    text-align: center;
+  }
+
+  .product-relations__panel .block-title {
+    margin: 0;
+    text-align: center;
+  }
+
+  .product-relations__panel-title {
+    font-size: 30px;
+    line-height: 36px;
+    text-align: center;
+    margin: 0;
+    text-transform: none;
+  }
+
+  .product-relations__slider {
+    width: 100%;
+    max-width: 1400px;
+    min-width: 0;
+    padding: 0 0 0 25px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  /* Organic white curved card shape on desktop */
+  .product-relations__slider::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1440px;
+    height: 100%;
+    background: url("../../icons/littlefarms/shape-white.svg") no-repeat center center / 100% 100%;
+    z-index: 0;
+    pointer-events: none;
+    display: block;
+  }
+
+  .product-relations__splide {
+    z-index: 1;
+    padding: 50px 0 35px;
+  }
+
+  .product-relations__splide .splide__track {
+    padding: 6px 4px;
+  }
+
+  .product-relations__arrow {
+    display: flex !important;
+    position: absolute;
+    top: 48%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--slider-arrow-bg);
+    border: 1px solid var(--slider-arrow-border-color);
+    box-shadow: var(--slider-arrow-shadow);
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: background-color 0.2s, border-color 0.2s, transform 0.15s;
+    padding: 0;
+  }
+
+  .product-relations__arrow::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: url("../../icons/littlefarms/chevron.svg") center / 11.5px 6.5px no-repeat;
+    transition: background-image 0.2s;
+  }
+
+  .product-relations__arrow--prev::after {
+    transform: rotate(90deg);
+  }
+
+  .product-relations__arrow--next::after {
+    transform: rotate(-90deg);
+  }
+
+  .product-relations__arrow:hover {
+    background-color: var(--slider-arrow-hover-bg);
+    border-color: var(--slider-arrow-hover-border-color);
+    transform: translateY(-50%) scale(1.08);
+  }
+
+  .product-relations__arrow:hover::after {
+    background-image: url("../../icons/accordion-white.svg");
+  }
+
+  .product-relations__arrow--prev {
+    left: 0;
+  }
+
+  .product-relations__arrow--next {
+    right: 0;
+  }
+
+  .product-relations__arrow:disabled {
+    display: none !important;
+  }
+
+  .product-relations .splide__pagination,
+  .product-relations .splide .splide__pagination {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1440px) {
+ .product-relations__slider {
+  padding: 0 20px 0 30px;
+ } 
+}

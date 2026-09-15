@@ -5,6 +5,7 @@ import { tryRenderAemAssetsImage } from '@dropins/tools/lib/aem/assets.js';
 import { getMetadata } from '../../scripts/aem.js';
 import { loadFragment } from '../fragment/fragment.js';
 import { fetchPlaceholders, getProductLink, rootLink } from '../../scripts/commerce.js';
+import { PLP_IMAGE_DIMENSIONS, withProductImageFallback } from '../../scripts/product-image.js';
 
 import renderAuthCombine from './renderAuthCombine.js';
 import { renderAuthDropdown } from './renderAuthDropdown.js';
@@ -126,38 +127,6 @@ function toggleMenu(nav, navSections, forceExpanded = null) {
   }
 }
 
-const subMenuHeader = document.createElement('div');
-subMenuHeader.classList.add('submenu-header');
-subMenuHeader.innerHTML = '<h5 class="back-link">All Categories</h5><hr />';
-
-/**
- * Sets up the submenu
- * @param {navSection} navSection The nav section element
- */
-function setupSubmenu(navSection) {
-  if (navSection.querySelector('ul')) {
-    let label;
-    if (navSection.childNodes.length) {
-      [label] = navSection.childNodes;
-    }
-
-    const submenu = navSection.querySelector('ul');
-    const wrapper = document.createElement('div');
-    const header = subMenuHeader.cloneNode(true);
-    const title = document.createElement('h6');
-    title.classList.add('submenu-title');
-    title.textContent = label.textContent;
-
-    wrapper.classList.add('submenu-wrapper');
-    wrapper.appendChild(header);
-    wrapper.appendChild(title);
-    wrapper.appendChild(submenu.cloneNode(true));
-
-    navSection.appendChild(wrapper);
-    navSection.removeChild(submenu);
-  }
-}
-
 /**
  * loads and decorates the header, mainly the nav
  * @param {Element} block The header block element
@@ -201,7 +170,6 @@ export default async function decorate(block) {
     brandLink.closest('.button-container').className = '';
   }
 
-
   /** Search */
   const searchFragment = document.createRange().createContextualFragment(`
   <div class="search-wrapper nav-tools-wrapper">
@@ -217,32 +185,6 @@ export default async function decorate(block) {
 
   const navSections = nav.querySelector('.nav-sections');
 
-  if (navSections) {
-    navSections
-      .querySelectorAll(':scope .default-content-wrapper > ul > li')
-      .forEach((navSection) => {
-        if (navSection.querySelector('ul')) navSection.classList.add('nav-drop');
-        setupSubmenu(navSection);
-        navSection.addEventListener('click', (event) => {
-          if (event.target.tagName === 'A') return;
-          if (!isDesktop.matches) {
-            navSection.classList.toggle('active');
-          }
-        });
-        navSection.addEventListener('mouseenter', () => {
-          toggleAllNavSections(navSections);
-          if (isDesktop.matches) {
-            if (!navSection.classList.contains('nav-drop')) {
-              overlay.classList.remove('show');
-              return;
-            }
-            navSection.setAttribute('aria-expanded', 'true');
-            overlay.classList.add('show');
-          }
-        });
-      });
-  }
-
   const navTools = nav.querySelector('.nav-tools');
 
   // Static links (On Promo, Housebrand, Store Locations, etc.) are authored
@@ -254,7 +196,10 @@ export default async function decorate(block) {
   /** Static Nav Links */
   const customerMenuFragment = document.createRange().createContextualFragment(`
      <div class="account-wrapper nav-tools-wrapper">
-       <button type="button" class="nav-account-button" aria-label="account" aria-haspopup="dialog" aria-expanded="false" aria-controls="account-panel"></button>
+       <button type="button" class="nav-account-button" aria-label="account" aria-haspopup="dialog" aria-expanded="false" aria-controls="auth-combine-modal"></button>
+       <div id="auth-combine-modal" role="dialog" aria-modal="true" aria-label="Account access">
+         <div id="auth-combine-wrapper"></div>
+       </div>
        <div class="account-panel nav-tools-panel" id="account-panel"></div>
      </div>
   `);
@@ -297,17 +242,23 @@ export default async function decorate(block) {
           slots: {
             ProductImage: (ctx) => {
               const { product, defaultImageProps } = ctx;
+              const width = Number(defaultImageProps?.width) || PLP_IMAGE_DIMENSIONS.width;
+              const height = Number(defaultImageProps?.height) || PLP_IMAGE_DIMENSIONS.height;
               const anchorWrapper = document.createElement('a');
               anchorWrapper.href = getProductLink(product.urlKey, product.sku);
 
+              const imageProps = withProductImageFallback(defaultImageProps, product);
+
               tryRenderAemAssetsImage(ctx, {
                 alias: product.sku,
-                imageProps: defaultImageProps,
-                wrapper: anchorWrapper,
-                params: {
-                  width: defaultImageProps.width,
-                  height: defaultImageProps.height,
+                imageProps: {
+                  ...imageProps,
+                  width,
+                  height,
+                  params: { ...imageProps.params, width, height },
                 },
+                wrapper: anchorWrapper,
+                params: { width, height },
               });
             },
             Footer: async (ctx) => {
@@ -582,6 +533,7 @@ export default async function decorate(block) {
   renderAuthCombine(
     navSections,
     () => !isDesktop.matches && toggleMenu(nav, navSections, false),
+    navTools.querySelector('.nav-account-button'),
   );
   renderAuthDropdown(navTools);
 }

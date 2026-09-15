@@ -18,8 +18,12 @@ import {
   decorateLinks,
   loadErrorPage,
   decorateSections,
+  canonicalizeCategoryUrl,
+  getCategoryFromUrl,
   IS_UE,
   IS_DA,
+  isCategoryTemplate,
+  rootLink,
 } from './commerce.js';
 
 /*
@@ -136,9 +140,31 @@ function buildAutoBlocks(main) {
       });
     }
     buildWidgetAutoBlocks(main);
+    buildBreadcrumbBlock(main);
   } catch (error) {
     console.error('Auto Blocking failed', error);
   }
+}
+
+/**
+ * Injects a breadcrumb block into the existing PLP/PDP/cart section.
+ * Prepended so it is placed at the top of the section using JavaScript.
+ * @param {Element} main
+ */
+function buildBreadcrumbBlock(main) {
+  if (main.querySelector('.breadcrumb')) return;
+
+  const targetBlock = main.querySelector(
+    '.product-list-page, .product-details, .commerce-cart',
+  );
+  if (!targetBlock) return;
+
+  const section = targetBlock.parentElement;
+  if (!section) return;
+
+  const breadcrumb = document.createElement('div');
+  breadcrumb.className = 'breadcrumb';
+  section.prepend(breadcrumb);
 }
 /**
  * Decorates formatted links to style them as buttons.
@@ -257,6 +283,34 @@ function loadDelayed() {
 }
 
 async function loadPage() {
+  // Without folder mapping, category URLs 404 and must load the PLP template.
+  // Canonical URLs are restored via replaceState before paint (no third URL hop).
+  if (!IS_UE) {
+    const categoryMeta = getCategoryFromUrl();
+    const onTemplate = isCategoryTemplate();
+
+    if (categoryMeta && onTemplate) {
+      const canonical = canonicalizeCategoryUrl(new URL(window.location.href), categoryMeta);
+      if (canonical.href !== window.location.href) {
+        window.history.replaceState({}, '', canonical.toString());
+      }
+    } else if (categoryMeta && window.isErrorPage) {
+      const templateUrl = new URL(rootLink('/categories/default'), window.location.href);
+      templateUrl.searchParams.set('cp', window.location.pathname);
+      window.location.replace(templateUrl.toString());
+      return;
+    } else if (window.isErrorPage) {
+      // Menu drop-in links use /{urlPath}; without a CMS page that 404s here.
+      const barePath = window.location.pathname.replace(/\/$/, '').match(/^\/([^/]+)$/);
+      if (barePath) {
+        const templateUrl = new URL(rootLink('/categories/default'), window.location.href);
+        templateUrl.searchParams.set('urlpath', barePath[1]);
+        window.location.replace(templateUrl.toString());
+        return;
+      }
+    }
+  }
+
   await loadEager(document);
   await loadLazy(document);
   loadDelayed();

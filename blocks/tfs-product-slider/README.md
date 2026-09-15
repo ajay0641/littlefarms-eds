@@ -17,10 +17,11 @@ The TFS Product Slider block renders a horizontal product carousel using the `@a
 | `show-all-link` | string | `''` | Side-title link target (e.g. `/best-of-little-farms`) | No |
 | `page-size` | string/number | `8` | Number of products to fetch | No |
 | `current-page` | string/number | `1` | productSearch page | No |
-| `attribute` | string | `isNew` | Catalog Service filter attribute | No |
-| `eq` | string | `1` | Filter equality value | No |
+| `attribute` | string | `isNew` | Catalog Service filter attribute (e.g. `isNew`, `categoryIds`, `sku`) | No |
+| `eq` | string | `1` | Filter equality value (used for exact single value match) | No |
+| `in` | string | `''` | Filter value list (comma-separated, e.g. for `sku` or `categoryIds`) | No |
 
-Legacy keys `filter-attribute` / `filter-eq` are still supported.
+Legacy keys `filter-attribute` / `filter-eq` / `filter-in` are still supported.
 
 **Side-title layout ("Best Sellers"):** when `subtitle` (or `show-all-text`/`show-all-link`) is set, the block renders a left panel — title, subtitle, and "Show all" link — beside the product slider on a rounded white card. Omit these keys for the default centered heading layout.
 
@@ -48,6 +49,17 @@ Legacy keys `filter-attribute` / `filter-eq` are still supported.
 | --- | --- |
 | attribute | categoryIds |
 | eq | 6 |
+
+**Products by SKU list:**
+
+| tfs-product-slider | |
+| --- | --- |
+| title | Fresh Produce |
+| subtitle | Keeping it air-flown fresh! |
+| show-all-text | Show all |
+| show-all-link | /groceries/fruit-vegetables |
+| attribute | sku |
+| in | NICOKCONFIG, PURECOMCONFIG |
 
 Each instance uses the same Catalog Service `productSearch` call with a different `filter` clause. Empty filter fields keep the default `isNew = 1`.
 

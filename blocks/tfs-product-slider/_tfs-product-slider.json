@@ -67,7 +67,7 @@
         "label": "Attribute",
         "valueType": "string",
         "value": "isNew",
-        "description": "Catalog Service productSearch filter attribute. Examples: isNew, categoryIds"
+        "description": "Catalog Service productSearch filter attribute. Examples: isNew, categoryIds, sku"
       },
       {
         "component": "text",
@@ -76,6 +76,13 @@
         "valueType": "string",
         "value": "1",
         "description": "Filter equality value. Examples: 1 (for isNew), 6 (for categoryIds)"
+      },
+      {
+        "component": "text",
+        "name": "in",
+        "label": "In (comma-separated)",
+        "valueType": "string",
+        "description": "Filter values list for 'in' matching (comma-separated). Example: NICOKCONFIG, PURECOMCONFIG"
       }
     ]
   }],

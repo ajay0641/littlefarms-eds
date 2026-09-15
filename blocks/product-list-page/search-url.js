@@ -99,19 +99,22 @@ function serializeFilter(filter) {
  * Reads all search state from the current URL query params.
  * Return shape matches the request object used by applySearchStateToUrl and the search API.
  * @param {URL} url - URL to read from (e.g. new URL(window.location.href))
- * @returns {{ phrase: string, currentPage: number, sort: Array, filter: Array }}
- *   phrase: search query (q param); currentPage: page number (default 1);
+ * @return {{phrase: String, currentPage: Number, loadMorePage: Number, sort: Array, filter: Array}}
+ *   phrase: search query (q param); loadMorePage: virtual load-more page (?p= or legacy ?page=);
  *   sort, filter: parsed for the search API
  */
 export function getSearchStateFromUrl(url) {
   const q = url.searchParams.get('q') ?? '';
-  const page = url.searchParams.get('page');
+  const p = url.searchParams.get('p') ?? url.searchParams.get('page');
   const sort = url.searchParams.get('sort');
   const filter = url.searchParams.get('filter');
 
+  const loadMorePage = p ? Math.max(1, Number(p) || 1) : 1;
+
   return {
     phrase: q,
-    currentPage: page ? Number(page) : 1,
+    currentPage: loadMorePage,
+    loadMorePage,
     sort: parseSort(sort),
     filter: parseFilter(filter),
   };
@@ -122,16 +125,26 @@ export function getSearchStateFromUrl(url) {
  * Call after search/result to keep the URL in sync (e.g. in the search/result event handler).
  * Mutates the URL in place; then use url.toString() or history.pushState to apply.
  * @param {URL} url - URL to update (e.g. new URL(window.location.href))
- * @param {{ phrase?: string, currentPage?: number, sort?: Array, filter?: Array }} request
+ * @param {{phrase?: String, sort?: Array, filter?: Array}} request
  *   Search request from the discovery API; only set params are written to the URL.
+ * @param {{loadMorePage?: Number}} [options]
+ *   loadMorePage: virtual page for load-more (?p=); omit pagination page from URL.
  */
-export function applySearchStateToUrl(url, request) {
+export function applySearchStateToUrl(url, request, { loadMorePage = 1 } = {}) {
   if (request?.phrase) {
     url.searchParams.set('q', request.phrase);
+  } else {
+    url.searchParams.delete('q');
   }
-  if (request?.currentPage) {
-    url.searchParams.set('page', String(request.currentPage));
+
+  url.searchParams.delete('page');
+
+  if (loadMorePage > 1) {
+    url.searchParams.set('p', String(loadMorePage));
+  } else {
+    url.searchParams.delete('p');
   }
+
   if (request?.sort != null) {
     url.searchParams.set('sort', serializeSort(request.sort));
   }

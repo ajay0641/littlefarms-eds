@@ -1,0 +1,26 @@
+{
+  "definitions": [{
+    "title": "TFS Menu",
+    "id": "tfs-menu",
+    "model": "tfs-menu",
+    "plugins": {
+      "da": {
+        "type": "key-value-block"
+      }
+    }
+  }],
+  "models": [{
+    "id": "tfs-menu",
+    "fields": [
+      {
+        "component": "text",
+        "name": "parent-id",
+        "label": "Parent Category ID",
+        "valueType": "string",
+        "value": "2",
+        "description": "Catalog Service category ID for the menu root (default 2 = store root)"
+      }
+    ]
+  }],
+  "filters": []
+}

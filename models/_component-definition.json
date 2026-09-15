@@ -55,6 +55,9 @@
         },
         {
           "...": "../blocks/tfs-product-slider/_*.json#/definitions"
+        },
+        {
+          "...": "../blocks/tfs-menu/_*.json#/definitions"
         }
       ]
     },

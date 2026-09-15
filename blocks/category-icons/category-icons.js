@@ -1,43 +1,11 @@
+import Splide from '../../scripts/vendor/splide/splide.esm.js';
+import { loadCSS } from '../../scripts/aem.js';
+
+loadCSS('/scripts/vendor/splide/splide-core.min.css');
+
 /**
- * Category Icons ("Shop by Aisle") block.
- * A heading row with an optional "Shop all" link, followed by a horizontally
- * scrollable row of circular icon + label items with prev/next arrows.
- *
- * Content model (positional rows):
- *   Row 1  → cell 1 = section heading; cell 2 (optional) = "Shop all" link
- *   Row 2+ → each row is one item: cell 1 = icon image (wrapped in a link),
- *            cell 2 (optional) = label text (falls back to the link text)
- *
+ * loads and decorates the category-icons block using Splide
  * @param {Element} block The category-icons block element
- */
-
-/**
- * Scrolls the track by roughly one viewport width in the given direction.
- * @param {Element} track The scrolling track element
- * @param {number} dir -1 for previous, 1 for next
- */
-function scrollTrack(track, dir) {
-  const amount = track.clientWidth * 0.8;
-  track.scrollBy({ left: dir * amount, behavior: 'smooth' });
-}
-
-/**
- * Toggles the disabled state of the arrows based on scroll position.
- * @param {Element} block The block element
- */
-function updateArrows(block) {
-  const track = block.querySelector('.category-icons-track');
-  const prev = block.querySelector('.category-icons-arrow-prev');
-  const next = block.querySelector('.category-icons-arrow-next');
-  if (!track || !prev || !next) return;
-  const maxScroll = track.scrollWidth - track.clientWidth - 1;
-  prev.disabled = track.scrollLeft <= 0;
-  next.disabled = track.scrollLeft >= maxScroll;
-}
-
-/**
- * loads and decorates the category-icons block
- * @param {Element} block The block element
  */
 export default function decorate(block) {
   const rows = [...block.children];
@@ -65,12 +33,16 @@ export default function decorate(block) {
     header.append(shopAll);
   }
 
-  // --- Track of items ---
-  const viewport = document.createElement('div');
-  viewport.className = 'category-icons-viewport';
+  // --- Splide Carousel of items ---
+  const splideEl = document.createElement('div');
+  splideEl.className = 'splide category-icons-splide';
+  splideEl.setAttribute('aria-label', 'Shop by Aisle');
 
   const track = document.createElement('div');
-  track.className = 'category-icons-track';
+  track.className = 'splide__track category-icons-viewport';
+
+  const list = document.createElement('ul');
+  list.className = 'splide__list category-icons-track';
 
   rows.slice(1).forEach((row) => {
     const cells = [...row.children];
@@ -78,13 +50,19 @@ export default function decorate(block) {
     const img = cells[0]?.querySelector('img, picture');
     if (!img) return;
 
+    const slide = document.createElement('li');
+    slide.className = 'splide__slide category-icons-slide';
+
     const item = document.createElement('a');
     item.className = 'category-icons-item';
+    item.setAttribute('draggable', 'false');
     const href = link?.getAttribute('href');
     if (href) item.setAttribute('href', href);
 
     const iconWrap = document.createElement('span');
     iconWrap.className = 'category-icons-icon';
+    const realImg = img.querySelector('img') || img;
+    if (realImg) realImg.setAttribute('draggable', 'false');
     iconWrap.append(img);
     item.append(iconWrap);
 
@@ -96,36 +74,66 @@ export default function decorate(block) {
       item.append(label);
     }
 
-    track.append(item);
+    slide.append(item);
+    list.append(slide);
   });
 
-  viewport.append(track);
+  track.append(list);
 
-  // --- Arrows ---
+  const arrows = document.createElement('div');
+  arrows.className = 'splide__arrows category-icons-arrows';
+
   const prev = document.createElement('button');
-  prev.className = 'category-icons-arrow category-icons-arrow-prev';
+  prev.className = 'splide__arrow splide__arrow--prev category-icons-arrow category-icons-arrow-prev';
   prev.type = 'button';
   prev.setAttribute('aria-label', 'Scroll left');
 
   const next = document.createElement('button');
-  next.className = 'category-icons-arrow category-icons-arrow-next';
+  next.className = 'splide__arrow splide__arrow--next category-icons-arrow category-icons-arrow-next';
   next.type = 'button';
   next.setAttribute('aria-label', 'Scroll right');
 
-  prev.addEventListener('click', () => scrollTrack(track, -1));
-  next.addEventListener('click', () => scrollTrack(track, 1));
-  track.addEventListener('scroll', () => updateArrows(block));
-  window.addEventListener('resize', () => updateArrows(block));
+  arrows.append(prev, next);
+  splideEl.append(track, arrows);
 
-  block.append(header, viewport, prev, next);
+  block.append(header, splideEl);
 
-  // Evaluate arrows after layout settles (scrollWidth needs a rendered track).
-  requestAnimationFrame(() => updateArrows(block));
+  const splide = new Splide(splideEl, {
+    type: 'slide',
+    rewind: false,
+    perPage: 9,
+    perMove: 4,
+    gap: '16px',
+    pagination: false,
+    arrows: true,
+    drag: true,
+    speed: 400,
+    breakpoints: {
+      1200: {
+        perPage: 8,
+        perMove: 4,
+        gap: '16px',
+      },
+      1024: {
+        perPage: 6,
+        perMove: 3,
+        gap: '16px',
+      },
+      768: {
+        perPage: 4,
+        perMove: 2,
+        gap: '12px',
+      },
+      480: {
+        perPage: 4,
+        perMove: 2,
+        gap: '8px',
+      },
+    },
+  });
 
-  // Re-evaluate arrows once icons have loaded (they affect scrollWidth).
-  track.querySelectorAll('img').forEach((img) => {
-    if (!img.complete) {
-      img.addEventListener('load', () => updateArrows(block), { once: true });
-    }
+  splide.mount();
+  requestAnimationFrame(() => {
+    splide.refresh();
   });
 }

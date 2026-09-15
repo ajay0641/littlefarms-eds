@@ -14,6 +14,19 @@
         }]
     }
 </script>
+<script nonce="aem">
+    (function () {
+        try {
+            var categoryPath = sessionStorage.getItem('hlx-category-path');
+            if (!categoryPath || !/\/categories\/.+\/[^/]+$/.test(categoryPath)) return;
+            if (!window.location.pathname.match(/\/categories\/default\/?$/)) return;
+            history.replaceState(history.state, '', categoryPath);
+            sessionStorage.removeItem('hlx-category-path');
+        } catch (e) {
+            // ignore
+        }
+    }());
+</script>
 <script nonce="aem" type="importmap">
     {
         "imports": {
@@ -29,6 +42,7 @@
             "@dropins/storefront-personalization/": "/scripts/__dropins__/storefront-personalization/",
             "@dropins/storefront-product-discovery/": "/scripts/__dropins__/storefront-product-discovery/",
             "@dropins/tools/": "/scripts/__dropins__/tools/",
+            "@ajay0641/tfs-menu/": "/scripts/__dropins__/tfs-menu/",
             "@ajay0641/tfs-product-slider/": "/scripts/__dropins__/tfs-product-slider/"
         }
     }
