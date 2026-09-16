@@ -155,10 +155,25 @@ main:has(.commerce-checkout-container),
   flex-direction: column;
   position: relative;
   width: 100%;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.checkout__section .dropin-picker .dropin-picker__chevronDown {
+  display: none;
+}
+
+.checkout__section .dropin-picker__medium.dropin-picker__floating.dropin-picker__selected label {
+  font-size: 14px;
+  color: var(--checkout-label);
 }
 
 .checkout__section .dropin-input-label-container {
   gap: 6px;
+}
+
+.dropin-checkbox__checkbox:checked+.dropin-checkbox__checkbox-icon .dropin-checkbox__box .dropin-checkbox__checkmark {
+  background-color: var(--checkout-brand);
 }
 
 /* Floating labels → Magento labels above the field */
@@ -177,7 +192,6 @@ main:has(.commerce-checkout-container),
   margin: 0;
   order: -1;
   padding: 0 !important;
-  pointer-events: none;
   position: static !important;
   top: auto !important;
   transform: none !important;
