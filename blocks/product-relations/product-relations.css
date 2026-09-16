@@ -1,6 +1,7 @@
 /* Outer section wrapper background and spacing */
 main .section:has(.product-relations) {
   --slider-section-bg: var(--color-neutral-50);
+
   padding: 0 0 35px;
   margin: 0;
   overflow: hidden;

@@ -1,20 +1,24 @@
+/* ============================================================
+   Commerce Cart
+   ============================================================ */
+
+/* ---- Main layout wrapper ---- */
 .commerce-cart {
-  padding: var(--spacing-large) 0;
-  position: relative;
+  /* Cart block variables */
+  --cart-border-color: #ebebeb;
+  --cart-wishlist-color: #b9314f;
+  --cart-input-text-color: #374151;
+  --cart-placeholder-color: #8e8e8e;
+  --cart-incrementer-text-color: #111827;
+
+  padding: 40px 0 0;
+  min-height: 60vh;
 }
 
-.cart__notification {
-  margin-bottom: var(--spacing-small);
-}
-
-.cart__notification:empty {
-  display: none;
-}
-
-.cart__wrapper {
+.cart__wrapper:not(.empty-cart) {
   display: flex;
   flex-direction: column;
-  gap: var(--grid-4-gutters);
+  gap: 24px;
 }
 
 .cart__wrapper[hidden],
@@ -22,60 +26,869 @@
   display: none;
 }
 
-.cart__gift-options{
-  margin-top: var(--spacing-medium);
+/* ---- Left column — white card ---- */
+.cart__left-column {
+  flex: 1;
+  background-color: var(--color-neutral-50);
+  overflow: hidden;
 }
 
-.dropin-cart-item__footer {
-  margin-top: var(--spacing-xsmall);
-  gap: var(--spacing-xsmall);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+/* Dropin cart list outer container */
+.commerce-cart .cart-cart-summary-list {
+  background: transparent;
 }
 
-.cart-item-edit-link .dropin-button,
-.cart__action--wishlist-toggle .dropin-button {
+/* ---- Cart heading "MY CART" ---- */
+.commerce-cart .cart-cart-summary-list__heading {
   padding: 0;
-  font: var(--type-body-1-strong-font);
-  letter-spacing: var(--type-body-1-strong-letter-spacing);
-  font-weight: 600;
-  display: inline-flex;
+  text-align: center;
+  display: block;
 }
 
-.cart__notification .dropin-in-line-alert__content {
+.commerce-cart .cart-cart-summary-list__heading-divider {
+  border-top: 1px solid var(--cart-border-color);
+  margin: 10px 0 0;
+}
+
+.cart-cart-summary-list__heading-text {
+  font-size: 30px;
+  line-height: 35px;
+}
+
+.commerce-cart .cart-cart-summary-list__footer-divider {
+  display: none;
+}
+
+/* ---- Cart list content ---- */
+.commerce-cart .cart-cart-summary-list__content {
+  padding: 0;
+}
+
+.cart-cart-summary-list__content .dropin-cart-list__wrapper {
+  display: block;
+}
+
+/* CART ITEM Flex Layout */
+.commerce-cart .dropin-cart-item {
+  position: relative;
+  padding: 20px 0 28px;
+}
+
+.commerce-cart .dropin-cart-item__wrapper {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  position: relative;
+  padding-left: 127px;
+  min-height: 100px;
 }
 
-.cart__notification .dropin-in-line-alert svg {
-  margin-right: var(--spacing-xsmall);
+.commerce-cart .dropin-cart-list__item:not(:last-child) {
+  border-bottom: 1px solid var(--cart-border-color);
 }
 
-.cart__notification .dropin-in-line-alert button {
+.commerce-cart .dropin-cart-item__image {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 115px;
+  height: 115px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.dropin-cart-item__quantity {
-    width: fit-content;
+.commerce-cart .dropin-cart-item__image img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }
 
-@media (min-width: 768px) {
-  .cart__wrapper {
-    flex-direction: row;
-    position: relative;
+.commerce-cart .dropin-cart-item__title {
+  flex: 1 1 100%;
+  width: 100%;
+  padding-right: 40px;
+  margin: 0 0 20px;
+}
+
+.commerce-cart .cart-cart-summary-list__item-title a {
+  color: var(--color-neutral-800);
+  font-weight: 700;
+}
+
+.commerce-cart .dropin-cart-item__sku,
+.commerce-cart .dropin-cart-item__total,
+.commerce-cart .dropin-cart-item__savings__wrapper,
+.commerce-cart .dropin-cart-item__price__quantity,
+.commerce-cart .dropin-cart-item__price .dropin-cart-item__sr-only,
+.commerce-cart .dropin-cart-item__attributes {
+  display: none;
+}
+
+.commerce-cart .dropin-cart-item__price {
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+.commerce-cart .dropin-cart-item__price .dropin-price--bold {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-neutral-800);
+}
+
+.commerce-cart .dropin-cart-item__quantity {
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
+/* Remove button (Trash Icon) */
+.commerce-cart .dropin-cart-item__remove {
+  position: absolute;
+  top: 15px;
+  right: 0;
+  background: url('/icons/littlefarms/bin.svg') no-repeat center center;
+  background-size: contain;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 0;
+  width: 14px;
+  height: 16px;
+  min-width: 14px;
+  z-index: 2;
+}
+
+.commerce-cart .dropin-cart-item__remove svg {
+  display: none;
+}
+
+.commerce-cart .dropin-cart-item__remove:hover {
+  background-color: transparent;
+  opacity: 0.7;
+}
+
+/* Quantity Stepper (Hand-drawn border) */
+.commerce-cart .dropin-incrementer {
+  width: 140px;
+}
+
+.commerce-cart .dropin-incrementer__content {
+  background-image: url('../../icons/littlefarms/shape-green-border.svg');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  height: 46px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  border: none;
+  padding: 0 10px;
+}
+
+.commerce-cart .dropin-incrementer__input {
+  border: none;
+  background: transparent;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--cart-incrementer-text-color);
+  text-align: center;
+  width: 40px;
+}
+
+.commerce-cart .dropin-incrementer__button-container button {
+  background: transparent;
+  border: none;
+  color: var(--color-brand-600);
+  padding: 0;
+}
+
+.commerce-cart .dropin-incrementer__button-container button svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Edit / Wishlist Links */
+.commerce-cart .dropin-cart-item__footer {
+  flex: 0 0 auto;
+  margin: 12px 0 0 auto;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.commerce-cart .cart-item-edit-link .dropin-button {
+  padding: 0;
+  font-size: 1.4rem;
+  font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: none;
+}
+
+/* Wishlist Button in Cart (matching littlefarms action-towishlist) */
+.commerce-cart .cart__action--wishlist-toggle .dropin-button {
+  padding: 0;
+  color: var(--cart-wishlist-color);
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 18px;
+  font-family: var(--type-base-font-family);
+  background: transparent;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  text-transform: none;
+}
+
+.commerce-cart .cart__action--wishlist-toggle .dropin-button:hover span::after {
+  text-decoration: underline;
+}
+
+.commerce-cart .cart__action--wishlist-toggle .dropin-button svg {
+  color: var(--cart-wishlist-color);
+  width: 16px;
+  height: 16px;
+  stroke-width: 1px;
+}
+
+/* ---- RIGHT COLUMN — Order Summary ---- */
+.commerce-cart .cart-order-summary {
+  background: transparent;
+}
+
+.commerce-cart .cart-order-summary__heading {
+  display: block;
+}
+
+.commerce-cart .cart-order-summary__heading-text {
+  display: block;
+  font-size: 30px;
+  line-height: 36px;
+  text-align: center;
+}
+
+.cart__order-summary .cart-order-summary__divider-primary {
+  margin: 12px 0 0;
+  border-color: var(--cart-border-color);
+  border-width: 1px;
+}
+
+.commerce-cart .cart-order-summary__divider-secondary {
+  display: none;
+}
+
+.commerce-cart .cart-order-summary__content {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+  gap: 0;
+}
+
+.commerce-cart .cart-order-summary__subTotal {
+  order: 1;
+  width: 100%;
+}
+
+.commerce-cart .cart-order-summary__shipping {
+  order: 2;
+  width: 100%;
+}
+
+.cart-order-summary__label,
+.cart-estimate-shipping__label {
+  font-weight: 600;
+}
+
+.commerce-cart .cart-order-summary__entry,
+.commerce-cart .cart-order-summary__taxEntry {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+.commerce-cart .cart-order-summary__entry {
+  margin: 5px 0;
+}
+
+.commerce-cart .cart-estimate-shipping--action {
+  background-image: url('../../icons/littlefarms/shape-green-border.svg');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  border: none;
+  color: var(--color-brand-300);
+  font-family: var(--type-base-font-family);
+  font-size: 1.4rem;
+  font-weight: 700;
+  height: 44px;
+  min-width: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+  border-radius: 0;
+  text-transform: capitalize;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.commerce-cart .cart-estimate-shipping--action span {
+  color: inherit;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.commerce-cart .cart-estimate-shipping--action:hover {
+  background-color: transparent;
+  background-image: url('../../icons/littlefarms/shape-green.svg');
+  color: var(--color-neutral-50);
+  opacity: 1;
+}
+
+.commerce-cart .cart-estimate-shipping--edit .dropin-picker {
+  height: 48px;
+  margin-bottom: 12px;
+}
+
+.commerce-cart .cart-estimate-shipping--edit .dropin-picker__select {
+  background-image: url('../../icons/littlefarms/shape-green-border.svg');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  height: 48px;
+  padding: 0 40px 0 20px;
+  font-size: 1.4rem;
+  font-family: var(--type-base-font-family);
+  color: var(--cart-input-text-color);
+  border-radius: 0;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.commerce-cart .cart-estimate-shipping--edit .dropin-picker__select:focus {
+  outline: none;
+}
+
+.commerce-cart .cart-estimate-shipping--edit .dropin-input-container {
+  margin-bottom: 16px;
+}
+
+.commerce-cart .cart-estimate-shipping--edit .dropin-input,
+.commerce-cart .coupon-code-form__action .dropin-input {
+  background-image: url('../../icons/littlefarms/shape-green-border.svg');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  height: 48px;
+  padding: 0 20px;
+  font-size: 1.4rem;
+  font-family: var(--type-base-font-family);
+  color: var(--cart-input-text-color);
+  box-sizing: border-box;
+}
+
+.commerce-cart .cart-estimate-shipping--edit .dropin-input:focus,
+.commerce-cart .coupon-code-form__action .dropin-input:focus {
+  outline: none;
+}
+
+.commerce-cart .cart-estimate-shipping--edit .dropin-input::placeholder,
+.commerce-cart .coupon-code-form__action .dropin-input::placeholder {
+  color: var(--cart-placeholder-color);
+}
+
+.commerce-cart .cart-order-summary__taxTotal {
+  order: 3;
+  width: 100%;
+}
+
+.commerce-cart .cart__gift-options {
+  order: 4;
+  width: 100%;
+  border-top: 1px solid var(--cart-border-color);
+}
+
+.commerce-cart .cart-order-summary__gift-cards {
+  order: 5;
+  width: 100%;
+  border-top: 1px solid var(--cart-border-color);
+}
+
+.commerce-cart .cart-order-summary__coupons {
+  order: 6;
+  width: 100%;
+  border-top: 1px solid var(--cart-border-color);
+  border-bottom: 1px solid var(--cart-border-color);
+}
+
+/* Accordions: Gift Options, Gift Cards, Coupons */
+.commerce-cart .cart__gift-options .dropin-card,
+.commerce-cart .cart__gift-options .dropin-card--secondary {
+  border: none;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+
+.commerce-cart .cart__gift-options .dropin-card__content {
+  padding: 0;
+  gap: 0;
+}
+
+.commerce-cart .cart__gift-options .dropin-divider--secondary,
+.commerce-cart .cart-coupons__accordion .dropin-divider--secondary {
+  display: none;
+}
+
+.commerce-cart .dropin-accordion-section__content-container {
+  gap: 0;
+  margin: 0;
+}
+
+.commerce-cart #cart-gift-options-view .dropin-accordion-section__content-container[style*="display: none"] {
+  display: none !important;
+}
+
+.commerce-cart .cart-gift-options-view__top {
+  padding-left: 27px;
+  padding-bottom: 10px;
+  margin: 0;
+}
+
+.commerce-cart .cart-order-summary__coupons .dropin-accordion-section__title-container svg,
+.commerce-cart .cart-order-summary__gift-cards .dropin-accordion-section__title-container svg {
+  display: none;
+}
+
+.commerce-cart .cart__gift-options .dropin-accordion-section__title-container svg {
+  width: 18px;
+  height: 24px;
+  color: var(--color-brand-300);
+  flex-shrink: 0;
+  position: relative;
+  top: -2px;
+}
+
+.commerce-cart .cart-order-summary__coupons .dropin-accordion-section__title-container::before {
+  content: '';
+  display: inline-block;
+  width: 18px;
+  height: 24px;
+  background: url('../../icons/littlefarms/discount-code-icon.svg') no-repeat center / contain;
+  flex-shrink: 0;
+  position: relative;
+  top: -1px;
+}
+
+.commerce-cart .cart-order-summary__gift-cards .dropin-accordion-section__title-container::before {
+  content: '';
+  display: inline-block;
+  width: 18px;
+  height: 24px;
+  background: url('../../icons/littlefarms/gift-box-icon.svg') no-repeat center / contain;
+  flex-shrink: 0;
+  position: relative;
+  top: -3px;
+}
+
+.commerce-cart .cart__gift-options .dropin-accordion-section__title,
+.commerce-cart .cart-order-summary__coupons .dropin-accordion-section__title,
+.commerce-cart .cart-order-summary__gift-cards .dropin-accordion-section__title {
+  font-weight: 700;
+  line-height: 1.1;
+  font-size: 1.4rem;
+}
+
+.commerce-cart .cart__gift-options .dropin-accordion-section__title-container,
+.commerce-cart .cart-order-summary__coupons .dropin-accordion-section__title-container,
+.commerce-cart .cart-order-summary__gift-cards .dropin-accordion-section__title-container,
+.commerce-cart .cart__gift-options .dropin-accordion-section__secondary-text-container,
+.commerce-cart .cart-order-summary__coupons .dropin-accordion-section__secondary-text-container,
+.commerce-cart .cart-order-summary__gift-cards .dropin-accordion-section__secondary-text-container {
+  cursor: pointer;
+  padding: 18px 0;
+}
+
+.commerce-cart .cart__gift-options .dropin-accordion-section__secondary-text-container,
+.commerce-cart .cart-order-summary__coupons .dropin-accordion-section__secondary-text-container,
+.commerce-cart .cart-order-summary__gift-cards .dropin-accordion-section__secondary-text-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.commerce-cart .cart__gift-options .dropin-accordion-section__secondary-text-container svg,
+.commerce-cart .cart-order-summary__coupons .dropin-accordion-section__secondary-text-container svg,
+.commerce-cart .cart-order-summary__gift-cards .dropin-accordion-section__secondary-text-container svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  background: url('../../icons/littlefarms/chevron.svg') no-repeat center / 12px 7px;
+  transition: transform 0.2s ease;
+}
+
+.commerce-cart .cart__gift-options .dropin-accordion-section__secondary-text-container svg.dropin-accordion-section__close-icon,
+.commerce-cart .cart-order-summary__coupons .dropin-accordion-section__secondary-text-container svg.dropin-accordion-section__close-icon,
+.commerce-cart .cart-order-summary__gift-cards .dropin-accordion-section__secondary-text-container svg.dropin-accordion-section__close-icon {
+  transform: rotate(180deg);
+}
+
+.commerce-cart .cart__gift-options .dropin-accordion-section__secondary-text-container svg *,
+.commerce-cart .cart-order-summary__coupons .dropin-accordion-section__secondary-text-container svg *,
+.commerce-cart .cart-order-summary__gift-cards .dropin-accordion-section__secondary-text-container svg * {
+  display: none;
+}
+
+.commerce-cart .coupon-code-form__action {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  gap: 12px;
+  padding-left: 24px;
+  padding-bottom: 20px;
+}
+
+.cart-order-summary__coupons .coupon-code-form__error,
+.cart-order-summary__gift-cards .coupon-code-form__error {
+  margin: 0 0 10px 24px;
+}
+
+.commerce-cart .coupon-code-form__action .dropin-input-container {
+  flex: 1 1 auto;
+  margin: 0;
+}
+
+.commerce-cart .coupon-code-form__action .coupon-code-form--button {
+  background-image: url('../../icons/littlefarms/shape-green-border.svg');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  border: none;
+  color: var(--color-brand-300);
+  font-family: var(--type-base-font-family);
+  font-size: 1.4rem;
+  font-weight: 700;
+  height: 48px;
+  min-width: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+  border-radius: 0;
+  text-transform: capitalize;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.commerce-cart .coupon-code-form__action .coupon-code-form--button span {
+  color: inherit;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.commerce-cart .coupon-code-form__action .coupon-code-form--button:hover {
+  background-color: transparent;
+  background-image: url('../../icons/littlefarms/shape-green.svg');
+  color: var(--color-neutral-50);
+  opacity: 1;
+}
+
+.commerce-cart .cart-order-summary__total {
+  order: 7;
+  width: auto;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  border-bottom: none;
+  padding: 0;
+  margin-top: 24px;
+}
+
+.commerce-cart .cart-order-summary__total .cart-order-summary__label {
+  display: none;
+}
+
+.commerce-cart .cart-order-summary__total .cart-order-summary__price {
+  font-size: 20px;
+  line-height: 30px;
+  font-weight: 900;
+  color: var(--color-neutral-800);
+}
+
+.commerce-cart .cart-order-summary__primary {
+  padding: 0;
+}
+
+.commerce-cart .cart-order-summary__secondary {
+  padding: 0 24px 16px;
+}
+
+/* Checkout Button */
+.commerce-cart .cart-order-summary__primaryAction {
+  order: 8;
+  width: auto;
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: flex-end;
+  border-bottom: none;
+  padding: 0 0 0 20px;
+  margin-top: 24px;
+}
+
+.commerce-cart .cart-order-summary__primaryAction .dropin-button,
+.commerce-cart .cart-order-summary__primaryAction a[href] {
+  background-image: url('../../icons/littlefarms/shape-green-border.svg');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  border: none;
+  color: var(--color-brand-300);
+  font-family: var(--type-base-font-family);
+  font-size: 1.6rem;
+  font-weight: 700;
+  height: 48px;
+  width: 100%;
+  max-width: 378px;
+  min-width: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+  border-radius: 0;
+  text-transform: capitalize;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.commerce-cart .cart-order-summary__primaryAction .dropin-button span {
+  color: inherit;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.commerce-cart .cart-order-summary__primaryAction .dropin-button:hover,
+.commerce-cart .cart-order-summary__primaryAction a[href]:hover {
+  background-color: transparent;
+  background-image: url('../../icons/littlefarms/shape-green.svg');
+  color: var(--color-neutral-50);
+  opacity: 1;
+}
+
+/* Empty Cart State */
+.commerce-cart .cart-empty-cart__wrapper {
+  padding: 64px 20px;
+  text-align: center;
+}
+
+.commerce-cart.empty-cart {
+  padding: 0;
+}
+
+.commerce-cart.empty-cart .cart-empty-cart__wrapper {
+  padding: 0;
+}
+
+.cart__wrapper.empty-cart .cart__left-column {
+  padding: 0;
+  max-width: 100%;
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.cart__wrapper.empty-cart .cart-cart-summary-list__heading-text {
+  display: none;
+}
+
+.commerce-cart .cart-empty-cart__wrapper .dropin-card--secondary {
+  background-color: transparent;
+  border: none;
+  text-align: start;
+  display: block;
+}
+
+.commerce-cart .cart-empty-cart__wrapper .dropin-card__content {
+  padding: 0;
+  display: block;
+}
+
+.commerce-cart .cart-empty-cart__wrapper .dropin-card__content svg {
+  display: none;
+}
+
+.commerce-cart .dropin-illustrated-message__icon {
+  width: 80px;
+  height: 80px;
+  color: var(--color-neutral-400);
+  margin: 0 auto;
+}
+
+.commerce-cart .dropin-illustrated-message__heading {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.commerce-cart .dropin-illustrated-message__action.dropin-button.dropin-button--primary {
+  color: var(--color-brand-300);
+  background-color: transparent;
+  padding: 0;
+  text-underline-offset: unset;
+  font-family: var(--type-base-font-family);
+}
+
+.commerce-cart .dropin-illustrated-message__action.dropin-button.dropin-button--primary:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.commerce-cart .cart-empty-cart__cta-text {
+  font-family: var(--type-base-font-family);
+  font-size: var(--type-body-1-font-size);
+  color: var(--color-neutral-700);
+  margin: 0;
+}
+
+.commerce-cart .cart-empty-cart__here-link {
+  color: var(--color-brand-300);
+  text-decoration: none;
+  font-family: var(--type-base-font-family);
+}
+
+.commerce-cart .cart-empty-cart__here-link:hover {
+  text-decoration: underline;
+  text-underline-offset: auto;
+}
+
+/* Responsive Tablet & Mobile Layout for Cart Items */
+@media (max-width: 768px) {
+  .commerce-cart .dropin-cart-item {
+    padding: 20px 0;
+  }
+
+  .commerce-cart .cart-order-summary__heading-text {
+    display: none;
+  }
+
+  .commerce-cart .dropin-cart-item__wrapper {
+    padding-left: 110px;
+    min-height: 90px;
+  }
+
+  .commerce-cart .dropin-cart-item__image {
+    width: 95px;
+    height: 95px;
+    top: 20px;
+    transform: none;
+  }
+
+  .commerce-cart .dropin-cart-item__title {
+    margin: 0 0 12px;
+    padding-right: 28px;
+  }
+
+  .commerce-cart .dropin-cart-item__price {
+    flex: 0 0 auto;
+    margin: 0;
+  }
+
+  .commerce-cart .dropin-cart-item__quantity {
+    margin-left: auto;
+    margin-right: 0;
+    flex: 0 0 auto;
+  }
+
+  .commerce-cart .dropin-incrementer {
+    width: 125px;
+  }
+
+  .commerce-cart .dropin-cart-item__footer {
+    flex: 1 1 100%;
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 24px;
+    margin-left: -100px;
+  }
+
+  .commerce-cart .dropin-cart-item__remove {
+    top: 10px;
+  }
+
+  .commerce-cart .coupon-code-form__action {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .commerce-cart .coupon-code-form__action .dropin-input-container {
     width: 100%;
   }
 
+  .commerce-cart .coupon-code-form__action .coupon-code-form--button {
+    width: 100%;
+  }
+}
+
+/* Responsive Desktop */
+@media (min-width: 769px) {
+  /* ---- Main layout wrapper ---- */
+  .commerce-cart {
+    background-color: var(--color-neutral-200);
+  }
+
+  .cart-cart-summary-list__heading-text {
+    font-size: 40px;
+    line-height: 46px;
+  }
+
+  .cart__wrapper:not(.empty-cart) {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
   .cart__left-column {
-    flex: 1;
-    flex-basis: 70%;
+    padding: 20px 30px 30px;
+    background-color: var(--color-neutral-50);
+    float: left;
+    position: relative;
+    width: 54%;
+    max-width: 680px;
   }
 
   .cart__right-column {
-    flex: 1;
-    flex-basis: auto;
+    float: right;
+    position: relative;
+    width: 45%;
+    max-width: 600px;
+  }
+
+  .cart__order-summary.dropin-design {
+    background-color: var(--color-neutral-50);
+    padding: 30px;
+  }
+
+  .cart-gift-options-view .cart-gift-options-view__top {
+    margin-bottom: 0;
   }
 }

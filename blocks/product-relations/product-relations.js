@@ -1,15 +1,14 @@
 import { events } from '@dropins/tools/event-bus.js';
+import * as cartApi from '@dropins/storefront-cart/api.js';
 import * as wishlistApi from '@dropins/storefront-wishlist/api.js';
 import { loadCSS, readBlockConfig } from '../../scripts/aem.js';
 import { Splide } from '../../scripts/vendor/splide/splide.esm.js';
 import {
   checkIsAuthenticated,
-  CORE_FETCH_GRAPHQL,
   CS_FETCH_GRAPHQL,
   fetchPlaceholders,
   getProductLink,
   getProductSku,
-  rootLink,
 } from '../../scripts/commerce.js';
 import { getUserTokenCookie } from '../../scripts/initializers/index.js';
 import '../../scripts/initializers/wishlist.js';
@@ -62,23 +61,23 @@ function setActionLoading(button, loading) {
 }
 
 /**
- * @param {typeof import('@dropins/storefront-cart/api.js')} cartApi
+ * @param {typeof import('@dropins/storefront-cart/api.js')} cart
  */
-function syncCartAuthHeaders(cartApi) {
-  if (!cartApi?.setFetchGraphQlHeader) return;
+function syncCartAuthHeaders(cart) {
+  if (!cart?.setFetchGraphQlHeader) return;
   const token = getUserTokenCookie();
   if (token) {
-    cartApi.setFetchGraphQlHeader('Authorization', `Bearer ${token}`);
+    cart.setFetchGraphQlHeader('Authorization', `Bearer ${token}`);
   } else {
-    cartApi.removeFetchGraphQlHeader('Authorization');
+    cart.removeFetchGraphQlHeader('Authorization');
   }
 }
 
 /**
- * @param {typeof import('@dropins/storefront-cart/api.js')} cartApi
+ * @param {typeof import('@dropins/storefront-cart/api.js')} cart
  */
-async function ensureCartReady(cartApi) {
-  if (!cartApi || cartApi.getCartDataFromCache()) return;
+async function ensureCartReady(cart) {
+  if (!cart || cart.getCartDataFromCache()) return;
 
   await new Promise((resolve) => {
     let settled = false;
@@ -171,7 +170,6 @@ function getWishlistErrorMessage(error) {
   if (error instanceof Error && error.message) return error.message;
   return 'We could not update your wishlist. Please try again.';
 }
-
 
 /**
  * Formats a currency amount.
@@ -455,85 +453,6 @@ async function fetchAssignedRelationsCS(skuInput, relationType = 'related') {
   }
 }
 
-async function fetchAssignedRelationsCore(skuInput, relationType = 'related') {
-  if (!skuInput) return [];
-  const skus = (Array.isArray(skuInput) ? skuInput : [skuInput]).filter(Boolean);
-  if (skus.length === 0) return [];
-
-  const relationFieldMap = {
-    related: 'related_products',
-    upsell: 'upsell_products',
-    crosssell: 'crosssell_products',
-  };
-  const targetField = relationFieldMap[relationType] || 'related_products';
-
-  const query = `
-    query GetProductRelationsCore($skus: [String]!) {
-      products(filter: { sku: { in: $skus } }) {
-        items {
-          sku
-          ${targetField} {
-            sku
-            name
-            url_key
-            small_image {
-              url
-              label
-            }
-            price_range {
-              minimum_price {
-                final_price {
-                  value
-                  currency
-                }
-                regular_price {
-                  value
-                  currency
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  `;
-
-  try {
-    const response = await CORE_FETCH_GRAPHQL.fetchGraphQl(query, {
-      method: 'POST',
-      variables: { skus },
-    });
-
-    if (response.errors || !response.data?.products?.items) {
-      return [];
-    }
-
-    const inputSkuSet = new Set(skus);
-    const results = [];
-    const seenSkus = new Set();
-
-    response.data.products.items.forEach((item) => {
-      const relatedItems = item[targetField] || [];
-      relatedItems.forEach((relItem) => {
-        const isValid = relItem?.sku
-          && !inputSkuSet.has(relItem.sku)
-          && !seenSkus.has(relItem.sku);
-        if (isValid) {
-          seenSkus.add(relItem.sku);
-          const normalized = normalizeProductView(relItem);
-          if (normalized) {
-            results.push(normalized);
-          }
-        }
-      });
-    });
-
-    return results;
-  } catch (err) {
-    return [];
-  }
-}
-
 async function fetchRelationProducts(sku, config, relationType = 'related') {
   // 1. Check if author specified explicit SKUs in block config
   const skuConfig = config.productskus || config['product-skus']
@@ -555,12 +474,6 @@ async function fetchRelationProducts(sku, config, relationType = 'related') {
     if (csRelations.length > 0) {
       return csRelations;
     }
-
-    // 3. Fallback to Core GraphQL if Catalog Service didn't return assigned relations
-    const coreRelations = await fetchAssignedRelationsCore(sku, relationType);
-    if (coreRelations.length > 0) {
-      return coreRelations;
-    }
   }
 
   return [];
@@ -569,11 +482,11 @@ async function fetchRelationProducts(sku, config, relationType = 'related') {
 /**
  * Builds a Little Farms styled product card slide for Splide matching styles.css.
  * @param {any} product
- * @param {typeof import('@dropins/storefront-cart/api.js')} cartApi
+ * @param {typeof import('@dropins/storefront-cart/api.js')} cart
  * @param {typeof import('@dropins/storefront-wishlist/api.js')} api
  * @returns {HTMLElement}
  */
-function buildProductSlide(product, cartApi, api) {
+function buildProductSlide(product, cart, api) {
   const slide = document.createElement('li');
   slide.className = 'splide__slide product-relations__slide tfs-product-slider__slide';
 
@@ -740,25 +653,33 @@ function buildProductSlide(product, cartApi, api) {
         showCartErrorToast('This product is currently out of stock.');
         return null;
       }
-      syncCartAuthHeaders(cartApi);
-      await ensureCartReady(cartApi);
-      const previousQuantity = cartApi?.getCartDataFromCache()?.totalQuantity ?? 0;
-      const cart = await cartApi?.addProductsToCart([{ sku: product.sku, quantity: 1 }]);
-      if (!wasProductAddedToCart(cart, product.sku, previousQuantity)) {
+      syncCartAuthHeaders(cart);
+      await ensureCartReady(cart);
+      const previousQuantity = cart?.getCartDataFromCache()?.totalQuantity ?? 0;
+      const cartResult = await cart?.addProductsToCart([{ sku: product.sku, quantity: 1 }]);
+      if (!wasProductAddedToCart(cartResult, product.sku, previousQuantity)) {
         throw new Error('Product was not added to your cart. Please try again.');
       }
-      try { await cartApi?.getCartData(); } catch (err) { /* noop */ }
-      return cart;
+      let finalCart = cartResult;
+      try {
+        const fresh = await cart?.getCartData();
+        if (fresh) finalCart = fresh;
+      } catch (err) { /* noop */ }
+      return finalCart || cart?.getCartDataFromCache() || cartResult;
     },
     onUpdateQty: async (uid, quantity) => {
-      syncCartAuthHeaders(cartApi);
-      await ensureCartReady(cartApi);
-      const cart = await cartApi.updateProductsFromCart([{ uid, quantity }]);
-      try { await cartApi?.getCartData(); } catch (err) { /* noop */ }
-      return cart;
+      syncCartAuthHeaders(cart);
+      await ensureCartReady(cart);
+      const cartResult = await cart.updateProductsFromCart([{ uid, quantity }]);
+      let finalCart = cartResult;
+      try {
+        const fresh = await cart?.getCartData();
+        if (fresh) finalCart = fresh;
+      } catch (err) { /* noop */ }
+      return finalCart || cart?.getCartDataFromCache() || cartResult;
     },
   });
-  actionsWrap.syncFromCart?.(cartApi?.getCartDataFromCache());
+  actionsWrap.syncFromCart?.(cart?.getCartDataFromCache());
   innerRow.append(actionsWrap);
 
   details.append(innerRow);
@@ -777,13 +698,6 @@ export default async function decorate(block) {
   const config = readBlockConfig(block);
   const rawContent = block.textContent;
   block.textContent = '';
-
-  let cartApi = null;
-  try {
-    cartApi = await import('@dropins/storefront-cart/api.js');
-  } catch (err) {
-    console.debug('Failed to import storefront-cart:', err);
-  }
 
   const labels = await fetchPlaceholders();
 
@@ -832,22 +746,11 @@ export default async function decorate(block) {
 
   if (!sku || (Array.isArray(sku) && sku.length === 0)) {
     try {
-      if (cartApi) {
-        let cartData = cartApi.getCartDataFromCache();
-        if (!cartData || !cartData.items || cartData.items.length === 0) {
-          cartData = await Promise.race([
-            cartApi.getCartData(),
-            new Promise((resolve) => {
-              events.on('cart/data', (data) => resolve(data), { eager: true });
-              setTimeout(() => resolve(null), 1500);
-            }),
-          ]);
-        }
-        if (cartData?.items && cartData.items.length > 0) {
-          sku = cartData.items
-            .map((item) => item.topLevelSku || item.sku)
-            .filter(Boolean);
-        }
+      const cartData = cartApi?.getCartDataFromCache() || await cartApi?.getCartData();
+      if (cartData?.items?.length) {
+        sku = cartData.items
+          .map((item) => item.topLevelSku || item.sku)
+          .filter(Boolean);
       }
     } catch (err) {
       // Ignore error
@@ -930,6 +833,8 @@ export default async function decorate(block) {
     list.append(slide);
   });
 
+  const hasMultiple = items.length > 1;
+
   const splide = new Splide(splideEl, {
     type: 'slide',
     rewind: false,
@@ -937,7 +842,7 @@ export default async function decorate(block) {
     perMove: 1,
     gap: '25px',
     padding: { right: '100px' },
-    pagination: true,
+    pagination: hasMultiple,
     arrows: true,
     drag: true,
     speed: 400,
@@ -952,7 +857,7 @@ export default async function decorate(block) {
         perMove: 1,
         padding: { right: '50px' },
         arrows: false,
-        pagination: true,
+        pagination: hasMultiple,
       },
       576: {
         perPage: 2,
@@ -960,7 +865,7 @@ export default async function decorate(block) {
         padding: { right: '35px' },
         gap: '15px',
         arrows: false,
-        pagination: true,
+        pagination: hasMultiple,
       },
     },
   });
