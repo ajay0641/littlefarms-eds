@@ -155,7 +155,7 @@ function buildBreadcrumbBlock(main) {
   if (main.querySelector('.breadcrumb')) return;
 
   const targetBlock = main.querySelector(
-    '.product-list-page, .product-details, .commerce-cart',
+    '.product-list-page, .product-details',
   );
   if (!targetBlock) return;
 

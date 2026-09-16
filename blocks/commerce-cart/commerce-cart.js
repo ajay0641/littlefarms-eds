@@ -33,7 +33,12 @@ import '../../scripts/initializers/cart.js';
 import '../../scripts/initializers/wishlist.js';
 
 import { readBlockConfig } from '../../scripts/aem.js';
-import { fetchPlaceholders, rootLink, getProductLink } from '../../scripts/commerce.js';
+import {
+  fetchPlaceholders,
+  rootLink,
+  getProductLink,
+  checkIsAuthenticated,
+} from '../../scripts/commerce.js';
 
 export default async function decorate(block) {
   // Configuration
@@ -85,13 +90,66 @@ export default async function decorate(block) {
   block.innerHTML = '';
   block.appendChild(fragment);
 
+  // Transform empty cart CTA using placeholders:
+  // Cart.EmptyCart.ctaText = "Click {here} to continue shopping"
+  // Cart.EmptyCart.cta     = "here" (the clickable link label)
+  // Keep observer alive to handle dropin (Preact) re-renders
+  const emptyCartObserver = new MutationObserver(() => {
+    const ctaBtn = block.querySelector('[data-testid="cart-empty-cart-button"]');
+    if (!ctaBtn) return;
+
+    const href = ctaBtn.getAttribute('href') || '/';
+    const linkLabel = placeholders?.Cart?.EmptyCart?.cta;
+    const fullText = placeholders?.Cart?.EmptyCart?.ctaText;
+
+    const hereLink = document.createElement('a');
+    hereLink.href = href;
+    hereLink.textContent = linkLabel;
+    hereLink.className = 'cart-empty-cart__here-link';
+
+    const wrapper = document.createElement('p');
+    wrapper.className = 'cart-empty-cart__cta-text';
+
+    // Split fullText on the {here} token and build text + link nodes
+    const [before, after] = fullText.split('{here}');
+    if (before) wrapper.appendChild(document.createTextNode(before));
+    wrapper.appendChild(hereLink);
+    if (after) wrapper.appendChild(document.createTextNode(after));
+
+    ctaBtn.replaceWith(wrapper);
+    // Do NOT disconnect — dropin may re-render and bring the button back
+  });
+  emptyCartObserver.observe(block, { childList: true, subtree: true });
+
+  // Move Gift Options before Coupons/GiftCards in Order Summary
+  const giftOptionsObserver = new MutationObserver(() => {
+    const targetAccordion = block.querySelector('.cart-order-summary__content .cart-order-summary__gift-cards')
+      || block.querySelector('.cart-order-summary__content .cart-order-summary__coupons');
+    if (targetAccordion && $giftOptions && $giftOptions.nextElementSibling !== targetAccordion) {
+      targetAccordion.parentElement?.insertBefore($giftOptions, targetAccordion);
+    }
+  });
+  giftOptionsObserver.observe(block, { childList: true, subtree: true });
+
+  // Handle accordion arrow clicks
+  block.addEventListener('click', (e) => {
+    const secondary = e.target.closest('.dropin-accordion-section__secondary-text-container');
+    if (secondary) {
+      const heading = secondary.closest('.dropin-accordion-section__heading');
+      const flex = heading?.querySelector('.dropin-accordion-section__flex');
+      flex?.click();
+    }
+  });
+
   // Wishlist variables
   const routeToWishlist = rootLink('/wishlist');
 
   // Toggle Empty Cart
-  function toggleEmptyCart(_state) {
+  function toggleEmptyCart(isEmpty) {
     $wrapper.removeAttribute('hidden');
     $emptyCart.setAttribute('hidden', '');
+    $wrapper.classList.toggle('empty-cart', isEmpty);
+    block.classList.toggle('empty-cart', isEmpty);
   }
 
   // Handle Edit Button Click
@@ -188,14 +246,17 @@ export default async function decorate(block) {
           const anchorWrapper = document.createElement('a');
           anchorWrapper.href = createProductLink(item);
 
+          defaultImageProps.width = 115;
+          defaultImageProps.height = 115;
+
           tryRenderAemAssetsImage(ctx, {
             alias: item.sku,
             imageProps: defaultImageProps,
             wrapper: anchorWrapper,
 
             params: {
-              width: defaultImageProps.width,
-              height: defaultImageProps.height,
+              width: 115,
+              height: 115,
             },
           });
         },
@@ -224,13 +285,33 @@ export default async function decorate(block) {
           const $wishlistToggle = document.createElement('div');
           $wishlistToggle.classList.add('cart__action--wishlist-toggle');
 
-          wishlistRender.render(WishlistToggle, {
-            product: ctx.item,
-            size: 'medium',
-            labelToWishlist: placeholders?.Global?.CartMoveToWishlist,
-            labelWishlisted: placeholders?.Global?.CartRemoveFromWishlist,
-            removeProdFromCart: Cart.updateProductsFromCart,
-          })($wishlistToggle);
+          if (!checkIsAuthenticated()) {
+            const guestWishlistBtn = document.createElement('div');
+
+            UI.render(Button, {
+              children: placeholders?.Global?.CartMoveToWishlist,
+              'aria-label': 'Move to shopping list',
+              variant: 'tertiary',
+              size: 'medium',
+              icon: h(Icon, { source: 'Heart' }),
+              className: 'cart__action--wishlist-toggle',
+              onClick: (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                window.location.href = rootLink('/customer/login');
+              },
+            })(guestWishlistBtn);
+
+            $wishlistToggle.append(guestWishlistBtn);
+          } else {
+            wishlistRender.render(WishlistToggle, {
+              product: ctx.item,
+              size: 'medium',
+              labelToWishlist: placeholders?.Global?.CartMoveToWishlist,
+              labelWishlisted: placeholders?.Global?.CartRemoveFromWishlist,
+              removeProdFromCart: Cart.updateProductsFromCart,
+            })($wishlistToggle);
+          }
 
           ctx.appendChild($wishlistToggle);
 
@@ -297,9 +378,9 @@ export default async function decorate(block) {
   events.on(
     'cart/data',
     (cartData) => {
-      toggleEmptyCart(isCartEmpty(cartData));
-
       const isEmpty = !cartData || cartData.totalQuantity < 1;
+      toggleEmptyCart(isEmpty);
+
       $giftOptions.style.display = isEmpty ? 'none' : '';
       $rightColumn.style.display = isEmpty ? 'none' : '';
 
@@ -324,10 +405,6 @@ export default async function decorate(block) {
   });
 
   return Promise.resolve();
-}
-
-function isCartEmpty(cart) {
-  return cart ? cart.totalQuantity < 1 : true;
 }
 
 function swatchImageSlot(ctx) {

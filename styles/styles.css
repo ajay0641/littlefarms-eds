@@ -501,12 +501,6 @@ main > .section:first-of-type {
   margin-top: 0;
 }
 
-@media (min-width: 900px) {
-  main > .section > div {
-    padding: 0 var(--spacing-big);
-  }
-}
-
 /* section metadata - styles - start */
 main .section.light,
 main .section.highlight {
