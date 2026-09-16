@@ -1,4 +1,4 @@
-import Splide from '../../scripts/vendor/splide/splide.esm.js';
+import { Splide } from '../../scripts/vendor/splide/splide.esm.js';
 import { loadCSS } from '../../scripts/aem.js';
 
 loadCSS('/scripts/vendor/splide/splide-core.min.css');

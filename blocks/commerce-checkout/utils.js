@@ -48,6 +48,8 @@ let modal;
  * @param {HTMLElement} content - DOM element to display in the modal
  */
 export const showModal = async (content) => {
+  // Magento LF: scope auth popup styles on checkout
+  content.classList.add('checkout__auth-modal');
   modal = await createModal([content]);
   modal.showModal();
 };

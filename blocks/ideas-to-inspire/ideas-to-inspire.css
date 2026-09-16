@@ -57,7 +57,7 @@ main > .ideas-to-inspire-container {
 .ideas-to-inspire .ideas-to-inspire-heading h3 {
   margin: 0;
   color: var(--ideas-to-inspire-white-color);
-  font-family: AppleJuice;
+  font-family: AppleJuice, sans-serif;
   font-size: 24px;
   line-height: 30px;
   margin-bottom: 12px;

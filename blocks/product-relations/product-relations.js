@@ -250,12 +250,27 @@ function normalizeProductView(pv) {
   const rawPackage = findAttribute(pv.attributes, ['package', 'weight', 'net_weight', 'size']);
   const pkg = rawPackage ? rawPackage.replace(/<[^>]*>/g, '').trim() : '';
 
+  const rawProductLabel = findAttribute(pv.attributes, ['product_label']);
+  let productLabels = [];
+  if (Array.isArray(rawProductLabel)) {
+    productLabels = rawProductLabel
+      .flatMap((val) => (typeof val === 'string' ? val.split(',') : [String(val)]))
+      .map((s) => s.trim())
+      .filter(Boolean);
+  } else if (typeof rawProductLabel === 'string') {
+    productLabels = rawProductLabel
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+
   return {
     sku: pv.sku,
     name: pv.name || 'Product',
     subtitle,
     brand: subtitle,
     package: pkg,
+    productLabels,
     urlKey: pv.urlKey || pv.url_key || pv.sku,
     imageUrl: resolveImageUrl(imageUrl),
     imageLabel,
@@ -512,12 +527,31 @@ function buildProductSlide(product, cart, api) {
   img.height = 255;
   photoLink.append(img);
 
-  // Optional Badge (e.g. Save %)
-  if (product.savePercent && product.savePercent > 0) {
-    const badge = document.createElement('div');
-    badge.className = 'product-item-label product-item-label--save';
-    badge.textContent = `Save ${product.savePercent}%`;
-    photoLink.append(badge);
+  // Badges (product_label / Save %)
+  const hasLabels = Array.isArray(product.productLabels) && product.productLabels.length > 0;
+  const hasSave = product.savePercent && product.savePercent > 0;
+
+  if (hasLabels || hasSave) {
+    const labelsWrap = document.createElement('div');
+    labelsWrap.className = 'product-item-labels';
+
+    if (hasLabels) {
+      product.productLabels.forEach((lbl) => {
+        const badge = document.createElement('div');
+        badge.className = 'product-item-label';
+        badge.textContent = lbl;
+        labelsWrap.append(badge);
+      });
+    }
+
+    if (hasSave) {
+      const saveBadge = document.createElement('div');
+      saveBadge.className = 'product-item-label product-item-label--save';
+      saveBadge.textContent = `Save ${product.savePercent}%`;
+      labelsWrap.append(saveBadge);
+    }
+
+    photoLink.append(labelsWrap);
   }
 
   itemInfo.append(photoLink);

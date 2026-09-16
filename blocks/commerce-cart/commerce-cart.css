@@ -105,6 +105,50 @@
   object-fit: contain;
 }
 
+.commerce-cart .dropin-cart-item__image a {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.commerce-cart .cart-item-image-wrapper {
+  display: contents;
+}
+
+.commerce-cart .product-item-labels {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  pointer-events: none;
+}
+
+.commerce-cart .product-item-labels .product-item-label {
+  position: static;
+  background-color: transparent;
+  background-image: url('../../icons/littlefarms/shape-green.svg');
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-size: 100% 100%;
+  color: var(--color-neutral-50);
+  font-family: var(--type-heading-font-family), cursive;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 14px;
+  padding: 5px 10px;
+  border-radius: 0;
+  text-transform: none;
+  letter-spacing: normal;
+  white-space: nowrap;
+}
+
 .commerce-cart .dropin-cart-item__title {
   flex: 1 1 100%;
   width: 100%;

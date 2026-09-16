@@ -71,6 +71,75 @@ export function markProductItemCard(fromEl) {
 }
 
 /**
+ * Extract product_label badges from product (attributes or top-level).
+ *
+ * @param {object} product
+ * @returns {string[]}
+ */
+export function getProductLabels(product) {
+  const attrs = product?.attributes || product?.productView?.attributes || [];
+  const match = attrs.find((attr) => {
+    const name = String(attr?.name || attr?.id || '').toLowerCase();
+    return name === 'product_label';
+  });
+  const rawVal = match?.value ?? product?.product_label ?? product?.productView?.product_label;
+  if (!rawVal) return [];
+  let labels = [];
+  if (Array.isArray(rawVal)) {
+    labels = rawVal
+      .flatMap((item) => (typeof item === 'string' ? item.split(',') : [String(item)]))
+      .map((s) => s.trim())
+      .filter(Boolean);
+  } else if (typeof rawVal === 'string') {
+    labels = rawVal
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+  return [...new Set(labels)];
+}
+
+/**
+ * Creates organic green product badges (product_label / Save %).
+ *
+ * @param {object} product
+ * @returns {HTMLElement|null}
+ */
+export function createProductBadges(product) {
+  const labels = getProductLabels(product);
+  const {
+    final, regular, onSale,
+  } = getProductPrices(product);
+  let savePercent = 0;
+  if (onSale && regular != null && final != null && regular > 0) {
+    savePercent = Math.round(((regular - final) / regular) * 100);
+  }
+
+  const hasLabels = labels.length > 0;
+  const hasSave = savePercent > 0;
+  if (!hasLabels && !hasSave) return null;
+
+  const labelsWrap = document.createElement('div');
+  labelsWrap.className = 'product-item-labels';
+
+  labels.forEach((lbl) => {
+    const badge = document.createElement('div');
+    badge.className = 'product-item-label';
+    badge.textContent = lbl;
+    labelsWrap.append(badge);
+  });
+
+  if (hasSave) {
+    const saveBadge = document.createElement('div');
+    saveBadge.className = 'product-item-label product-item-label--save';
+    saveBadge.textContent = `Save ${savePercent}%`;
+    labelsWrap.append(saveBadge);
+  }
+
+  return labelsWrap;
+}
+
+/**
  * @param {object} product
  * @returns {HTMLElement|null}
  */

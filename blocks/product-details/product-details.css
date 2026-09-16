@@ -143,6 +143,31 @@ body.product-details-page {
   margin: -10px -20px 20px;
 }
 
+.product-details__gallery-box .product-details__labels {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  pointer-events: none;
+}
+
+.product-details__gallery-box .product-details__badge {
+  font-family: AppleJuice, sans-serif;
+  font-size: 12px;
+  line-height: 14px;
+  padding: 5px 10px;
+  background-image: url('../../icons/littlefarms/shape-green.svg');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  color: #fff;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
 .product-details__gallery-box .product-details__wishlist-toggle {
   position: absolute;
   top: 10px;
@@ -858,6 +883,11 @@ body.product-details-page {
   .product-details__right-column .product-details__gallery-box {
     display: none;
     margin: 0;
+  }
+
+  .product-details__left-column .product-details__gallery-box .product-details__labels {
+    top: 0;
+    left: 0;
   }
 
   .product-details .product-add-wrap {

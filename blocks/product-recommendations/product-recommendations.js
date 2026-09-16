@@ -13,6 +13,7 @@ import { loadCSS, readBlockConfig } from '../../scripts/aem.js';
 import { Splide } from '../../scripts/vendor/splide/splide.esm.js';
 import {
   checkIsAuthenticated,
+  CS_FETCH_GRAPHQL,
   fetchPlaceholders,
   getProductLink,
   getProductSku,
@@ -274,6 +275,42 @@ function resolveImageUrl(url = '') {
   return url;
 }
 
+function findAttribute(attributes, names) {
+  if (!attributes || !attributes.length) return undefined;
+  const lowerNames = names.map((n) => n.toLowerCase());
+  const match = attributes.find((a) => a?.name && lowerNames.includes(a.name.toLowerCase()));
+  return match?.value;
+}
+
+async function fetchProductsAttributes(skus = []) {
+  if (!skus.length) return new Map();
+  const query = `
+    query GetProductsAttributes($skus: [String!]!) {
+      products(skus: $skus) {
+        sku
+        attributes {
+          name
+          label
+          value
+        }
+      }
+    }
+  `;
+  try {
+    const response = await CS_FETCH_GRAPHQL.fetchGraphQl(query, {
+      method: 'POST',
+      variables: { skus },
+    });
+    const map = new Map();
+    (response?.data?.products || []).forEach((p) => {
+      if (p?.sku) map.set(p.sku, p.attributes || []);
+    });
+    return map;
+  } catch {
+    return new Map();
+  }
+}
+
 function normalizeRecommendationItem(item) {
   const imageUrl = item.images?.[0]?.url || '';
   const priceObj = item.price?.final?.amount || item.priceRange?.minimum?.final?.amount || {};
@@ -288,12 +325,28 @@ function normalizeRecommendationItem(item) {
     savePercent = Math.round(((regularPrice - finalPrice) / regularPrice) * 100);
   }
 
+  const rawProductLabel = item.product_label
+    || (item.attributes && findAttribute(item.attributes, ['product_label']));
+  let productLabels = [];
+  if (Array.isArray(rawProductLabel)) {
+    productLabels = rawProductLabel
+      .flatMap((val) => (typeof val === 'string' ? val.split(',') : [String(val)]))
+      .map((s) => s.trim())
+      .filter(Boolean);
+  } else if (typeof rawProductLabel === 'string') {
+    productLabels = rawProductLabel
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+
   return {
     sku: item.sku,
     name: item.name || 'Product',
     subtitle: '',
     brand: '',
     package: '',
+    productLabels,
     urlKey: item.urlKey || item.sku,
     imageUrl: resolveImageUrl(imageUrl),
     imageLabel: item.images?.[0]?.label || item.name || 'Product',
@@ -355,12 +408,31 @@ function buildProductSlide(product, cart, api, recommendationUnit, itemIndex) {
   img.height = 255;
   photoLink.append(img);
 
-  // Optional Badge (e.g. Save %)
-  if (product.savePercent && product.savePercent > 0) {
-    const badge = document.createElement('div');
-    badge.className = 'product-item-label product-item-label--save';
-    badge.textContent = `Save ${product.savePercent}%`;
-    photoLink.append(badge);
+  // Badges (product_label / Save %)
+  const hasLabels = Array.isArray(product.productLabels) && product.productLabels.length > 0;
+  const hasSave = product.savePercent && product.savePercent > 0;
+
+  if (hasLabels || hasSave) {
+    const labelsWrap = document.createElement('div');
+    labelsWrap.className = 'product-item-labels';
+
+    if (hasLabels) {
+      product.productLabels.forEach((lbl) => {
+        const badge = document.createElement('div');
+        badge.className = 'product-item-label';
+        badge.textContent = lbl;
+        labelsWrap.append(badge);
+      });
+    }
+
+    if (hasSave) {
+      const saveBadge = document.createElement('div');
+      saveBadge.className = 'product-item-label product-item-label--save';
+      saveBadge.textContent = `Save ${product.savePercent}%`;
+      labelsWrap.append(saveBadge);
+    }
+
+    photoLink.append(labelsWrap);
   }
 
   itemInfo.append(photoLink);
@@ -645,6 +717,33 @@ export default async function decorate(block) {
           || results[0];
 
         finalProducts = (recommendationUnit?.items || []).map(normalizeRecommendationItem);
+
+        if (finalProducts.length > 0) {
+          const skus = finalProducts.map((p) => p.sku).filter(Boolean);
+          const attrMap = await fetchProductsAttributes(skus);
+          finalProducts.forEach((p) => {
+            const attrs = attrMap.get(p.sku) || [];
+            const rawProductLabel = findAttribute(attrs, ['product_label']);
+            if (rawProductLabel) {
+              if (Array.isArray(rawProductLabel)) {
+                p.productLabels = rawProductLabel
+                  .flatMap((val) => (typeof val === 'string' ? val.split(',') : [String(val)]))
+                  .map((s) => s.trim())
+                  .filter(Boolean);
+              } else if (typeof rawProductLabel === 'string') {
+                p.productLabels = rawProductLabel
+                  .split(',')
+                  .map((s) => s.trim())
+                  .filter(Boolean);
+              }
+            }
+            const rawBrand = findAttribute(attrs, ['brand', 'subtitle', 'manufacturer']);
+            if (rawBrand && !p.brand) {
+              p.brand = rawBrand.replace(/<[^>]*>/g, '').trim();
+              p.subtitle = p.brand;
+            }
+          });
+        }
       }
     } catch (err) {
       console.error('Failed to fetch recommendations:', err);
