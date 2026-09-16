@@ -1,19 +1,20 @@
+import { getMetadata } from '../../scripts/aem.js';
+
 /**
  * Loads and decorates the footer.
- * Content-first: all copy, links, and images live in content/footer.plain.html.
+ * Content-first: all copy, links, and images live in /footer.plain.html.
  * This module fetches that fragment and renders the footer structure.
  * @param {Element} block The footer block element
  */
 
 /**
  * Fetches the footer fragment DOM.
- * Metadata-independent dual-fetch: /content first (localhost / aem up),
- * then root (DA/EDS production, where the fragment is served at the site root).
  * @returns {Promise<Document|null>} parsed fragment document, or null on failure
  */
 async function fetchFooterFragment() {
-  let resp = await fetch('/content/footer.plain.html');
-  if (!resp.ok) resp = await fetch('/footer.plain.html');
+  const footerMeta = getMetadata('footer');
+  const footerPath = footerMeta ? new URL(footerMeta, window.location).pathname : '/footer';
+  const resp = await fetch(`${footerPath}.plain.html`);
   if (!resp.ok) return null;
   const html = await resp.text();
   return new DOMParser().parseFromString(html, 'text/html');
