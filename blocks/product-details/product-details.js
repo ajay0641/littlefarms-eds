@@ -386,12 +386,14 @@ export default async function decorate(block) {
     <div class="product-details__wrapper">
       <div class="product-details__left-column">
         <div class="product-details__gallery-box">
+          <div class="product-details__labels product-details__labels--desktop"></div>
           <div class="product-details__gallery"></div>
           <div class="product-details__wishlist-toggle product-details__wishlist-toggle--desktop"></div>
         </div>
       </div>
       <div class="product-details__right-column">
         <div class="product-details__gallery-box">
+          <div class="product-details__labels product-details__labels--mobile"></div>
           <div class="product-details__gallery"></div>
           <div class="product-details__wishlist-toggle product-details__wishlist-toggle--mobile"></div>
         </div>
@@ -455,10 +457,12 @@ export default async function decorate(block) {
 
   const $alert = fragment.querySelector('.product-details__alert');
   const $gallery = fragment.querySelector('.product-details__left-column .product-details__gallery');
+  const $labelsDesktop = fragment.querySelector('.product-details__labels--desktop');
   const $wishlistToggleDesktop = fragment.querySelector('.product-details__left-column .product-details__wishlist-toggle--desktop');
   const $header = fragment.querySelector('.product-details__header');
   const $price = fragment.querySelector('.product-details__price');
   const $galleryMobile = fragment.querySelector('.product-details__right-column .product-details__gallery');
+  const $labelsMobile = fragment.querySelector('.product-details__labels--mobile');
   const $wishlistToggleMobile = fragment.querySelector('.product-details__wishlist-toggle--mobile');
   const $wishlistToggleAddWrap = fragment.querySelector('.product-add-wrap .product-details__wishlist-toggle--add-wrap');
   const $shortDescriptionGroup = fragment.querySelector('.product-details__short-description-group');
@@ -522,6 +526,40 @@ export default async function decorate(block) {
     }
   };
 
+  const updateProductLabels = (data) => {
+    [$labelsDesktop, $labelsMobile].forEach(($container) => {
+      if (!$container) return;
+      $container.innerHTML = '';
+
+      const labelsAttr = data?.attributes?.find(
+        (attr) => attr.id === 'product_label' || attr.name === 'product_label',
+      );
+      const rawVal = labelsAttr?.value ?? data?.product_label;
+      if (!rawVal) return;
+
+      let labelList = [];
+      if (Array.isArray(rawVal)) {
+        labelList = rawVal
+          .flatMap((val) => (typeof val === 'string' ? val.split(',') : [String(val)]))
+          .map((s) => s.trim())
+          .filter(Boolean);
+      } else if (typeof rawVal === 'string') {
+        labelList = rawVal
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
+      }
+
+      labelList.forEach((lbl) => {
+        const badge = document.createElement('span');
+        badge.className = 'product-details__badge';
+        badge.textContent = lbl;
+        $container.appendChild(badge);
+      });
+    });
+  };
+
+  updateProductLabels(product);
   updateAccordionVisibility(product);
 
   block.replaceChildren(fragment);
@@ -903,6 +941,7 @@ export default async function decorate(block) {
     if ($decBtn) $decBtn.disabled = isOutOfStock;
     if ($incBtn) $incBtn.disabled = isOutOfStock;
     if ($qtyInput) $qtyInput.disabled = isOutOfStock;
+    updateProductLabels(data);
     updateAccordionVisibility(data);
   }, { eager: true });
 

@@ -5,8 +5,8 @@ import { loadCSS, readBlockConfig } from '../../scripts/aem.js';
 import {
   checkIsAuthenticated,
   CORE_FETCH_GRAPHQL,
+  CS_FETCH_GRAPHQL,
   getProductLink,
-  rootLink,
 } from '../../scripts/commerce.js';
 import { getUserTokenCookie } from '../../scripts/initializers/index.js';
 import {
@@ -111,6 +111,42 @@ function formatPrice(amount, currency = 'USD') {
     }).format(amount);
   } catch {
     return `$${amount.toFixed(2)}`;
+  }
+}
+
+function findAttribute(attributes, names) {
+  if (!attributes || !attributes.length) return undefined;
+  const lowerNames = names.map((n) => n.toLowerCase());
+  const match = attributes.find((a) => a?.name && lowerNames.includes(a.name.toLowerCase()));
+  return match?.value;
+}
+
+async function fetchProductsAttributes(skus = []) {
+  if (!skus.length) return new Map();
+  const query = `
+    query GetProductsAttributes($skus: [String!]!) {
+      products(skus: $skus) {
+        sku
+        attributes {
+          name
+          label
+          value
+        }
+      }
+    }
+  `;
+  try {
+    const response = await CS_FETCH_GRAPHQL.fetchGraphQl(query, {
+      method: 'POST',
+      variables: { skus },
+    });
+    const map = new Map();
+    (response?.data?.products || []).forEach((p) => {
+      if (p?.sku) map.set(p.sku, p.attributes || []);
+    });
+    return map;
+  } catch {
+    return new Map();
   }
 }
 
@@ -239,7 +275,6 @@ function getWishlistErrorMessage(error) {
   return 'We could not update your wishlist. Please try again.';
 }
 
-
 /**
  * Builds a Little Farms styled product card slide for Splide.
  * @param {any} product
@@ -273,12 +308,31 @@ function buildProductSlide(product, cartApi, wishlistApi) {
   img.height = 255;
   photoLink.append(img);
 
-  // Optional Badge (e.g. freshness / farm-to-store)
-  if (product.savePercent && product.savePercent > 0) {
-    const badge = document.createElement('div');
-    badge.className = 'product-item-label product-item-label--save';
-    badge.textContent = `Save ${product.savePercent}%`;
-    photoLink.append(badge);
+  // Badges (product_label / Save %)
+  const hasLabels = Array.isArray(product.productLabels) && product.productLabels.length > 0;
+  const hasSave = product.savePercent && product.savePercent > 0;
+
+  if (hasLabels || hasSave) {
+    const labelsWrap = document.createElement('div');
+    labelsWrap.className = 'product-item-labels';
+
+    if (hasLabels) {
+      product.productLabels.forEach((lbl) => {
+        const badge = document.createElement('div');
+        badge.className = 'product-item-label';
+        badge.textContent = lbl;
+        labelsWrap.append(badge);
+      });
+    }
+
+    if (hasSave) {
+      const saveBadge = document.createElement('div');
+      saveBadge.className = 'product-item-label product-item-label--save';
+      saveBadge.textContent = `Save ${product.savePercent}%`;
+      labelsWrap.append(saveBadge);
+    }
+
+    photoLink.append(labelsWrap);
   }
 
   itemInfo.append(photoLink);
@@ -583,6 +637,28 @@ export default async function decorate(block) {
       empty.textContent = 'No products found.';
       sliderMount.replaceChildren(empty);
       return;
+    }
+
+    if (items.length > 0) {
+      const skus = items.map((p) => p.sku).filter(Boolean);
+      const attrMap = await fetchProductsAttributes(skus);
+      items.forEach((p) => {
+        const attrs = attrMap.get(p.sku) || [];
+        const rawProductLabel = findAttribute(attrs, ['product_label']);
+        if (rawProductLabel) {
+          if (Array.isArray(rawProductLabel)) {
+            p.productLabels = rawProductLabel
+              .flatMap((val) => (typeof val === 'string' ? val.split(',') : [String(val)]))
+              .map((s) => s.trim())
+              .filter(Boolean);
+          } else if (typeof rawProductLabel === 'string') {
+            p.productLabels = rawProductLabel
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean);
+          }
+        }
+      });
     }
 
     items.forEach((product) => {

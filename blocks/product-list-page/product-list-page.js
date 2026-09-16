@@ -23,6 +23,7 @@ import { PLP_IMAGE_DIMENSIONS, withProductImageFallback } from '../../scripts/pr
 import { fetchCategoryDetails } from './category-details.js';
 import {
   createAddToCartButton,
+  createProductBadges,
   createProductDetails,
   markProductItemCard,
   replaceWithEmpty,
@@ -438,9 +439,23 @@ export default async function decorate(block) {
           anchorWrapper.href = productUrl;
           anchorWrapper.setAttribute('aria-label', product.name || product.sku);
 
+          const imageContainer = document.createElement('span');
+          imageContainer.className = 'product-image-wrapper';
+
           const imageProps = withProductImageFallback(defaultImageProps, product);
 
-          tryRenderAemAssetsImage(ctx, {
+          const fakeCtx = {
+            replaceWith: (el) => {
+              anchorWrapper.prepend(el);
+              const badges = createProductBadges(product);
+              if (badges) {
+                anchorWrapper.append(badges);
+              }
+              ctx.replaceWith(anchorWrapper);
+            },
+          };
+
+          tryRenderAemAssetsImage(fakeCtx, {
             alias: product.sku,
             imageProps: {
               ...imageProps,
@@ -449,7 +464,7 @@ export default async function decorate(block) {
               height,
               params: { ...imageProps.params, width, height },
             },
-            wrapper: anchorWrapper,
+            wrapper: imageContainer,
             params: { width, height },
           });
           anchorWrapper.querySelector('img')?.classList.add('product-image-photo');

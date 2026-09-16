@@ -225,6 +225,79 @@ export default async function decorate(block) {
     }
   }
 
+  /**
+   * Extract product_label badges from a cart item.
+   *
+   * @param {object} item
+   * @returns {string[]}
+   */
+  function getCartItemLabels(item) {
+    const attrs = item?.productAttributes || item?.product?.custom_attributesV2?.items || [];
+    const match = attrs.find((attr) => {
+      const code = String(attr?.code || attr?.name || attr?.id || '')
+        .toLowerCase()
+        .replace(/[\s_-]+/g, '');
+      return code === 'productlabel';
+    });
+    const selected = match?.selected_options;
+    let rawVal = null;
+    if (Array.isArray(selected) && selected.length > 0) {
+      rawVal = selected.map((o) => o?.label || o?.value);
+    } else if (match?.value != null) {
+      rawVal = match.value;
+    } else if (item?.product_label != null) {
+      rawVal = item.product_label;
+    }
+    if (!rawVal) return [];
+    let labels = [];
+    if (Array.isArray(rawVal)) {
+      labels = rawVal
+        .map((v) => (typeof v === 'object' ? (v?.label || v?.value) : v))
+        .flatMap((v) => (typeof v === 'string' ? v.split(',') : [String(v)]))
+        .map((s) => s.trim())
+        .filter(Boolean);
+    } else if (typeof rawVal === 'string') {
+      labels = rawVal
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+    return [...new Set(labels)];
+  }
+
+  /**
+   * Creates badges container for a cart item (product_label / Save %).
+   *
+   * @param {object} item
+   * @returns {HTMLElement|null}
+   */
+  function createCartItemBadges(item) {
+    const labels = getCartItemLabels(item);
+    const savePercent = item.discountPercentage || 0;
+    const hasLabels = labels.length > 0;
+    const hasSave = savePercent > 0;
+    if (!hasLabels && !hasSave) return null;
+
+    const labelsWrap = document.createElement('div');
+    labelsWrap.className = 'product-item-labels';
+
+    labels.forEach((lbl) => {
+      const badge = document.createElement('div');
+      badge.className = 'product-item-label';
+      badge.textContent = lbl;
+      labelsWrap.append(badge);
+    });
+
+    if (hasSave) {
+      const saveBadge = document.createElement('div');
+      saveBadge.className = 'product-item-label product-item-label--save';
+      saveBadge.textContent = `Save ${savePercent}%`;
+      labelsWrap.append(saveBadge);
+    }
+
+    return labelsWrap;
+  }
+
   // Render Containers
   const createProductLink = (product) => getProductLink(product.url.urlKey, product.topLevelSku);
   await Promise.all([
@@ -244,15 +317,30 @@ export default async function decorate(block) {
         Thumbnail: (ctx) => {
           const { item, defaultImageProps } = ctx;
           const anchorWrapper = document.createElement('a');
+          anchorWrapper.className = 'cart-item-photo';
           anchorWrapper.href = createProductLink(item);
 
           defaultImageProps.width = 115;
           defaultImageProps.height = 115;
 
-          tryRenderAemAssetsImage(ctx, {
+          const imageContainer = document.createElement('span');
+          imageContainer.className = 'cart-item-image-wrapper';
+
+          const fakeCtx = {
+            replaceWith: (el) => {
+              anchorWrapper.prepend(el);
+              const badges = createCartItemBadges(item);
+              if (badges) {
+                anchorWrapper.append(badges);
+              }
+              ctx.replaceWith(anchorWrapper);
+            },
+          };
+
+          tryRenderAemAssetsImage(fakeCtx, {
             alias: item.sku,
             imageProps: defaultImageProps,
-            wrapper: anchorWrapper,
+            wrapper: imageContainer,
 
             params: {
               width: 115,

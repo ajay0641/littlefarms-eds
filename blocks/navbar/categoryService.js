@@ -17,7 +17,8 @@ function getSortedCategories(categories) {
 
 function buildCategoryTree(categories, parentId) {
   return getSortedCategories(categories)
-    .filter((category) => String(category.parentId) === String(parentId) && shouldShowCategory(category))
+    .filter((category) => String(category.parentId) === String(parentId)
+      && shouldShowCategory(category))
     .map((category) => {
       // Clean up leading/trailing slashes from the original backend data token
       const cleanUrlPath = category.urlPath.replace(/^\//, '').replace(/\/$/, '');

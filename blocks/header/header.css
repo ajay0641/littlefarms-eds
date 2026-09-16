@@ -194,6 +194,7 @@ header nav .nav-brand {
   min-width: 128px;
 }
 
+/* stylelint-disable-next-line no-descending-specificity */
 header nav .nav-brand a {
   grid-area: brand;
   flex-basis: 128px;
@@ -221,6 +222,7 @@ header nav .nav-brand img {
   }
 }
 
+/* stylelint-disable-next-line no-descending-specificity */
 header .nav-bottom-row .nav-static-links a {
   font: var(--type-body-2-strong-font);
   letter-spacing: var(--type-body-2-strong-letter-spacing);

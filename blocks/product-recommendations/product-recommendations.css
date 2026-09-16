@@ -104,6 +104,22 @@ main .section:has(.product-recommendations) > .product-recommendations-wrapper {
   box-sizing: border-box;
 }
 
+.product-recommendations .product-item-labels {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  pointer-events: none;
+}
+
+.product-recommendations .product-item-labels .product-item-label {
+  position: static;
+}
+
 /* Arrows hidden on mobile/tablet */
 .product-recommendations__arrow {
   display: none !important;
