@@ -255,6 +255,11 @@ export const renderLoginForm = async (container) => renderContainer(
         signInFormConfig: {
           renderSignUpLink: true,
           initialEmailValue,
+          formSize: 'default',
+          labels: {
+            formTitleText: 'Sign In',
+            primaryButtonText: 'Sign In',
+          },
           // No onSuccessCallback needed - the 'authenticated' event will be fired automatically
         },
         signUpFormConfig: {
@@ -342,18 +347,53 @@ export const renderShippingMethods = async (container) => renderContainer(
 export const renderPaymentMethods = async (container, creditCardFormRef) => renderContainer(
   CONTAINERS.PAYMENT_METHODS,
   async () => CheckoutProvider.render(PaymentMethods, {
+    // Magento LF payment tiles (radio + full-width option row)
+    UIComponentType: 'ToggleButton',
     slots: {
       Methods: {
         [PaymentMethodCode.CREDIT_CARD]: {
           render: (ctx) => {
+            // Magento LF: section label above hosted credit card fields
+            const wrap = document.createElement('div');
+            wrap.classList.add('checkout__credit-card');
+
+            const title = document.createElement('h3');
+            title.classList.add('checkout__payment-method-label');
+            title.textContent = 'Pay by Credit Card';
+
             const $creditCard = document.createElement('div');
+            $creditCard.classList.add('checkout__credit-card-form');
+
+            wrap.appendChild(title);
+            wrap.appendChild($creditCard);
 
             PaymentServices.render(CreditCard, {
               getCartId: () => ctx.cartId,
               creditCardFormRef,
             })($creditCard);
 
-            ctx.replaceHTML($creditCard);
+            /**
+             * Magento LF: move brand icons into the card number field (right side).
+             * @returns {void}
+             */
+            const placeCardIconsInNumberField = () => {
+              const icons = $creditCard.querySelector(
+                '.payment-services-credit-card-form__eligible-cards',
+              );
+              const numberContainer = $creditCard.querySelector(
+                '.payment-services-credit-card-form__card-number .credit-card-field__container',
+              );
+              if (!icons || !numberContainer || numberContainer.contains(icons)) {
+                return;
+              }
+              numberContainer.appendChild(icons);
+            };
+
+            placeCardIconsInNumberField();
+            const iconObserver = new MutationObserver(placeCardIconsInNumberField);
+            iconObserver.observe($creditCard, { childList: true, subtree: true });
+
+            ctx.replaceHTML(wrap);
           },
         },
         [PaymentMethodCode.SMART_BUTTONS]: {
@@ -566,6 +606,9 @@ export const renderCartSummaryList = async (container) => renderContainer(
       Heading: (headingCtx) => {
         const cartSummaryListHeading = document.createElement('div');
         cartSummaryListHeading.classList.add('cart-summary-list__heading');
+        cartSummaryListHeading.setAttribute('role', 'button');
+        cartSummaryListHeading.setAttribute('tabindex', '0');
+        cartSummaryListHeading.setAttribute('aria-expanded', 'true');
 
         const cartSummaryListHeadingText = document.createElement('div');
         cartSummaryListHeadingText.classList.add(
@@ -586,6 +629,29 @@ export const renderCartSummaryList = async (container) => renderContainer(
         cartSummaryListHeading.appendChild(cartSummaryListHeadingText);
         cartSummaryListHeading.appendChild(chevron);
         headingCtx.appendChild(cartSummaryListHeading);
+
+        /**
+         * Toggles cart items list open/closed (Magento accordion behavior).
+         * @returns {void}
+         */
+        const toggleCartItems = () => {
+          const listRoot = cartSummaryListHeading.closest('.cart-cart-summary-list');
+          if (!listRoot) return;
+
+          const isCollapsed = listRoot.classList.toggle('cart-summary-list--collapsed');
+          cartSummaryListHeading.setAttribute(
+            'aria-expanded',
+            isCollapsed ? 'false' : 'true',
+          );
+        };
+
+        cartSummaryListHeading.addEventListener('click', toggleCartItems);
+        cartSummaryListHeading.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            toggleCartItems();
+          }
+        });
 
         headingCtx.onChange((nextHeadingCtx) => {
           cartSummaryListHeadingText.innerText = formatItemsHeading(

@@ -7,9 +7,30 @@ import { fetchPlaceholders } from '../commerce.js';
 await initializeDropin(async () => {
   const headers = getHeaders('payment-services');
   const labels = await fetchPlaceholders('placeholders/payment-services.json');
+  // Magento LF credit card field copy (labels above + Stripe-like placeholders)
   const langDefinitions = {
     default: {
       ...labels,
+      PaymentServices: {
+        ...(labels.PaymentServices || {}),
+        CreditCard: {
+          ...((labels.PaymentServices && labels.PaymentServices.CreditCard) || {}),
+          formFields: {
+            number: {
+              label: 'Card number',
+              placeholder: '1234 1234 1234 1234',
+            },
+            expirationDate: {
+              label: 'Expiration date',
+              placeholder: 'MM / YY',
+            },
+            cvv: {
+              label: 'Security code',
+              placeholder: 'CVC',
+            },
+          },
+        },
+      },
     },
   };
 

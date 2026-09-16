@@ -73,7 +73,7 @@ main:has(.commerce-checkout-container),
   border-bottom: 1px solid var(--checkout-border);
   color: var(--checkout-text);
   font-family: var(--type-heading-font-family), cursive;
-  font-size: 22px;
+  font-size: 30px;
   font-weight: 400;
   letter-spacing: 0.02em;
   line-height: 1.3;
@@ -184,6 +184,10 @@ main:has(.commerce-checkout-container),
   transition: none !important;
   width: auto;
 }
+.checkout__section label .dropin-radio-button__label:before {
+  width: 18px;
+  height: 18px;
+}
 
 .checkout__section .dropin-input,
 .checkout__section .dropin-input--floating,
@@ -267,11 +271,429 @@ main:has(.commerce-checkout-container),
   accent-color: var(--checkout-brand);
 }
 
+/* Payment methods — Magento LF option tiles */
+.checkout__payment-methods {
+  accent-color: var(--checkout-brand);
+}
+
+.checkout__payment-methods .checkout-payment-methods__methods {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr;
+  width: 100%;
+}
+
+.checkout__payment-methods .checkout-payment-methods__methods.checkout-payment-methods--full-width,
+.checkout__payment-methods .checkout-payment-methods--full-width {
+  grid-template-columns: 1fr;
+}
+
+/* ToggleButton tiles (default PaymentMethods UI) */
+.checkout__payment-methods .dropin-toggle-button {
+  margin: 0;
+  width: 100%;
+}
+
+.checkout__payment-methods .dropin-toggle-button__actionButton {
+  background-color: #fff;
+  border: 1px solid var(--checkout-border);
+  border-radius: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 14px 16px !important;
+  position: relative;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  pointer-events: auto;
+}
+
+.checkout__payment-methods .dropin-toggle-button:not(.dropin-toggle-button__disabled)
+  .dropin-toggle-button__actionButton:hover {
+  border-color: var(--checkout-brand);
+}
+
+.checkout__payment-methods .dropin-toggle-button__selected .dropin-toggle-button__actionButton {
+  background-color: #fff;
+  border-color: var(--checkout-brand);
+}
+
+.checkout__payment-methods .dropin-toggle-button__radioButton.dropin-radio-button {
+  left: 16px;
+  position: absolute !important;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  visibility: hidden;
+}
+
+.checkout__payment-methods .dropin-toggle-button__radioButton .dropin-radio-button__label {
+  padding: 0;
+  width: auto;
+}
+
+.checkout__payment-methods .dropin-toggle-button__radioButton .dropin-radio-button__label:before {
+  background-color: #fff;
+  border: 1.5px solid #666;
+  border-radius: 50%;
+  height: 18px;
+  margin-right: 0;
+  width: 18px;
+}
+
+.checkout__payment-methods .dropin-toggle-button__selected
+  .dropin-radio-button__input:checked + .dropin-radio-button__label:before {
+  border-color: var(--checkout-brand);
+}
+
+.checkout__payment-methods .dropin-toggle-button__selected
+  .dropin-radio-button__input:checked + .dropin-radio-button__label:after {
+  background: var(--checkout-brand);
+  border-radius: 50%;
+  height: 10px;
+  left: 4px;
+  margin-left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10px;
+}
+
+.checkout__payment-methods .dropin-toggle-button__content {
+  color: var(--checkout-text);
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  justify-content: flex-start;
+  letter-spacing: normal;
+  line-height: 1.4;
+  margin-left: 0;
+  text-align: left;
+  width: 100%;
+}
+
+.checkout__payment-methods .dropin-toggle-button:not(.dropin-toggle-button__disabled):has(input:focus-visible) {
+  border-radius: 0;
+  box-shadow: none;
+  outline: 2px solid var(--checkout-brand);
+  outline-offset: 2px;
+}
+
+/* RadioButton fallback (if UIComponentType is switched) */
+.checkout__payment-methods .dropin-radio-button:not(.dropin-toggle-button__radioButton) {
+  margin: 0;
+  width: 100%;
+}
+
+.checkout__payment-methods .dropin-radio-button:not(.dropin-toggle-button__radioButton) .dropin-radio-button__label {
+  background-color: #fff;
+  border: 1px solid var(--checkout-border);
+  box-sizing: border-box;
+  color: var(--checkout-text);
+  cursor: pointer;
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  gap: 12px;
+  justify-content: flex-start;
+  letter-spacing: normal;
+  line-height: 1.4;
+  min-height: 52px;
+  padding: 14px 16px;
+  text-align: left;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  width: 100%;
+}
+
+.checkout__payment-methods .dropin-radio-button:not(.dropin-toggle-button__radioButton) .dropin-radio-button__label:hover {
+  border-color: #cfcfcf;
+}
+
+.checkout__payment-methods .dropin-radio-button:not(.dropin-toggle-button__radioButton) .dropin-radio-button__label:before {
+  background-color: #fff;
+  border: 1.5px solid #666;
+  border-radius: 50%;
+  flex-shrink: 0;
+  height: 18px;
+  margin-right: 0;
+  width: 18px;
+}
+
+.checkout__payment-methods .dropin-radio-button:not(.dropin-toggle-button__radioButton)
+  .dropin-radio-button__input:checked + .dropin-radio-button__label {
+  border-color: #333;
+}
+
+.checkout__payment-methods .dropin-radio-button:not(.dropin-toggle-button__radioButton)
+  .dropin-radio-button__input:checked + .dropin-radio-button__label:before {
+  border-color: var(--checkout-brand);
+}
+
+.checkout__payment-methods .dropin-radio-button:not(.dropin-toggle-button__radioButton)
+  .dropin-radio-button__input:checked + .dropin-radio-button__label:after {
+  background: var(--checkout-brand);
+  border-radius: 50%;
+  height: 10px;
+  left: 20px;
+  margin-left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10px;
+}
+
+.checkout__payment-methods .checkout-payment-methods__content {
+  margin-top: 16px;
+}
+
+.checkout__payment-methods .checkout-payment-methods__content > div[data-slot='PaymentMethodSlot']:not(:empty) {
+  margin-top: 8px;
+}
+
+/* Magento LF — Pay by Credit Card form */
+.checkout__credit-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.checkout__payment-method-label {
+  color: var(--checkout-text);
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: normal;
+  line-height: 1.4;
+  margin: 0;
+  text-align: left;
+}
+
+.checkout__credit-card-form .payment-services-credit-card-form {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 2fr 1fr 1fr;
+  margin: 0;
+  width: 100%;
+}
+
+/* Magento LF: brand icons sit inside card number field (right) */
+.checkout__credit-card-form .payment-services-credit-card-form__loading {
+  grid-column: 1 / -1;
+}
+
+.checkout__credit-card-form .payment-services-credit-card-form__card-number {
+  grid-column: auto;
+}
+
+.checkout__credit-card-form .credit-card-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.checkout__credit-card-form .credit-card-field__label {
+  color: var(--checkout-label);
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 1.4;
+  padding: 0;
+  text-align: left;
+}
+
+.checkout__credit-card-form .credit-card-field__container {
+  background-color: #fff;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  box-sizing: border-box;
+  height: 48px;
+  padding: 8px 12px;
+  position: relative;
+  transition: border-color 0.15s ease;
+  width: 100%;
+}
+
+.checkout__credit-card-form .payment-services-credit-card-form__card-number .credit-card-field__container {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  padding-right: 12px;
+}
+
+.checkout__credit-card-form .payment-services-credit-card-form__card-number .credit-card-field__container iframe {
+  flex: 1 1 auto;
+  height: 100%;
+  min-width: 0;
+  width: auto;
+}
+
+.checkout__credit-card-form .payment-services-credit-card-form__card-number
+  .payment-services-credit-card-form__eligible-cards {
+  flex-shrink: 0;
+  height: 24px;
+  margin: 0;
+  order: 1;
+  pointer-events: none;
+  position: relative;
+  width: 37px;
+}
+
+.checkout__credit-card-form .payment-services-credit-card-form__eligible-cards-icon {
+  display: none;
+  flex-shrink: 0;
+  height: 24px;
+  margin: 0;
+  width: 37px;
+}
+
+/* Detected brand — show matching icon only (stop carousel) */
+.checkout__credit-card-form .payment-services-credit-card-form__eligible-cards:has(
+  .payment-services-credit-card-form__eligible-cards-selected
+) .payment-services-credit-card-form__eligible-cards-selected {
+  display: block;
+  opacity: 1;
+  position: static;
+}
+
+/* Empty / unknown number — fade icons one-by-one */
+.checkout__credit-card-form .payment-services-credit-card-form__eligible-cards:not(
+  :has(.payment-services-credit-card-form__eligible-cards-selected)
+) .payment-services-credit-card-form__eligible-cards-icon {
+  animation: checkout-card-icon-cycle 9s ease-in-out infinite;
+  display: block;
+  left: 0;
+  opacity: 0;
+  position: absolute;
+  top: 0;
+}
+
+.checkout__credit-card-form .payment-services-credit-card-form__eligible-cards:not(
+  :has(.payment-services-credit-card-form__eligible-cards-selected)
+) .payment-services-credit-card-form__eligible-cards-icon:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.checkout__credit-card-form .payment-services-credit-card-form__eligible-cards:not(
+  :has(.payment-services-credit-card-form__eligible-cards-selected)
+) .payment-services-credit-card-form__eligible-cards-icon:nth-child(2) {
+  animation-delay: 1.5s;
+}
+
+.checkout__credit-card-form .payment-services-credit-card-form__eligible-cards:not(
+  :has(.payment-services-credit-card-form__eligible-cards-selected)
+) .payment-services-credit-card-form__eligible-cards-icon:nth-child(3) {
+  animation-delay: 3s;
+}
+
+.checkout__credit-card-form .payment-services-credit-card-form__eligible-cards:not(
+  :has(.payment-services-credit-card-form__eligible-cards-selected)
+) .payment-services-credit-card-form__eligible-cards-icon:nth-child(4) {
+  animation-delay: 4.5s;
+}
+
+.checkout__credit-card-form .payment-services-credit-card-form__eligible-cards:not(
+  :has(.payment-services-credit-card-form__eligible-cards-selected)
+) .payment-services-credit-card-form__eligible-cards-icon:nth-child(5) {
+  animation-delay: 6s;
+}
+
+.checkout__credit-card-form .payment-services-credit-card-form__eligible-cards:not(
+  :has(.payment-services-credit-card-form__eligible-cards-selected)
+) .payment-services-credit-card-form__eligible-cards-icon:nth-child(6) {
+  animation-delay: 7.5s;
+}
+
+.checkout__credit-card-form .payment-services-credit-card-form__eligible-cards:not(
+  :has(.payment-services-credit-card-form__eligible-cards-selected)
+) .payment-services-credit-card-form__eligible-cards-icon:nth-child(7) {
+  animation-delay: 9s;
+}
+
+.checkout__credit-card-form .payment-services-credit-card-form__eligible-cards:not(
+  :has(.payment-services-credit-card-form__eligible-cards-selected)
+) .payment-services-credit-card-form__eligible-cards-icon:nth-child(8) {
+  animation-delay: 10.5s;
+}
+
+@keyframes checkout-card-icon-cycle {
+  0% {
+    opacity: 0;
+  }
+
+  3% {
+    opacity: 1;
+  }
+
+  14% {
+    opacity: 1;
+  }
+
+  16.67% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .checkout__credit-card-form .payment-services-credit-card-form__eligible-cards:not(
+    :has(.payment-services-credit-card-form__eligible-cards-selected)
+  ) .payment-services-credit-card-form__eligible-cards-icon {
+    animation: none;
+    opacity: 0;
+  }
+
+  .checkout__credit-card-form .payment-services-credit-card-form__eligible-cards:not(
+    :has(.payment-services-credit-card-form__eligible-cards-selected)
+  ) .payment-services-credit-card-form__eligible-cards-icon:first-child {
+    opacity: 1;
+  }
+}
+
+.checkout__credit-card-form .credit-card-field__container:focus-within {
+  border-color: var(--checkout-text);
+}
+
+.checkout__credit-card-form .credit-card-field__container--error {
+  border-color: var(--color-alert-500, #db7070);
+}
+
+.checkout__credit-card-form .credit-card-field__error {
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.checkout__credit-card-form .credit-card-field__container iframe {
+  height: 100%;
+  width: 100%;
+}
+
+.checkout__credit-card-form .payment-services-credit-card-form__card-number .credit-card-field__container iframe {
+  width: auto;
+}
+
+/* Billing same-as-shipping sits under card form (Magento LF) */
+.checkout__section--payment .checkout__bill-to-shipping {
+  margin-top: 16px;
+}
+
+.checkout__section--payment .checkout__bill-to-shipping .dropin-checkbox__label,
+.checkout__section--payment .checkout__bill-to-shipping label {
+  color: var(--checkout-text);
+  font-size: 14px;
+  font-weight: 400;
+  pointer-events: auto;
+}
+
 /* Place order — Magento outlined organic button */
 .checkout__place-order {
   display: flex;
   justify-content: flex-end;
-  margin-top: 12px;
+  margin-top: 24px;
 }
 
 .checkout__place-order button,
@@ -288,13 +710,13 @@ main:has(.commerce-checkout-container),
   box-shadow: none !important;
   color: var(--checkout-brand) !important;
   font-family: var(--type-base-font-family), sans-serif;
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 700;
   letter-spacing: normal;
   line-height: 18px;
   min-height: 46px;
   min-width: 125px;
-  padding: 14px 24px;
+  padding: 16px 24px 14px 24px;
   text-align: center;
   width: auto;
 }
@@ -302,9 +724,8 @@ main:has(.commerce-checkout-container),
 .checkout__place-order button:hover,
 .checkout__place-order .dropin-button:hover,
 .checkout__place-order .dropin-button--primary:hover {
-  background-color: transparent !important;
-  color: var(--color-brand-500, #005745) !important;
-  opacity: 0.9;
+  background-image: url('../../icons/littlefarms/shape-green.svg') !important;
+  color: #fff !important;
 }
 
 /* Checkboxes — Magento brand green */
@@ -416,14 +837,11 @@ main:has(.commerce-checkout-container),
 
 .checkout__order-summary .cart-order-summary__entry,
 .checkout__order-summary .cart-order-summary__shipping {
-  align-items: flex-start;
-  display: flex;
-  justify-content: space-between;
   padding: 8px 0;
 }
 
 .checkout__order-summary .cart-order-summary__label {
-  color: #4a4a4a;
+  color: #3a3a3a;
   font-family: var(--type-base-font-family), sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -490,7 +908,7 @@ main:has(.commerce-checkout-container),
 }
 
 .checkout-summary-shipping__method {
-  color: #8a8a8a;
+  color: var(--checkout-text);
   font-family: var(--type-base-font-family), sans-serif;
   font-size: 12px;
   font-weight: 400;
@@ -509,8 +927,6 @@ main:has(.commerce-checkout-container),
 }
 
 .checkout__order-summary .cart-order-summary__total {
-  border-bottom: 1px solid var(--checkout-border);
-  border-top: 1px solid var(--checkout-border);
   margin: 6px 0 0;
   padding: 14px 0;
 }
@@ -524,7 +940,7 @@ main:has(.commerce-checkout-container),
 .checkout__order-summary .cart-order-summary__total .cart-order-summary__label::after {
   color: var(--checkout-text);
   content: 'Order Balance';
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
 }
 
@@ -561,20 +977,22 @@ main:has(.commerce-checkout-container),
 
 .cart-summary-list__heading {
   align-items: center;
+  border-top: 1px solid var(--checkout-border);
   border-bottom: 1px solid var(--checkout-border);
-  border-top: 0;
+  cursor: pointer;
   display: flex;
   justify-content: space-between;
   margin: 0;
-  padding: 14px 0;
+  padding: 20px 0;
+  user-select: none;
 }
 
 .cart-summary-list__heading-text,
 .cart-cart-summary-list__heading-text {
   color: var(--checkout-text);
   font-family: var(--type-base-font-family), sans-serif;
-  font-size: 14px;
-  font-weight: 400;
+  font-size: 16px;
+  font-weight: 300;
   letter-spacing: normal;
   line-height: 20px;
   text-align: left;
@@ -589,7 +1007,16 @@ main:has(.commerce-checkout-container),
   height: 7px;
   margin-right: 2px;
   transform: rotate(45deg);
+  transition: transform 0.2s ease;
   width: 7px;
+}
+
+.checkout__cart-summary .cart-cart-summary-list.cart-summary-list--collapsed .cart-cart-summary-list__content {
+  display: none;
+}
+
+.checkout__cart-summary .cart-cart-summary-list.cart-summary-list--collapsed .cart-summary-list__chevron {
+  transform: rotate(225deg);
 }
 
 .cart-summary-list__edit {
@@ -604,6 +1031,7 @@ main:has(.commerce-checkout-container),
 .checkout__cart-summary .dropin-cart-list__wrapper {
   display: flex;
   flex-direction: column;
+  grid-gap: initial;
 }
 
 .checkout__cart-summary .dropin-cart-list__item {
@@ -627,24 +1055,24 @@ main:has(.commerce-checkout-container),
   align-items: start;
   display: grid;
   gap: 2px 12px;
-  grid-template-columns: 56px minmax(0, 1fr) auto;
+  grid-template-columns: 76px minmax(0, 1fr) auto;
   grid-template-rows: auto auto auto;
-  padding: 16px 0;
+  padding: 30px 0;
 }
 
 .checkout__cart-summary .dropin-cart-item__image {
   grid-column: 1;
   grid-row: 1 / span 3;
-  width: 56px;
+  width: 76px;
 }
 
 .checkout__cart-summary .dropin-cart-item__image img,
 .checkout__cart-summary .dropin-cart-item__image .dropin-image {
   border-radius: 0;
   display: block;
-  height: 56px;
+  height: 76px;
   object-fit: cover;
-  width: 56px;
+  width: 76px;
 }
 
 .checkout__cart-summary .dropin-cart-item__title {
@@ -664,15 +1092,16 @@ main:has(.commerce-checkout-container),
 }
 
 .checkout__cart-summary .dropin-cart-item__sku {
-  color: #8a8a8a;
+  color: var(--checkout-text);
   font-size: 12px;
   grid-column: 2;
   grid-row: 2;
   line-height: 1.35;
+  display: none;
 }
 
 .checkout__cart-summary .dropin-cart-item__attributes {
-  color: #8a8a8a;
+  color: var(--checkout-text);
   font-size: 12px;
   grid-column: 2;
   grid-row: 2;
@@ -683,15 +1112,8 @@ main:has(.commerce-checkout-container),
   display: none;
 }
 
-.checkout__cart-summary .dropin-cart-item__price,
-.checkout__cart-summary .dropin-cart-item__savings__wrapper,
-.checkout__cart-summary .dropin-cart-item__footer,
-.checkout__cart-summary .dropin-cart-item__row-total-footer {
-  display: none !important;
-}
-
 .checkout__cart-summary .dropin-cart-item__quantity {
-  color: #8a8a8a;
+  color: var(--checkout-text);
   display: block !important;
   font-size: 0;
   grid-column: 2;
@@ -700,18 +1122,13 @@ main:has(.commerce-checkout-container),
   margin-top: 2px;
 }
 
-.checkout__cart-summary .dropin-cart-item__quantity::before {
-  color: #8a8a8a;
-  content: 'Qty ';
-  font-size: 12px;
-}
-
 .checkout__cart-summary .dropin-cart-item__quantity__value {
-  font-size: 0;
+  display: block;
+  font-size: 14px;
 }
 
 .checkout__cart-summary .dropin-cart-item__quantity__number {
-  color: #8a8a8a;
+  color: var(--checkout-text);
   display: inline !important;
   font-size: 12px !important;
   font-weight: 400;
@@ -750,22 +1167,295 @@ main:has(.commerce-checkout-container),
   padding-top: 8px;
 }
 
-/* Sign-in modal */
-#modal {
-  align-items: center;
-  background-color: rgb(0 0 0 / 50%);
-  display: flex;
-  height: 100%;
-  justify-content: center;
-  left: 0;
-  position: fixed;
-  top: 0;
-  width: 100%;
+/* Sign-in modal — Magento LF theme */
+.modal:has(.checkout__auth-modal) dialog {
+  border: 0;
+  border-radius: 0;
+  box-shadow: 0 8px 32px rgb(0 0 0 / 18%);
+  max-width: 480px;
+  padding: 0;
+  width: calc(100vw - 32px);
+}
+
+.modal:has(.checkout__auth-modal) dialog::backdrop {
+  background-color: rgb(0 0 0 / 45%);
+}
+
+.modal:has(.checkout__auth-modal) .close-button {
+  color: var(--checkout-brand, var(--color-brand-300, #4d7f71));
+  height: 44px;
+  right: 4px;
+  top: 4px;
+  width: 44px;
   z-index: 2;
 }
 
-#modal-form {
-  width: 800px;
+.modal:has(.checkout__auth-modal) .close-button:hover {
+  color: var(--color-brand-500, #005745);
+}
+
+.modal:has(.checkout__auth-modal) .modal-content {
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+}
+
+.checkout__auth-modal {
+  --auth-brand: var(--checkout-brand, var(--color-brand-300, #4d7f71));
+  --auth-brand-dark: var(--color-brand-500, #005745);
+  --auth-text: var(--checkout-text, var(--color-neutral-800, #3a3a3a));
+  --auth-border: #cfcfcf;
+  --auth-field-height: 48px;
+  background: #fff;
+  box-sizing: border-box;
+  padding: 28px 28px 32px;
+  width: 100%;
+}
+
+.checkout__auth-modal .auth-sign-in-form,
+.checkout__auth-modal .auth-sign-up-form,
+.checkout__auth-modal .auth-reset-password-form {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+}
+
+.checkout__auth-modal .auth-sign-in-form__title,
+.checkout__auth-modal .auth-sign-up-form__title,
+.checkout__auth-modal .auth-reset-password-form__title {
+  margin: 0 0 24px;
+  padding-right: 36px;
+}
+
+.checkout__auth-modal .auth-sign-in-form__title .dropin-header-container__title,
+.checkout__auth-modal .auth-sign-up-form__title .dropin-header-container__title,
+.checkout__auth-modal .auth-reset-password-form__title .dropin-header-container__title,
+.checkout__auth-modal .dropin-header-container__title {
+  color: var(--auth-brand-dark);
+  font-family: var(--type-heading-font-family), cursive;
+  font-size: 28px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.checkout__auth-modal .auth-sign-in-form__form,
+.checkout__auth-modal .auth-sign-up-form__form,
+.checkout__auth-modal .auth-reset-password-form__form {
+  display: grid;
+  gap: 18px;
+}
+
+.checkout__auth-modal .auth-sign-in-form__form__email,
+.checkout__auth-modal .auth-sign-in-form__form__password,
+.checkout__auth-modal .auth-sign-up-form__form__field,
+.checkout__auth-modal .auth-reset-password-form__form__item {
+  margin: 0;
+}
+
+.checkout__auth-modal .auth-sign-in-form__form__password button.dropin-button.dropin-button--medium.dropin-button--tertiary.dropin-input-password__eye-icon {
+  top: 34px;
+  right: 10px;
+}
+
+/* Magento static labels above fields */
+.checkout__auth-modal .dropin-field {
+  margin: 0;
+  max-width: 100%;
+  width: 100%;
+}
+
+.checkout__auth-modal .dropin-input-label-container,
+.checkout__auth-modal .dropin-input-container--floating {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.checkout__auth-modal .dropin-input__label--floating,
+.checkout__auth-modal .dropin-field__label,
+.checkout__auth-modal label {
+  color: var(--checkout-label, #555);
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  left: auto !important;
+  letter-spacing: normal;
+  line-height: 1.4;
+  margin: 0;
+  order: -1;
+  padding: 0 !important;
+  pointer-events: none;
+  position: static !important;
+  top: auto !important;
+  transform: none !important;
+  transition: none !important;
+  width: auto;
+}
+
+.checkout__auth-modal .dropin-input,
+.checkout__auth-modal .dropin-input--floating,
+.checkout__auth-modal input[type='email'],
+.checkout__auth-modal input[type='password'],
+.checkout__auth-modal input[type='text'] {
+  appearance: none;
+  background: #fff;
+  border: 1px solid var(--auth-border);
+  border-radius: 0;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: var(--auth-text);
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 14px;
+  height: var(--auth-field-height);
+  line-height: 20px;
+  min-height: var(--auth-field-height);
+  padding: 12px 14px !important;
+  width: 100%;
+}
+
+.checkout__auth-modal .dropin-input:focus,
+.checkout__auth-modal .dropin-input--floating:focus,
+.checkout__auth-modal input:focus {
+  border-color: var(--auth-brand-dark);
+  outline: none;
+}
+
+.checkout__auth-modal .dropin-field--error .dropin-input,
+.checkout__auth-modal .dropin-input--error,
+.checkout__auth-modal .dropin-field--error input {
+  border-color: #b85c5c;
+}
+
+.checkout__auth-modal .dropin-field__error,
+.checkout__auth-modal .dropin-field--error .dropin-field__label,
+.checkout__auth-modal .dropin-field--error label {
+  color: #a04848;
+}
+
+.checkout__auth-modal .dropin-field__error {
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+/* Password adornments */
+.checkout__auth-modal .dropin-input-password__icon,
+.checkout__auth-modal [class*='password'] svg,
+.checkout__auth-modal .dropin-icon {
+  color: var(--auth-brand);
+}
+
+.checkout__auth-modal [class*='password'] .dropin-input-container--primary > svg {
+  display: none;
+}
+
+.checkout__auth-modal .auth-sign-in-form__form__buttons__wrapper,
+.checkout__auth-modal .auth-sign-in-form__form__buttons {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: space-between;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.checkout__auth-modal .auth-sign-in-form__form__buttons__combine {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+}
+
+.checkout__auth-modal .auth-sign-in-form__form__buttons__combine > span {
+  color: var(--auth-brand);
+  font-family: var(--type-heading-font-family), cursive;
+  font-size: 16px;
+}
+
+.checkout__auth-modal .auth-sign-in-form__button--forgot,
+.checkout__auth-modal .auth-sign-in-form__button--signup,
+.checkout__auth-modal .auth-sign-up-form-buttons--signin,
+.checkout__auth-modal .auth-reset-password-form__buttons--signin,
+.checkout__auth-modal .auth-button.dropin-button--tertiary {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: var(--auth-brand) !important;
+  font-family: var(--type-heading-font-family), cursive !important;
+  font-size: 16px !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.02em;
+  min-height: auto;
+  padding: 0 !important;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.checkout__auth-modal .auth-sign-in-form__button--forgot:hover,
+.checkout__auth-modal .auth-sign-in-form__button--signup:hover,
+.checkout__auth-modal .auth-button.dropin-button--tertiary:hover {
+  color: var(--auth-brand-dark) !important;
+  text-decoration: underline;
+}
+
+.checkout__auth-modal .auth-sign-in-form__button--submit,
+.checkout__auth-modal .auth-sign-up-form-buttons .auth-button.dropin-button--primary,
+.checkout__auth-modal .auth-reset-password-form__buttons .auth-button.dropin-button--primary,
+.checkout__auth-modal .auth-button.dropin-button--primary {
+  background-color: transparent !important;
+  background-image: url('../../icons/littlefarms/shape-green-border.svg') !important;
+  background-position: 0 0 !important;
+  background-repeat: no-repeat !important;
+  background-size: 100% 100% !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: var(--auth-brand) !important;
+  font-family: var(--type-base-font-family), sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  letter-spacing: normal;
+  line-height: 18px;
+  min-height: 46px;
+  min-width: 125px;
+  padding: 14px 24px !important;
+  text-align: center;
+  text-transform: none;
+}
+
+.checkout__auth-modal .auth-sign-in-form__button--submit:hover,
+.checkout__auth-modal .auth-sign-up-form-buttons .auth-button.dropin-button--primary:hover,
+.checkout__auth-modal .auth-reset-password-form__buttons .auth-button.dropin-button--primary:hover,
+.checkout__auth-modal .auth-button.dropin-button--primary:hover {
+  background-color: transparent !important;
+  background-image: url('../../icons/littlefarms/shape-green.svg') !important;
+  color: #fff !important;
+}
+
+.checkout__auth-modal .auth-sign-in-form__notification,
+.checkout__auth-modal .auth-sign-up-form__notification,
+.checkout__auth-modal .auth-reset-password-form__notification {
+  margin-bottom: 16px;
+}
+
+@media (max-width: 599px) {
+  .checkout__auth-modal {
+    padding: 24px 20px 28px;
+  }
+
+  .checkout__auth-modal .auth-sign-in-form__form__buttons__wrapper,
+  .checkout__auth-modal .auth-sign-in-form__form__buttons {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .checkout__auth-modal .auth-sign-in-form__button--submit,
+  .checkout__auth-modal .auth-button.dropin-button--primary {
+    width: 100%;
+  }
 }
 
 @media only screen and (max-width: 767px) {
@@ -797,13 +1487,17 @@ main:has(.commerce-checkout-container),
   .checkout__place-order .dropin-button {
     width: 100%;
   }
+
+  .checkout__credit-card-form .payment-services-credit-card-form {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media only screen and (min-width: 768px) {
   .checkout__content {
     align-items: start;
     display: grid;
-    gap: 30px 40px;
+    gap: 30px 120px;
     grid-template-columns: minmax(0, 1fr) minmax(280px, 40%);
   }
 
@@ -825,5 +1519,12 @@ main:has(.commerce-checkout-container),
 
   .checkout__place-order {
     margin-top: 12px;
+  }
+}
+
+@media only screen and (min-width: 320px) and (max-width: 768px) {
+  .checkout-place-order {
+    background-color: transparent;
+    padding: 0;
   }
 }
