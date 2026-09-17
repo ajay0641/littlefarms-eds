@@ -65,7 +65,7 @@ import {
   TERMS_AND_CONDITIONS_FORM_NAME,
 } from './constants.js';
 
-import { rootLink } from '../../scripts/commerce.js';
+import { rootLink, CORE_FETCH_GRAPHQL } from '../../scripts/commerce.js';
 
 // Initializers
 import '../../scripts/initializers/account.js';
@@ -127,6 +127,8 @@ export default async function decorate(block) {
   const $shippingForm = getElement(selectors.checkout.shippingForm);
   const $billToShipping = getElement(selectors.checkout.billToShipping);
   const $delivery = getElement(selectors.checkout.delivery);
+  const $deliveryCommentInput = getElement(selectors.checkout.deliveryCommentInput);
+  const $deliveryNextButton = getElement(selectors.checkout.deliveryNextButton);
   const $paymentMethods = getElement(selectors.checkout.paymentMethods);
   const $billingForm = getElement(selectors.checkout.billingForm);
   const $orderSummary = getElement(selectors.checkout.orderSummary);
@@ -136,6 +138,21 @@ export default async function decorate(block) {
   const $termsAndConditions = getElement(selectors.checkout.termsAndConditions);
 
   block.appendChild(checkoutFragment);
+
+  // Delivery Comment State & Navigation
+  let deliveryComment = '';
+  if ($deliveryCommentInput) {
+    $deliveryCommentInput.addEventListener('input', (e) => {
+      deliveryComment = e.target.value;
+    });
+  }
+
+  if ($deliveryNextButton) {
+    $deliveryNextButton.addEventListener('click', () => {
+      const $paymentSection = block.querySelector('.checkout__section--payment');
+      $paymentSection?.scrollIntoView({ behavior: 'smooth' });
+    });
+  }
 
   const handleValidation = () => validateForms([
     { name: LOGIN_FORM_NAME },
@@ -148,6 +165,42 @@ export default async function decorate(block) {
   const handlePlaceOrder = async ({ cartId, code }) => {
     await displayOverlaySpinner(loaderRef, $loader, $loaderStatus);
     try {
+      // Save delivery comment to cart attribute before placing order
+      const comment = (deliveryComment || $deliveryCommentInput?.value || '').trim();
+      if (comment) {
+        try {
+          const SET_CUSTOM_ATTRIBUTES_MUTATION = `
+            mutation SetCustomAttributesOnCart($input: CartCustomAttributesInput!) {
+              setCustomAttributesOnCart(input: $input) {
+                cart {
+                  id
+                  custom_attributes {
+                    attribute_code
+                    value
+                  }
+                }
+              }
+            }
+          `;
+          await CORE_FETCH_GRAPHQL.fetchGraphQl(SET_CUSTOM_ATTRIBUTES_MUTATION, {
+            method: 'POST',
+            variables: {
+              input: {
+                cart_id: cartId,
+                custom_attributes: [
+                  {
+                    attribute_code: 'delivery_comment',
+                    value: comment,
+                  },
+                ],
+              },
+            },
+          });
+        } catch (commentError) {
+          console.error('Error setting delivery comment on cart:', commentError);
+        }
+      }
+
       // Payment Services credit card
       if (code === PaymentMethodCode.CREDIT_CARD) {
         if (!creditCardFormRef.current) {
