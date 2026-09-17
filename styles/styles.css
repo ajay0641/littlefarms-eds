@@ -1191,7 +1191,6 @@ main[hidden] {
   border-bottom: 1px solid #ebebeb;
   border-radius: 0;
   box-sizing: border-box;
-  color: var(--color-neutral-800);
   font-family: var(--product-item-font-family);
   font-size: 14px;
   font-weight: 700;

@@ -356,7 +356,14 @@ export default async function decorate(block) {
 
   const minicart = document.createRange().createContextualFragment(`
      <div class="minicart-wrapper nav-tools-wrapper">
-       <button type="button" class="nav-cart-button" aria-label="Cart" aria-haspopup="dialog" aria-expanded="false" aria-controls="minicart-panel"></button>
+       <button type="button" class="nav-cart-button" aria-label="Cart" aria-haspopup="dialog" aria-expanded="false" aria-controls="minicart-panel">
+         <span class="nav-cart-icon" aria-hidden="true">
+           <svg xmlns="http://www.w3.org/2000/svg" width="22" height="20" viewBox="0 0 22 20" fill="currentColor">
+             <path d="M21.9,3.7L21.9,3.7c-0.1-0.2-0.4-0.3-0.6-0.3H8c-0.4,0-0.8,0.3-0.8,0.8C7.2,4.7,7.6,5,8,5 h12.3l-2,7.3H7.8l-3-11.7C4.7,0.2,4.4,0,4,0H0.8C0.3,0,0,0.3,0,0.8s0.3,0.8,0.8,0.8h2.7l3,11.7c0.1,0.3,0.4,0.6,0.7,0.6h11.6 c0.3,0,0.6-0.2,0.7-0.6L22,4.4C22,4.2,22,3.9,21.9,3.7z M9.1,14.9c-1.4,0-2.6,1.1-2.6,2.6c0,1.4,1.1,2.6,2.6,2.6 c1.4,0,2.6-1.1,2.6-2.6c0,0,0,0,0,0C11.7,16,10.5,14.9,9.1,14.9z M9.1,18.4c-0.6,0-1-0.4-1-1c0-0.6,0.4-1,1-1c0.6,0,1,0.4,1,1 C10.1,18,9.7,18.4,9.1,18.4z M16.8,14.9c-1.4,0-2.6,1.2-2.6,2.6s1.2,2.6,2.6,2.6s2.6-1.2,2.6-2.6S18.2,14.9,16.8,14.9z M16.8,18.4 c-0.6,0-1-0.4-1-1c0-0.6,0.4-1,1-1s1,0.4,1,1C17.8,18,17.3,18.4,16.8,18.4z"/>
+           </svg>
+         </span>
+         <span class="nav-cart-total"></span>
+       </button>
        <div class="minicart-panel nav-tools-panel" id="minicart-panel"></div>
        <div class="nav-cart-status" role="status" aria-live="polite"></div>
      </div>
@@ -367,8 +374,26 @@ export default async function decorate(block) {
   const minicartPanel = navTools.querySelector('.minicart-panel');
   const cartButton = navTools.querySelector('.nav-cart-button');
 
+  const minicartBackdrop = document.createElement('div');
+  minicartBackdrop.className = 'minicart-backdrop';
+  document.body.appendChild(minicartBackdrop);
+
+  minicartBackdrop.addEventListener('click', () => {
+    toggleMiniCart(false);
+  });
+
   // Close panels when clicking outside
   document.addEventListener('click', (e) => {
+    // If a modal or confirmation popup is active or was clicked, do not close mini cart
+    if (
+      e.target.closest('#cart-remove-confirm-modal')
+      || e.target.closest('.cart-remove-modal-backdrop')
+      || e.target.closest('.cart-remove-modal')
+      || document.body.classList.contains('cart-remove-modal-open')
+    ) {
+      return;
+    }
+
     // Check if undo is enabled for mini cart
     const miniCartElement = document.querySelector(
       '[data-block-name="commerce-mini-cart"]',
@@ -384,7 +409,7 @@ export default async function decorate(block) {
       && !e.target.closest('header')
       : !minicartPanel.contains(e.target) && !cartButton.contains(e.target);
 
-    if (shouldCloseMiniCart) {
+    if (shouldCloseMiniCart && minicartPanel.classList.contains('nav-tools-panel--show')) {
       toggleMiniCart(false);
     }
 
@@ -469,13 +494,24 @@ export default async function decorate(block) {
     }
 
     togglePanel(minicartPanel, state);
-    cartButton.setAttribute(
-      'aria-expanded',
-      minicartPanel.classList.contains('nav-tools-panel--show') ? 'true' : 'false',
-    );
+    const isOpen = minicartPanel.classList.contains('nav-tools-panel--show');
+    cartButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    minicartBackdrop.classList.toggle('minicart-backdrop--show', isOpen);
+    document.body.classList.toggle('minicart-drawer-open', isOpen);
   }
 
-  cartButton.addEventListener('click', () => toggleMiniCart(!minicartPanel.classList.contains('nav-tools-panel--show')));
+  cartButton.addEventListener('click', (e) => {
+    if (window.innerWidth < 768) {
+      e.preventDefault();
+      window.location.href = rootLink('/cart');
+      return;
+    }
+    toggleMiniCart(!minicartPanel.classList.contains('nav-tools-panel--show'));
+  });
+
+  events.on('minicart/close', () => {
+    toggleMiniCart(false);
+  });
 
   // Cart Item Counter
   let previousCartQuantity;
@@ -485,11 +521,35 @@ export default async function decorate(block) {
     if (data) loadMiniCartFragment();
 
     const totalQuantity = data?.totalQuantity ?? 0;
+    const cartIcon = cartButton.querySelector('.nav-cart-icon');
+    const cartTotal = cartButton.querySelector('.nav-cart-total');
 
     if (totalQuantity) {
       cartButton.setAttribute('data-count', totalQuantity);
+      if (cartIcon) cartIcon.setAttribute('data-count', totalQuantity);
     } else {
       cartButton.removeAttribute('data-count');
+      if (cartIcon) cartIcon.removeAttribute('data-count');
+    }
+
+    const subtotal = data?.total?.includingTax
+      ?? data?.subtotal?.includingTax
+      ?? data?.subtotal?.excludingTax;
+    if (cartTotal) {
+      if (subtotal?.value !== undefined && subtotal?.currency) {
+        try {
+          cartTotal.textContent = new Intl.NumberFormat(undefined, {
+            style: 'currency',
+            currency: subtotal.currency,
+          }).format(subtotal.value);
+        } catch {
+          cartTotal.textContent = `${subtotal.currency} ${subtotal.value.toFixed(2)}`;
+        }
+      } else if (subtotal?.value !== undefined && totalQuantity > 0) {
+        cartTotal.textContent = `$${subtotal.value.toFixed(2)}`;
+      } else {
+        cartTotal.textContent = '';
+      }
     }
 
     // Skip the announcement for the initial value on page load so screen
@@ -529,7 +589,18 @@ export default async function decorate(block) {
     navWrapper.appendChild(navBottomRow);
   }
 
+  // Track header top offset for minicart drawer
+  const updateHeaderTopOffset = () => {
+    const notif = navWrapper ? navWrapper.querySelector('.nav-notification') : null;
+    const topHeight = (notif?.offsetHeight || 0) + (nav?.offsetHeight || 0);
+    if (topHeight > 0) {
+      document.documentElement.style.setProperty('--nav-header-top-offset', `${topHeight}px`);
+    }
+  };
+  updateHeaderTopOffset();
+
   window.addEventListener('resize', () => {
+    updateHeaderTopOffset();
     navWrapper.classList.remove('active');
     overlay.classList.remove('show');
     toggleMenu(nav, navSections, false);

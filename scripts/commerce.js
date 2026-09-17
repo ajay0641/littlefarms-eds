@@ -525,8 +525,14 @@ export async function fetchPlaceholders(path) {
     Promise.all(promises)
       // process json from sources and combine them
       .then((jsons) => {
+        const getRows = (json) => {
+          if (Array.isArray(json?.data)) return json.data;
+          if (Array.isArray(json?.data?.data)) return json.data.data;
+          return [];
+        };
+
         // Early return if no data
-        const hasData = jsons.some((json) => json.data?.length > 0);
+        const hasData = jsons.some((json) => getRows(json).length > 0);
         if (!hasData) {
           console.warn(`No placeholder data found for path: ${path}${fallback ? ` and fallback: ${fallback}` : ''}`);
           resolve({});
@@ -538,13 +544,12 @@ export async function fetchPlaceholders(path) {
 
         // Process all JSONs in one pass
         jsons.forEach((json) => {
-          if (json.data?.length) {
-            json.data.forEach(({ Key, Value }) => {
-              if (Key && Value !== undefined) {
-                data[Key] = Value;
-              }
-            });
-          }
+          const rows = getRows(json);
+          rows.forEach(({ Key, Value }) => {
+            if (Key && Value !== undefined) {
+              data[Key] = Value;
+            }
+          });
         });
 
         // Early return if no valid data

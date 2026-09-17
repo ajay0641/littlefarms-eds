@@ -349,6 +349,115 @@ export default async function decorate(block) {
           });
         },
 
+        ItemQuantity: (ctx) => {
+          let currentItem = ctx.item;
+          const { handleItemQuantityUpdate } = ctx;
+          const isCurrentlyUpdating = Boolean(
+            ctx.itemsLoading && ctx.itemsLoading.has(currentItem.uid),
+          );
+
+          const container = document.createElement('div');
+          container.className = `addtocart-qty-block ${isCurrentlyUpdating ? 'is-updating' : ''}`;
+
+          const decBtn = document.createElement('button');
+          decBtn.type = 'button';
+          decBtn.className = 'action decrease';
+          decBtn.setAttribute(
+            'aria-label',
+            placeholders?.Cart?.CartItem?.decreaseQuantity || 'Decrease quantity',
+          );
+          if (isCurrentlyUpdating || currentItem.quantity <= 1) {
+            decBtn.disabled = true;
+          }
+          decBtn.innerHTML = '<span class="minus"></span>';
+
+          const qtyWrapper = document.createElement('div');
+          qtyWrapper.className = 'input-text qty';
+
+          const input = document.createElement('input');
+          input.type = 'number';
+          input.min = '0';
+          input.value = currentItem.quantity;
+          input.className = 'input-text';
+          input.readOnly = true;
+          if (isCurrentlyUpdating) input.disabled = true;
+          input.setAttribute(
+            'aria-label',
+            placeholders?.Dropin?.CartItem?.quantity?.label || 'Quantity',
+          );
+
+          qtyWrapper.append(input);
+
+          const incBtn = document.createElement('button');
+          incBtn.type = 'button';
+          incBtn.className = 'action increase';
+          incBtn.setAttribute(
+            'aria-label',
+            placeholders?.Cart?.CartItem?.increaseQuantity || 'Increase quantity',
+          );
+          if (isCurrentlyUpdating) incBtn.disabled = true;
+          incBtn.innerHTML = '<span class="plus"></span>';
+
+          const setUpdating = (updating) => {
+            decBtn.disabled = updating || currentItem.quantity <= 1;
+            incBtn.disabled = updating;
+            input.disabled = updating;
+            if (updating) {
+              container.classList.add('is-updating');
+            } else {
+              container.classList.remove('is-updating');
+            }
+          };
+
+          const updateItemState = (item, loading) => {
+            currentItem = item;
+            input.value = item.quantity;
+            setUpdating(loading);
+          };
+
+          if (typeof ctx.onChange === 'function') {
+            ctx.onChange((nextCtx) => {
+              const nextItem = nextCtx?.item || currentItem;
+              const loading = Boolean(
+                nextCtx?.itemsLoading && nextCtx.itemsLoading.has(nextItem.uid),
+              );
+              updateItemState(nextItem, loading);
+            });
+          }
+
+          const cartUnsub = events.on('cart/data', (cartData) => {
+            if (!container.isConnected) {
+              cartUnsub?.off?.();
+              return;
+            }
+            const found = cartData?.items?.find((it) => it.uid === currentItem.uid);
+            if (found) {
+              updateItemState(found, false);
+            }
+          });
+
+          decBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (decBtn.disabled || currentItem.quantity <= 1) return;
+
+            setUpdating(true);
+            handleItemQuantityUpdate(currentItem, currentItem.quantity - 1);
+          });
+
+          incBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (incBtn.disabled) return;
+
+            setUpdating(true);
+            handleItemQuantityUpdate(currentItem, currentItem.quantity + 1);
+          });
+
+          container.append(decBtn, qtyWrapper, incBtn);
+          ctx.replaceWith(container);
+        },
+
         Footer: (ctx) => {
           // Edit Link
           if (ctx.item?.itemType === 'ConfigurableCartItem' && enableUpdatingProduct === 'true') {
