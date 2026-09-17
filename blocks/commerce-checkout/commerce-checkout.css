@@ -163,11 +163,6 @@ main:has(.commerce-checkout-container),
   display: none;
 }
 
-.checkout__section .dropin-picker__medium.dropin-picker__floating.dropin-picker__selected label {
-  font-size: 14px;
-  color: var(--checkout-label);
-}
-
 .checkout__section .dropin-input-label-container {
   gap: 6px;
 }
@@ -198,7 +193,8 @@ main:has(.commerce-checkout-container),
   transition: none !important;
   width: auto;
 }
-.checkout__section label .dropin-radio-button__label:before {
+
+.checkout__section label .dropin-radio-button__label::before {
   width: 18px;
   height: 18px;
 }
@@ -285,6 +281,78 @@ main:has(.commerce-checkout-container),
   accent-color: var(--checkout-brand);
 }
 
+/* Delivery Comment */
+.checkout__section .checkout__delivery-comment {
+  margin-top: 24px;
+}
+
+.checkout__section .checkout__delivery-comment-label {
+  color: var(--checkout-label, #333);
+  display: block;
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.checkout__section .checkout__delivery-comment-input {
+  appearance: none;
+  background: #fff;
+  border: 1px solid var(--checkout-brand);
+  border-radius: 4px;
+  box-sizing: border-box;
+  color: var(--checkout-text, #333);
+  display: block;
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 14px;
+  height: auto;
+  line-height: 20px;
+  min-height: 80px;
+  padding: 10px 14px !important;
+  resize: vertical;
+  width: 100%;
+}
+
+.checkout__section .checkout__delivery-comment-input:focus {
+  border-color: var(--checkout-brand);
+  box-shadow: 0 0 0 1px var(--checkout-brand);
+  outline: none;
+}
+
+.checkout__section .checkout__delivery-actions {
+  display: flex;
+  margin-top: 16px;
+}
+
+.checkout__section .checkout__delivery-next-button {
+  background-color: transparent !important;
+  background-image: url('../../icons/littlefarms/shape-green-border.svg') !important;
+  background-position: 0 0 !important;
+  background-repeat: no-repeat !important;
+  background-size: 100% 100% !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: var(--checkout-brand) !important;
+  cursor: pointer;
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: normal;
+  line-height: 18px;
+  min-height: 46px;
+  min-width: 125px;
+  padding: 14px 24px !important;
+  text-align: center;
+  width: auto;
+}
+
+.checkout__section .checkout__delivery-next-button:hover {
+  background-image: url('../../icons/littlefarms/shape-green.svg') !important;
+  color: #fff !important;
+}
+
 /* Payment methods — Magento LF option tiles */
 .checkout__payment-methods {
   accent-color: var(--checkout-brand);
@@ -323,13 +391,13 @@ main:has(.commerce-checkout-container),
   pointer-events: auto;
 }
 
-.checkout__payment-methods .dropin-toggle-button:not(.dropin-toggle-button__disabled)
-  .dropin-toggle-button__actionButton:hover {
+.checkout__payment-methods .dropin-toggle-button__selected .dropin-toggle-button__actionButton {
+  background-color: #fff;
   border-color: var(--checkout-brand);
 }
 
-.checkout__payment-methods .dropin-toggle-button__selected .dropin-toggle-button__actionButton {
-  background-color: #fff;
+.checkout__payment-methods .dropin-toggle-button:not(.dropin-toggle-button__disabled)
+  .dropin-toggle-button__actionButton:hover {
   border-color: var(--checkout-brand);
 }
 
@@ -347,50 +415,13 @@ main:has(.commerce-checkout-container),
   width: auto;
 }
 
-.checkout__payment-methods .dropin-toggle-button__radioButton .dropin-radio-button__label:before {
+.checkout__payment-methods .dropin-toggle-button__radioButton .dropin-radio-button__label::before {
   background-color: #fff;
   border: 1.5px solid #666;
   border-radius: 50%;
   height: 18px;
   margin-right: 0;
   width: 18px;
-}
-
-.checkout__payment-methods .dropin-toggle-button__selected
-  .dropin-radio-button__input:checked + .dropin-radio-button__label:before {
-  border-color: var(--checkout-brand);
-}
-
-.checkout__payment-methods .dropin-toggle-button__selected
-  .dropin-radio-button__input:checked + .dropin-radio-button__label:after {
-  background: var(--checkout-brand);
-  border-radius: 50%;
-  height: 10px;
-  left: 4px;
-  margin-left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 10px;
-}
-
-.checkout__payment-methods .dropin-toggle-button__content {
-  color: var(--checkout-text);
-  font-family: var(--type-base-font-family), sans-serif;
-  font-size: 14px;
-  font-weight: 400;
-  justify-content: flex-start;
-  letter-spacing: normal;
-  line-height: 1.4;
-  margin-left: 0;
-  text-align: left;
-  width: 100%;
-}
-
-.checkout__payment-methods .dropin-toggle-button:not(.dropin-toggle-button__disabled):has(input:focus-visible) {
-  border-radius: 0;
-  box-shadow: none;
-  outline: 2px solid var(--checkout-brand);
-  outline-offset: 2px;
 }
 
 /* RadioButton fallback (if UIComponentType is switched) */
@@ -423,7 +454,7 @@ main:has(.commerce-checkout-container),
   border-color: #cfcfcf;
 }
 
-.checkout__payment-methods .dropin-radio-button:not(.dropin-toggle-button__radioButton) .dropin-radio-button__label:before {
+.checkout__payment-methods .dropin-radio-button:not(.dropin-toggle-button__radioButton) .dropin-radio-button__label::before {
   background-color: #fff;
   border: 1.5px solid #666;
   border-radius: 50%;
@@ -433,18 +464,35 @@ main:has(.commerce-checkout-container),
   width: 18px;
 }
 
+.checkout__payment-methods .dropin-toggle-button__selected
+  .dropin-radio-button__input:checked + .dropin-radio-button__label::before {
+  border-color: var(--checkout-brand);
+}
+
+.checkout__payment-methods .dropin-toggle-button__selected
+  .dropin-radio-button__input:checked + .dropin-radio-button__label::after {
+  background: var(--checkout-brand);
+  border-radius: 50%;
+  height: 10px;
+  left: 4px;
+  margin-left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10px;
+}
+
 .checkout__payment-methods .dropin-radio-button:not(.dropin-toggle-button__radioButton)
   .dropin-radio-button__input:checked + .dropin-radio-button__label {
   border-color: #333;
 }
 
 .checkout__payment-methods .dropin-radio-button:not(.dropin-toggle-button__radioButton)
-  .dropin-radio-button__input:checked + .dropin-radio-button__label:before {
+  .dropin-radio-button__input:checked + .dropin-radio-button__label::before {
   border-color: var(--checkout-brand);
 }
 
 .checkout__payment-methods .dropin-radio-button:not(.dropin-toggle-button__radioButton)
-  .dropin-radio-button__input:checked + .dropin-radio-button__label:after {
+  .dropin-radio-button__input:checked + .dropin-radio-button__label::after {
   background: var(--checkout-brand);
   border-radius: 50%;
   height: 10px;
@@ -453,6 +501,26 @@ main:has(.commerce-checkout-container),
   top: 50%;
   transform: translateY(-50%);
   width: 10px;
+}
+
+.checkout__payment-methods .dropin-toggle-button__content {
+  color: var(--checkout-text);
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  justify-content: flex-start;
+  letter-spacing: normal;
+  line-height: 1.4;
+  margin-left: 0;
+  text-align: left;
+  width: 100%;
+}
+
+.checkout__payment-methods .dropin-toggle-button:not(.dropin-toggle-button__disabled):has(input:focus-visible) {
+  border-radius: 0;
+  box-shadow: none;
+  outline: 2px solid var(--checkout-brand);
+  outline-offset: 2px;
 }
 
 .checkout__payment-methods .checkout-payment-methods__content {
@@ -534,6 +602,11 @@ main:has(.commerce-checkout-container),
   display: flex;
   gap: 8px;
   padding-right: 12px;
+}
+
+.checkout__credit-card-form .credit-card-field__container iframe {
+  height: 100%;
+  width: 100%;
 }
 
 .checkout__credit-card-form .payment-services-credit-card-form__card-number .credit-card-field__container iframe {
@@ -681,15 +754,6 @@ main:has(.commerce-checkout-container),
   margin-top: 4px;
 }
 
-.checkout__credit-card-form .credit-card-field__container iframe {
-  height: 100%;
-  width: 100%;
-}
-
-.checkout__credit-card-form .payment-services-credit-card-form__card-number .credit-card-field__container iframe {
-  width: auto;
-}
-
 /* Billing same-as-shipping sits under card form (Magento LF) */
 .checkout__section--payment .checkout__bill-to-shipping {
   margin-top: 16px;
@@ -730,7 +794,7 @@ main:has(.commerce-checkout-container),
   line-height: 18px;
   min-height: 46px;
   min-width: 125px;
-  padding: 16px 24px 14px 24px;
+  padding: 16px 24px 14px;
   text-align: center;
   width: auto;
 }
@@ -1045,7 +1109,7 @@ main:has(.commerce-checkout-container),
 .checkout__cart-summary .dropin-cart-list__wrapper {
   display: flex;
   flex-direction: column;
-  grid-gap: initial;
+  gap: initial;
 }
 
 .checkout__cart-summary .dropin-cart-list__item {
@@ -1219,6 +1283,7 @@ main:has(.commerce-checkout-container),
   --auth-text: var(--checkout-text, var(--color-neutral-800, #3a3a3a));
   --auth-border: #cfcfcf;
   --auth-field-height: 48px;
+
   background: #fff;
   box-sizing: border-box;
   padding: 28px 28px 32px;
@@ -1240,10 +1305,10 @@ main:has(.commerce-checkout-container),
   padding-right: 36px;
 }
 
-.checkout__auth-modal .auth-sign-in-form__title .dropin-header-container__title,
-.checkout__auth-modal .auth-sign-up-form__title .dropin-header-container__title,
-.checkout__auth-modal .auth-reset-password-form__title .dropin-header-container__title,
-.checkout__auth-modal .dropin-header-container__title {
+.modal .checkout__auth-modal .dropin-header-container__title,
+.modal .checkout__auth-modal .auth-sign-in-form__title .dropin-header-container__title,
+.modal .checkout__auth-modal .auth-sign-up-form__title .dropin-header-container__title,
+.modal .checkout__auth-modal .auth-reset-password-form__title .dropin-header-container__title {
   color: var(--auth-brand-dark);
   font-family: var(--type-heading-font-family), cursive;
   font-size: 28px;
@@ -1274,7 +1339,7 @@ main:has(.commerce-checkout-container),
 }
 
 /* Magento static labels above fields */
-.checkout__auth-modal .dropin-field {
+.modal .checkout__auth-modal .dropin-field {
   margin: 0;
   max-width: 100%;
   width: 100%;
@@ -1288,9 +1353,9 @@ main:has(.commerce-checkout-container),
   width: 100%;
 }
 
-.checkout__auth-modal .dropin-input__label--floating,
-.checkout__auth-modal .dropin-field__label,
-.checkout__auth-modal label {
+.modal .checkout__auth-modal .dropin-input__label--floating,
+.modal .checkout__auth-modal .dropin-field__label,
+.modal .checkout__auth-modal label {
   color: var(--checkout-label, #555);
   font-family: var(--type-base-font-family), sans-serif;
   font-size: 14px;
@@ -1309,11 +1374,11 @@ main:has(.commerce-checkout-container),
   width: auto;
 }
 
-.checkout__auth-modal .dropin-input,
-.checkout__auth-modal .dropin-input--floating,
-.checkout__auth-modal input[type='email'],
-.checkout__auth-modal input[type='password'],
-.checkout__auth-modal input[type='text'] {
+.modal .checkout__auth-modal .dropin-input,
+.modal .checkout__auth-modal .dropin-input--floating,
+.modal .checkout__auth-modal input[type='email'],
+.modal .checkout__auth-modal input[type='password'],
+.modal .checkout__auth-modal input[type='text'] {
   appearance: none;
   background: #fff;
   border: 1px solid var(--auth-border);
@@ -1330,26 +1395,26 @@ main:has(.commerce-checkout-container),
   width: 100%;
 }
 
-.checkout__auth-modal .dropin-input:focus,
-.checkout__auth-modal .dropin-input--floating:focus,
-.checkout__auth-modal input:focus {
+.modal .checkout__auth-modal .dropin-input:focus,
+.modal .checkout__auth-modal .dropin-input--floating:focus,
+.modal .checkout__auth-modal input:focus {
   border-color: var(--auth-brand-dark);
   outline: none;
 }
 
-.checkout__auth-modal .dropin-field--error .dropin-input,
-.checkout__auth-modal .dropin-input--error,
-.checkout__auth-modal .dropin-field--error input {
+.modal .checkout__auth-modal .dropin-field--error .dropin-input,
+.modal .checkout__auth-modal .dropin-input--error,
+.modal .checkout__auth-modal .dropin-field--error input {
   border-color: #b85c5c;
 }
 
-.checkout__auth-modal .dropin-field__error,
-.checkout__auth-modal .dropin-field--error .dropin-field__label,
-.checkout__auth-modal .dropin-field--error label {
+.modal .checkout__auth-modal .dropin-field__error,
+.modal .checkout__auth-modal .dropin-field--error .dropin-field__label,
+.modal .checkout__auth-modal .dropin-field--error label {
   color: #a04848;
 }
 
-.checkout__auth-modal .dropin-field__error {
+.modal .checkout__auth-modal .dropin-field__error {
   font-size: 12px;
   margin-top: 6px;
 }
@@ -1415,10 +1480,10 @@ main:has(.commerce-checkout-container),
   text-decoration: underline;
 }
 
+.checkout__auth-modal .auth-button.dropin-button--primary,
 .checkout__auth-modal .auth-sign-in-form__button--submit,
 .checkout__auth-modal .auth-sign-up-form-buttons .auth-button.dropin-button--primary,
-.checkout__auth-modal .auth-reset-password-form__buttons .auth-button.dropin-button--primary,
-.checkout__auth-modal .auth-button.dropin-button--primary {
+.checkout__auth-modal .auth-reset-password-form__buttons .auth-button.dropin-button--primary {
   background-color: transparent !important;
   background-image: url('../../icons/littlefarms/shape-green-border.svg') !important;
   background-position: 0 0 !important;
@@ -1440,10 +1505,10 @@ main:has(.commerce-checkout-container),
   text-transform: none;
 }
 
+.checkout__auth-modal .auth-button.dropin-button--primary:hover,
 .checkout__auth-modal .auth-sign-in-form__button--submit:hover,
 .checkout__auth-modal .auth-sign-up-form-buttons .auth-button.dropin-button--primary:hover,
-.checkout__auth-modal .auth-reset-password-form__buttons .auth-button.dropin-button--primary:hover,
-.checkout__auth-modal .auth-button.dropin-button--primary:hover {
+.checkout__auth-modal .auth-reset-password-form__buttons .auth-button.dropin-button--primary:hover {
   background-color: transparent !important;
   background-image: url('../../icons/littlefarms/shape-green.svg') !important;
   color: #fff !important;
@@ -1533,6 +1598,10 @@ main:has(.commerce-checkout-container),
 
   .checkout__place-order {
     margin-top: 12px;
+  }
+
+  .checkout__section .checkout__delivery-actions {
+    justify-content: flex-end;
   }
 }
 

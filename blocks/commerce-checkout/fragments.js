@@ -20,6 +20,9 @@ export const selectors = Object.freeze({
     shippingForm: '.checkout__shipping-form',
     billToShipping: '.checkout__bill-to-shipping',
     delivery: '.checkout__delivery',
+    deliveryComment: '.checkout__delivery-comment',
+    deliveryCommentInput: '.checkout__delivery-comment-input',
+    deliveryNextButton: '.checkout__delivery-next-button',
     paymentMethods: '.checkout__payment-methods',
     billingForm: '.checkout__billing-form',
     orderSummary: '.checkout__order-summary',
@@ -63,6 +66,18 @@ export function createCheckoutFragment() {
           <section class="checkout__section checkout__section--shipping" aria-label="Shipping methods">
             <h2 class="checkout__section-title">Shipping Methods</h2>
             <div class="checkout__delivery ${CHECKOUT_BLOCK}"></div>
+            <div class="checkout__delivery-comment">
+              <label for="delivery-comment" class="checkout__delivery-comment-label">Delivery Comment</label>
+              <textarea
+                id="delivery-comment"
+                name="delivery_comment"
+                class="checkout__delivery-comment-input"
+                rows="3"
+              ></textarea>
+              <div class="checkout__delivery-actions">
+                <button type="button" class="checkout__delivery-next-button">Next</button>
+              </div>
+            </div>
           </section>
 
           <section class="checkout__section checkout__section--payment" aria-label="Payment">
