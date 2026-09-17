@@ -417,3 +417,6 @@
   font-family: var(--type-base-font-family);
 }
 
+.cart-mini-cart .dropin-cart-list__wrapper {
+  gap: 0;
+}
