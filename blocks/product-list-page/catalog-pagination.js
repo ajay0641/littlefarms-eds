@@ -9,7 +9,14 @@ const STORE_CONFIG_GRID_PAGINATION_QUERY = `
   }
 `;
 
-const SESSION_CACHE_KEY = 'lf-catalog-grid-pagination';
+// Persisted (not per-tab) so only a visitor's very first page view pays the round-trip
+const STORAGE_KEY = 'lf-catalog-grid-pagination';
+
+/** Magento-aligned fallback when storeConfig is unavailable */
+const DEFAULT_PAGINATION = Object.freeze({
+  gridPerPage: 12,
+  gridPerPageValues: Object.freeze([12, 24, 36]),
+});
 
 /** @type {Promise<{ gridPerPage: number, gridPerPageValues: number[] }>|null} */
 let pendingRequest = null;
@@ -33,7 +40,9 @@ function parseGridPerPageValues(raw) {
 function normalizeStoreConfig(storeConfig = {}) {
   const gridPerPageValues = parseGridPerPageValues(storeConfig.grid_per_page_values);
   const gridPerPage = parseInt(storeConfig.grid_per_page, 10);
-  const fallbackValues = gridPerPageValues.length ? gridPerPageValues : [12, 24, 36];
+  const fallbackValues = gridPerPageValues.length
+    ? gridPerPageValues
+    : [...DEFAULT_PAGINATION.gridPerPageValues];
   const resolvedPageSize = Number.isFinite(gridPerPage) && gridPerPage > 0
     ? gridPerPage
     : fallbackValues[0];
@@ -50,12 +59,12 @@ function normalizeStoreConfig(storeConfig = {}) {
 }
 
 /**
- * Reads cached Magento catalog grid pagination from sessionStorage.
+ * Reads previously stored Magento catalog grid pagination.
  * @returns {{ gridPerPage: number, gridPerPageValues: number[] }|null}
  */
-function readSessionCache() {
+export function getCachedCatalogGridPagination() {
   try {
-    const raw = sessionStorage.getItem(SESSION_CACHE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed?.gridPerPage || !Array.isArray(parsed.gridPerPageValues)) return null;
@@ -70,13 +79,11 @@ function readSessionCache() {
  * - grid_per_page → default products per page
  * - grid_per_page_values → allowed page sizes (e.g. "12,24,36")
  *
- * Result is cached in-memory and sessionStorage for the tab session.
+ * Always hits the network (deduped per page view) and refreshes the stored value, so
+ * admin changes are picked up without ever blocking a render on this request.
  * @returns {Promise<{ gridPerPage: number, gridPerPageValues: number[] }>}
  */
 export async function fetchCatalogGridPagination() {
-  const cached = readSessionCache();
-  if (cached) return cached;
-
   if (pendingRequest) return pendingRequest;
 
   pendingRequest = CORE_FETCH_GRAPHQL.fetchGraphQl(STORE_CONFIG_GRID_PAGINATION_QUERY, {
@@ -89,7 +96,7 @@ export async function fetchCatalogGridPagination() {
       }
       const normalized = normalizeStoreConfig(data?.storeConfig);
       try {
-        sessionStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(normalized));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
       } catch {
         // ignore quota / private mode
       }
@@ -97,11 +104,32 @@ export async function fetchCatalogGridPagination() {
     })
     .catch((error) => {
       console.warn('Failed to load Magento storeConfig grid pagination:', error);
-      return normalizeStoreConfig();
+      return {
+        gridPerPage: DEFAULT_PAGINATION.gridPerPage,
+        gridPerPageValues: [...DEFAULT_PAGINATION.gridPerPageValues],
+      };
     })
     .finally(() => {
       pendingRequest = null;
     });
 
   return pendingRequest;
+}
+
+/**
+ * Resolves catalog grid pagination without a network round-trip so the first
+ * productSearch is not delayed by storeConfig. Returns the stored admin value when
+ * available, otherwise Magento's defaults, and refreshes the stored value in the
+ * background for subsequent page views.
+ * @returns {{ gridPerPage: number, gridPerPageValues: number[] }}
+ */
+export function getCatalogGridPagination() {
+  const cached = getCachedCatalogGridPagination();
+
+  fetchCatalogGridPagination();
+
+  return cached ?? {
+    gridPerPage: DEFAULT_PAGINATION.gridPerPage,
+    gridPerPageValues: [...DEFAULT_PAGINATION.gridPerPageValues],
+  };
 }

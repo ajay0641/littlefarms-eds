@@ -104,13 +104,19 @@ export default async function initializeDropins() {
 
     import('./cart.js');
 
-    events.on('aem/lcp', async () => {
-      // Recaptcha
-      await import('@dropins/tools/recaptcha.js').then((recaptcha) => {
+    events.on('aem/lcp', () => {
+      // Recaptcha is only needed for auth/checkout forms — defer off PLP critical path
+      const loadRecaptcha = () => import('@dropins/tools/recaptcha.js').then((recaptcha) => {
         recaptcha.setEndpoint(CORE_FETCH_GRAPHQL);
         recaptcha.enableLogger(true);
         return recaptcha.setConfig();
       });
+
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(() => { loadRecaptcha(); }, { timeout: 4000 });
+      } else {
+        window.setTimeout(loadRecaptcha, 2000);
+      }
     }, { eager: true });
   };
 

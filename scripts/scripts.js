@@ -218,6 +218,19 @@ export function decorateMain(main) {
   decorateButtons(main);
 }
 
+/** @type {Promise|null} Shared so the header is only ever built once */
+let headerLoading = null;
+
+/**
+ * Starts the header load at most once.
+ * @param {Element} doc The container element
+ * @returns {Promise}
+ */
+function startHeader(doc) {
+  headerLoading = headerLoading || loadHeader(doc.querySelector('header'));
+  return headerLoading;
+}
+
 /**
  * Loads everything needed to get to LCP.
  * @param {Element} doc The container element
@@ -238,6 +251,13 @@ async function loadEager(doc) {
       loadErrorPage(418);
     }
     document.body.classList.add('appear');
+
+    // The header is the top of the viewport, but aem.js loads it in the lazy phase,
+    // i.e. after the whole first section resolves, so it paints after the product grid.
+    // Start it here without awaiting: its fetches fill the window where we are waiting
+    // on the catalog query, so it is not competing with the LCP image.
+    startHeader(doc);
+
     await loadSection(main.querySelector('.section'), waitForFirstImage);
   }
 
@@ -256,7 +276,7 @@ async function loadEager(doc) {
  * @param {Element} doc The container element
  */
 async function loadLazy(doc) {
-  loadHeader(doc.querySelector('header'));
+  startHeader(doc);
 
   const main = doc.querySelector('main');
   await loadSections(main);

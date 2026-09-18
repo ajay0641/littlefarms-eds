@@ -21,7 +21,6 @@ import {
 } from '../../scripts/commerce.js';
 import { getUserTokenCookie } from '../../scripts/initializers/index.js';
 import '../../scripts/initializers/recommendations.js';
-import '../../scripts/initializers/wishlist.js';
 import {
   showCartErrorToast,
   showWishlistErrorToast,
@@ -31,6 +30,14 @@ import { showShoppingListAlert } from '../../scripts/components/shopping-list-al
 import { createAddToCartButton } from '../product-list-page/plp-product-card.js';
 
 loadCSS('/scripts/vendor/splide/splide-core.min.css');
+
+// Guests get the shopping-list prompt instead of wishlist actions, so hold off on the
+// wishlist drop-in (and its STORE_CONFIG_QUERY) until a customer is signed in.
+const loadWishlistDropin = () => import('../../scripts/initializers/wishlist.js');
+if (checkIsAuthenticated()) loadWishlistDropin();
+events.on('authenticated', (authenticated) => {
+  if (authenticated) loadWishlistDropin();
+});
 
 /**
  * Validates and returns a product view history entry if valid
@@ -620,17 +627,19 @@ function buildProductSlide(product, cart, api, recommendationUnit, itemIndex) {
  * Designed like Product Relations
  * @param {HTMLElement} block
  */
-export default async function decorate(block) {
+async function renderRecommendations(block) {
   const config = readBlockConfig(block);
   block.textContent = '';
 
-  const labels = await fetchPlaceholders();
-
-  // Show loading indicator
+  // Placeholder is appended before the first await so the block reserves space
+  // synchronously and the surrounding section can become visible right away.
   const loadingDiv = document.createElement('div');
   loadingDiv.className = 'product-recommendations-loading';
-  loadingDiv.textContent = labels.Global?.LoadingProducts || 'Loading...';
+  loadingDiv.textContent = 'Loading...';
   block.appendChild(loadingDiv);
+
+  const labels = await fetchPlaceholders();
+  loadingDiv.textContent = labels.Global?.LoadingProducts || 'Loading...';
 
   const recid = config.recid || config.recId || config.unitid || config.unitId;
   let currentsku = config.currentsku || config.currentSku || config.sku;
@@ -910,5 +919,23 @@ export default async function decorate(block) {
         el.syncFromCart(cart);
       }
     });
+  });
+}
+
+/**
+ * Loads and decorates the block.
+ *
+ * aem.js keeps a section hidden until every block in it resolves, and this block shares
+ * a section with the product grid. Recommendations sit below the fold and need two extra
+ * GraphQL round-trips, so they are rendered without blocking, keeping them off the
+ * first-paint path.
+ *
+ * @param {Element} block The block element
+ * @returns {void}
+ */
+export default function decorate(block) {
+  renderRecommendations(block).catch((error) => {
+    console.error('Failed to render product recommendations:', error);
+    block.textContent = '';
   });
 }
