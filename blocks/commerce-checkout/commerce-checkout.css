@@ -176,7 +176,8 @@ main:has(.commerce-checkout-container),
 .dropin-input-container--floating:focus-within .dropin-input__label--floating,
 .checkout__section .dropin-picker__label,
 .checkout__section .dropin-field__label,
-.checkout__section label {
+.checkout__section label,
+.checkout__section .account-address-form-wrapper .checkout__section .dropin-input--floating:not(:placeholder-shown)~.dropin-input__label--floating {
   color: var(--checkout-label);
   font-family: var(--type-base-font-family), sans-serif;
   font-size: 14px;
@@ -320,37 +321,391 @@ main:has(.commerce-checkout-container),
   outline: none;
 }
 
-.checkout__section .checkout__delivery-actions {
+/* Authenticated customer strip (above saved addresses) */
+.checkout__login .checkout-login-form__content,
+.checkout__login .login-form__content {
+  align-items: flex-start;
   display: flex;
-  margin-top: 16px;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  width: 100%;
 }
 
-.checkout__section .checkout__delivery-next-button {
-  background-color: transparent !important;
-  background-image: url('../../icons/littlefarms/shape-green-border.svg') !important;
-  background-position: 0 0 !important;
-  background-repeat: no-repeat !important;
-  background-size: 100% 100% !important;
+.checkout__login .checkout-login-form__heading,
+.checkout__login .login-form__heading,
+.checkout__login .checkout-login-form__heading-label,
+.checkout__login .login-form__heading-label {
+  color: var(--checkout-muted);
+  flex: 1 1 auto;
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 1.4;
+  margin: 0;
+  order: 2;
+  text-align: right;
+}
+
+.checkout__login .checkout-login-form__link,
+.checkout__login .login-form__link,
+.checkout__login .checkout-login-form__sign-out,
+.checkout__login .login-form__sign-out,
+.checkout__login .checkout-login-form__sign-out button,
+.checkout__login .login-form__sign-out button,
+.checkout__login .checkout-login-form__heading button,
+.checkout__login .login-form__heading button {
+  background: transparent !important;
   border: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
   color: var(--checkout-brand) !important;
   cursor: pointer;
-  font-family: var(--type-base-font-family), sans-serif;
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: normal;
-  line-height: 18px;
-  min-height: 46px;
-  min-width: 125px;
-  padding: 14px 24px !important;
-  text-align: center;
-  width: auto;
+  font-family: var(--type-base-font-family), sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  letter-spacing: normal !important;
+  min-height: auto;
+  padding: 0 !important;
+  text-decoration: underline;
+  text-transform: none !important;
 }
 
-.checkout__section .checkout__delivery-next-button:hover {
-  background-image: url('../../icons/littlefarms/shape-green.svg') !important;
-  color: #fff !important;
+.checkout__login .checkout-login-form__customer-details,
+.checkout__login .login-form__customer-details {
+  display: flex;
+  flex: 1 1 220px;
+  flex-direction: column;
+  gap: 2px;
+  order: 1;
+}
+
+.checkout__login .checkout-login-form__customer-name,
+.checkout__login .login-form__customer-name {
+  color: var(--checkout-text);
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.checkout__login .checkout-login-form__customer-email,
+.checkout__login .login-form__customer-email {
+  color: var(--checkout-muted);
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 1.4;
+  margin: 0;
+  word-break: break-word;
+}
+
+/* Saved addresses — Magento selectable cards */
+.checkout__section .account-addresses-wrapper--select-view {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0 0 28px;
+  padding: 0;
+}
+
+.checkout__section .account-addresses-wrapper--select-view > input[type='radio'] {
+  /* keep drop-in a11y clip; selection styled on the label */
+  accent-color: var(--checkout-brand);
+}
+
+.checkout__section .account-addresses-wrapper--select-view .account-addresses-wrapper__label {
+  border-radius: 0 !important;
+  cursor: pointer;
+  display: block;
+  margin: 0;
+  position: relative !important;
+}
+
+.checkout__section .account-addresses-wrapper--select-view .account-addresses-wrapper__label::before {
+  background: #fff;
+  border: 1.5px solid #666;
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: '';
+  height: 18px;
+  left: 16px;
+  position: absolute;
+  top: 20px;
+  width: 18px;
+  z-index: 2;
+}
+
+.checkout__section .account-addresses-wrapper--select-view .account-addresses-wrapper__label::after {
+  background: transparent;
+  border-radius: 50%;
+  content: '';
+  height: 10px;
+  left: 20px;
+  position: absolute;
+  top: 24px;
+  width: 10px;
+  z-index: 2;
+}
+
+.checkout__section .account-addresses-wrapper--select-view
+  input[type='radio']:checked + .account-addresses-wrapper__label::before {
+  border-color: var(--checkout-brand);
+}
+
+.checkout__section .account-addresses-wrapper--select-view
+  input[type='radio']:checked + .account-addresses-wrapper__label::after {
+  background: var(--checkout-brand);
+}
+
+.checkout__section .account-addresses-wrapper--select-view
+  input[type='radio']:focus-visible + .account-addresses-wrapper__label > .account-address-card,
+.checkout__section .account-addresses-wrapper--select-view
+  input[type='radio']:focus-visible + .account-addresses-wrapper__label > .account-actions-address {
+  outline: 2px solid var(--checkout-brand);
+  outline-offset: 2px;
+}
+
+.checkout__section .account-addresses-wrapper--select-view .account-addresses-wrapper__label
+  .account-address-card,
+.checkout__section .account-addresses-wrapper--select-view .account-addresses-wrapper__label
+  .account-actions-address.account-actions-address--address,
+.checkout__section .account-addresses-wrapper--select-view .account-addresses-wrapper__label
+  .account-actions-address {
+  background-color: #fff !important;
+  border: 1px solid var(--checkout-border) !important;
+  border-radius: 0 !important;
+  box-sizing: border-box;
+  height: auto !important;
+  margin: 0 !important;
+  min-height: 0;
+  padding: 16px 18px 16px 48px !important;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  width: 100%;
+}
+
+.checkout__section .account-addresses-wrapper--select-view .account-addresses-wrapper__label:hover
+  .account-address-card,
+.checkout__section .account-addresses-wrapper--select-view .account-addresses-wrapper__label:hover
+  .account-actions-address {
+  border-color: #cfcfcf !important;
+}
+
+.checkout__section .account-addresses-wrapper--select-view
+  input[type='radio']:checked + .account-addresses-wrapper__label > .account-address-card,
+.checkout__section .account-addresses-wrapper--select-view
+  input[type='radio']:checked + .account-addresses-wrapper__label > .account-actions-address,
+.checkout__section .account-addresses-wrapper--select-view
+  input[type='radio']:checked + .account-addresses-wrapper__label
+  > .account-addresses-form__footer__wrapper {
+  background-color: #f4f8f6 !important;
+  border-color: var(--checkout-brand) !important;
+  box-shadow: inset 0 0 0 1px var(--checkout-brand);
+  outline: none !important;
+  position: relative;
+}
+
+.checkout__section .account-addresses-wrapper--select-view .account-address-card .dropin-card__content {
+  align-items: start;
+  display: grid;
+  gap: 8px 12px;
+  grid-template-areas: 'description action' 'labels action';
+  grid-template-columns: 1fr auto;
+  padding: 0 !important;
+}
+
+.checkout__section .account-address-card .account-address-card__description {
+  display: flex;
+  flex-direction: column;
+  float: none;
+  gap: 2px;
+  grid-area: description;
+  margin: 0;
+  padding: 0;
+}
+
+.checkout__section .account-address-card .checkout-address-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.checkout__section .account-address-card .checkout-address-card__name,
+.checkout__section .account-address-card .checkout-address-card__line,
+.checkout__section .account-address-card .account-address-card__description p {
+  color: var(--checkout-text) !important;
+  float: none !important;
+  font-family: var(--type-base-font-family), sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  letter-spacing: normal !important;
+  line-height: 1.5 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.checkout__section .account-address-card .checkout-address-card__name,
+.checkout__section .account-address-card .account-address-card__description p:first-child {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  letter-spacing: normal !important;
+  margin-bottom: 4px !important;
+  text-transform: none;
+}
+
+.checkout__section .account-address-card .account-address-card__labels {
+  flex-wrap: wrap;
+  gap: 6px;
+  grid-area: labels;
+  margin: 0;
+}
+
+.checkout__section .account-address-card .account-address-card__labels .dropin-tag,
+.checkout__section .account-address-card .account-address-card__labels span {
+  background: transparent;
+  border: 1px solid var(--checkout-brand);
+  border-radius: 0;
+  color: var(--checkout-brand);
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  padding: 3px 8px;
+  text-transform: uppercase;
+}
+
+.checkout__section .account-address-card .account-address-card__action {
+  align-items: flex-start;
+  grid-area: action;
+  justify-content: flex-end;
+}
+
+.checkout__section .account-address-card .account-address-card__action button {
+  color: var(--checkout-brand) !important;
+  font-family: var(--type-base-font-family), sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  letter-spacing: normal !important;
+  min-height: auto;
+  padding: 0 !important;
+  text-decoration: underline;
+  text-transform: none !important;
+}
+
+/* “Use a different address” — closed row */
+.checkout__section .account-addresses-wrapper--select-view .account-actions-address {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  min-height: 56px;
+}
+
+.checkout__section .account-addresses-wrapper--select-view .account-actions-address__title {
+  color: var(--checkout-text);
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: normal;
+}
+
+.checkout__section .account-addresses-wrapper--select-view .account-actions-address svg {
+  color: var(--checkout-brand);
+  flex-shrink: 0;
+  margin-left: auto;
+  stroke: var(--checkout-brand);
+}
+
+/* Footer: closed compact row vs open form panel */
+.checkout__section .account-addresses-wrapper--select-view
+  .account-addresses-wrapper__footer-section {
+  margin-top: 4px;
+}
+
+.checkout__section .account-addresses-wrapper--select-view
+  .account-addresses-wrapper__footer-section
+  .account-addresses-wrapper__label:has(.account-actions-address)::before,
+.checkout__section .account-addresses-wrapper--select-view
+  .account-addresses-wrapper__footer-section
+  .account-addresses-wrapper__label:has(.account-actions-address)::after {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.checkout__section .account-addresses-wrapper--select-view
+  .account-addresses-wrapper__footer-section
+  .account-addresses-wrapper__label:has(.account-actions-address)::after {
+  margin-top: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.checkout__section .account-addresses-wrapper--select-view
+  .account-addresses-wrapper__footer-section
+  input[type='radio']:checked + .account-addresses-wrapper__label:has(.account-actions-address)::after {
+  /* keep filled dot vertically centered when closed+checked briefly */
+  transform: translateY(-50%);
+}
+
+/* Open: expand to full new-address form */
+.checkout__section .account-addresses-wrapper--select-view
+  .account-addresses-form__footer__wrapper,
+.checkout__section .account-addresses-wrapper--select-view
+  .account-addresses-form__footer__wrapper-show {
+  background: #fff !important;
+  border: 1px solid var(--checkout-border) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  box-sizing: border-box;
+  margin: 0 !important;
+  padding: 20px 18px 20px 48px !important;
+  width: 100%;
+}
+
+.checkout__section .account-addresses-wrapper--select-view
+  input[type='radio']:checked + .account-addresses-wrapper__label
+  > .account-addresses-form__footer__wrapper {
+  background: #fff !important;
+  border-color: var(--checkout-brand) !important;
+  box-shadow: inset 0 0 0 1px var(--checkout-brand);
+}
+
+.checkout__section .account-addresses-wrapper--select-view
+  .account-addresses-wrapper__footer-section
+  .account-addresses-wrapper__label:has(.account-addresses-form__footer__wrapper)::before {
+  top: 28px;
+  transform: none;
+}
+
+.checkout__section .account-addresses-wrapper--select-view
+  .account-addresses-wrapper__footer-section
+  .account-addresses-wrapper__label:has(.account-addresses-form__footer__wrapper)::after {
+  top: 32px;
+  transform: none;
+}
+
+.checkout__section .account-address-form-wrapper {
+  background: transparent;
+}
+
+.checkout__section .account-address-form-wrapper__title {
+  color: var(--checkout-text);
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin: 0 0 16px;
+  text-transform: uppercase;
+}
+
+.checkout__section .checkout-address-form__actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 16px;
+  width: 100%;
 }
 
 /* Payment methods — Magento LF option tiles */
@@ -767,7 +1122,7 @@ main:has(.commerce-checkout-container),
   pointer-events: auto;
 }
 
-/* Place order — Magento outlined organic button */
+/* Place order — Magento outlined organic button (global .lf-button--large) */
 .checkout__place-order {
   display: flex;
   justify-content: flex-end;
@@ -778,6 +1133,8 @@ main:has(.commerce-checkout-container),
 .checkout__place-order .dropin-button,
 .checkout__place-order .dropin-button--primary,
 .checkout__place-order button.dropin-button--primary {
+  appearance: none;
+  align-items: center;
   background-color: transparent !important;
   background-image: url('../../icons/littlefarms/shape-green-border.svg') !important;
   background-position: 0 0 !important;
@@ -786,16 +1143,21 @@ main:has(.commerce-checkout-container),
   border: 0 !important;
   border-radius: 0 !important;
   box-shadow: none !important;
-  color: var(--checkout-brand) !important;
+  color: var(--checkout-brand, var(--color-brand-300)) !important;
+  cursor: pointer;
+  display: inline-flex;
   font-family: var(--type-base-font-family), sans-serif;
   font-size: 18px;
   font-weight: 700;
+  justify-content: center;
   letter-spacing: normal;
   line-height: 18px;
   min-height: 46px;
   min-width: 125px;
   padding: 16px 24px 14px;
   text-align: center;
+  text-decoration: none;
+  text-transform: none;
   width: auto;
 }
 
@@ -855,7 +1217,8 @@ main:has(.commerce-checkout-container),
   display: none;
 }
 
-.checkout__content--error .checkout__place-order {
+.checkout__content--error .checkout__place-order,
+.checkout__content--error .checkout__coupons {
   display: none;
 }
 
@@ -1028,9 +1391,168 @@ main:has(.commerce-checkout-container),
   font-weight: 700;
 }
 
-.checkout__order-summary .cart-order-summary__coupons,
 .checkout__order-summary .cart-order-summary__gift-cards {
   display: none;
+}
+
+/* Apply Discount Code — Magento accordion under Place Order */
+.checkout__coupons {
+  border-bottom: 1px solid var(--checkout-border);
+  border-top: 1px solid var(--checkout-border);
+  margin-top: 24px;
+  width: 100%;
+}
+
+.checkout-discount {
+  width: 100%;
+}
+
+.checkout-discount__toggle {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: var(--checkout-brand);
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  justify-content: space-between;
+  padding: 16px 0;
+  text-align: left;
+  width: 100%;
+}
+
+.checkout-discount__title {
+  color: var(--checkout-brand);
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.checkout-discount__chevron {
+  background: url('../../icons/littlefarms/chevron.svg') no-repeat center / 12px 7px;
+  display: block;
+  flex-shrink: 0;
+  height: 24px;
+  transform: rotate(180deg);
+  transition: transform 0.2s ease;
+  width: 24px;
+}
+
+.checkout-discount--collapsed .checkout-discount__chevron {
+  transform: rotate(0deg);
+}
+
+.checkout-discount--collapsed .checkout-discount__panel {
+  display: none;
+}
+
+.checkout-discount__panel {
+  padding: 0 0 16px;
+}
+
+.checkout-discount__label {
+  border: 0;
+  clip-path: inset(50%);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.checkout-discount__error {
+  color: #c00;
+  font-size: 13px;
+  margin: 0 0 8px;
+}
+
+.checkout-discount__form {
+  align-items: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.checkout-discount__input {
+  background-color: #fff;
+  background-image: url('../../icons/littlefarms/shape-green-border.svg');
+  background-position: 0 0;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: var(--checkout-text);
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 14px;
+  height: 48px;
+  outline: none;
+  padding: 0 20px;
+  width: 100%;
+}
+
+.checkout-discount__input:focus {
+  outline: none;
+}
+
+.checkout-discount__input::placeholder {
+  color: var(--checkout-muted);
+}
+
+.checkout-discount__input:disabled,
+.checkout-discount__input[readonly] {
+  color: var(--checkout-text);
+  cursor: default;
+  opacity: 1;
+}
+
+.checkout-discount__action {
+  align-items: center;
+  align-self: flex-end;
+  appearance: none;
+  background-color: transparent;
+  background-image: url('../../icons/littlefarms/shape-green-border.svg');
+  background-position: 0 0;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--checkout-brand);
+  cursor: pointer;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  justify-content: center;
+  letter-spacing: normal;
+  line-height: 18px;
+  min-height: 46px;
+  min-width: 125px;
+  padding: 14px 24px 12px;
+  text-align: center;
+  text-transform: none;
+  white-space: nowrap;
+  width: auto;
+}
+
+.checkout-discount__action:hover:not(:disabled) {
+  background-image: url('../../icons/littlefarms/shape-green.svg');
+  color: #fff;
+}
+
+.checkout-discount__action:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.checkout-discount--busy .checkout-discount__action {
+  pointer-events: none;
 }
 
 .checkout__block .cart-cart-summary-list {
@@ -1235,14 +1757,104 @@ main:has(.commerce-checkout-container),
   font-weight: 700;
 }
 
-.dropin-accordion-section__heading {
-  margin: var(--spacing-medium) auto;
+/* Magento LF — Ship to / Shipping method under Items in Cart */
+.checkout__ship-summary {
+  margin-top: 8px;
+  width: 100%;
 }
 
-.cart-coupons__accordion {
+.checkout__ship-summary .checkout-ship-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+}
+
+.checkout__ship-summary .checkout-ship-summary__block {
   border-top: 1px solid var(--checkout-border);
   margin-top: 16px;
-  padding-top: 8px;
+  padding-top: 14px;
+}
+
+.checkout__ship-summary .checkout-ship-summary__header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.checkout__ship-summary .checkout-ship-summary__title {
+  color: var(--checkout-text);
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: normal;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.checkout__ship-summary .checkout-ship-summary__edit {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: var(--checkout-brand);
+  cursor: pointer;
+  display: inline-flex;
+  height: 24px;
+  justify-content: center;
+  padding: 0;
+  width: 24px;
+}
+
+.checkout__ship-summary .checkout-ship-summary__edit:hover {
+  opacity: 0.75;
+}
+
+.checkout__ship-summary .checkout-ship-summary__edit .icon,
+.checkout__ship-summary .checkout-ship-summary__edit .icon img,
+.checkout__ship-summary .checkout-ship-summary__edit .icon svg {
+  display: block;
+  height: 16px;
+  width: 16px;
+}
+
+.checkout__ship-summary .checkout-ship-summary__edit .icon svg {
+  stroke: currentcolor;
+}
+
+.checkout__ship-summary .checkout-ship-summary__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.checkout__ship-summary .checkout-ship-summary__line,
+.checkout__ship-summary .checkout-ship-summary__method-label {
+  color: var(--checkout-text);
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.checkout__ship-summary .checkout-ship-summary__name {
+  font-weight: 700;
+}
+
+.checkout__ship-summary .checkout-ship-summary__phone {
+  color: var(--checkout-brand);
+  text-decoration: none;
+  width: fit-content;
+}
+
+.checkout__ship-summary .checkout-ship-summary__phone:hover {
+  text-decoration: underline;
+}
+
+.dropin-accordion-section__heading {
+  margin: var(--spacing-medium) auto;
 }
 
 /* Sign-in modal — Magento LF theme */
@@ -1598,10 +2210,6 @@ main:has(.commerce-checkout-container),
 
   .checkout__place-order {
     margin-top: 12px;
-  }
-
-  .checkout__section .checkout__delivery-actions {
-    justify-content: flex-end;
   }
 }
 

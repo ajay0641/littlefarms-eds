@@ -38,6 +38,8 @@ import {
   renderBillingAddressFormSkeleton,
   renderBillToShippingAddress,
   renderCartSummaryList,
+  renderShipSummary,
+  renderCheckoutCoupons,
   renderCheckoutHeader,
   renderCustomerBillingAddresses,
   renderCustomerShippingAddresses,
@@ -128,29 +130,23 @@ export default async function decorate(block) {
   const $billToShipping = getElement(selectors.checkout.billToShipping);
   const $delivery = getElement(selectors.checkout.delivery);
   const $deliveryCommentInput = getElement(selectors.checkout.deliveryCommentInput);
-  const $deliveryNextButton = getElement(selectors.checkout.deliveryNextButton);
   const $paymentMethods = getElement(selectors.checkout.paymentMethods);
   const $billingForm = getElement(selectors.checkout.billingForm);
   const $orderSummary = getElement(selectors.checkout.orderSummary);
   const $cartSummary = getElement(selectors.checkout.cartSummary);
+  const $shipSummary = getElement(selectors.checkout.shipSummary);
   const $placeOrder = getElement(selectors.checkout.placeOrder);
+  const $coupons = getElement(selectors.checkout.coupons);
   const $giftOptions = getElement(selectors.checkout.giftOptions);
   const $termsAndConditions = getElement(selectors.checkout.termsAndConditions);
 
   block.appendChild(checkoutFragment);
 
-  // Delivery Comment State & Navigation
+  // Delivery Comment State
   let deliveryComment = '';
   if ($deliveryCommentInput) {
     $deliveryCommentInput.addEventListener('input', (e) => {
       deliveryComment = e.target.value;
-    });
-  }
-
-  if ($deliveryNextButton) {
-    $deliveryNextButton.addEventListener('click', () => {
-      const $paymentSection = block.querySelector('.checkout__section--payment');
-      $paymentSection?.scrollIntoView({ behavior: 'smooth' });
     });
   }
 
@@ -241,8 +237,10 @@ export default async function decorate(block) {
     billingFormSkeleton,
     _orderSummary,
     _cartSummary,
+    _shipSummary,
     _termsAndConditions,
     _giftOptions,
+    _coupons,
   ] = await Promise.all([
     renderMergedCartBanner($mergedCartBanner),
 
@@ -268,9 +266,13 @@ export default async function decorate(block) {
 
     renderCartSummaryList($cartSummary),
 
+    renderShipSummary($shipSummary),
+
     renderTermsAndConditions($termsAndConditions),
 
     renderGiftOptions($giftOptions),
+
+    renderCheckoutCoupons($coupons),
   ]);
 
   async function initializeCheckout(data) {

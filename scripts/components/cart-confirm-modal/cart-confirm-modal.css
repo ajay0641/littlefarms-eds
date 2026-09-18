@@ -1,0 +1,118 @@
+/* Cart Remove Confirmation Modal */
+.cart-remove-modal-backdrop {
+  --cart-modal-backdrop-bg: rgb(58 58 58 / 70%);
+  --cart-modal-shadow: 0 4px 20px rgb(0 0 0 / 18%);
+  --cart-modal-close-color: #8f8f8f;
+  --cart-modal-close-hover-color: #212121;
+  --cart-modal-btn-cancel-color: #4d7f71;
+
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  background-color: var(--cart-modal-backdrop-bg);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 52px;
+  box-sizing: border-box;
+  animation: cart-modal-fade-in 0.15s ease-out;
+}
+
+.cart-remove-modal {
+  position: relative;
+  background-color: var(--color-neutral-50);
+  width: 500px;
+  max-width: calc(100vw - 32px);
+  box-shadow: var(--cart-modal-shadow);
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.cart-remove-modal__close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: transparent;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--cart-modal-close-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.cart-remove-modal__close svg {
+  width: 12px;
+  height: 12px;
+}
+
+.cart-remove-modal__close:hover {
+  color: var(--cart-modal-close-hover-color);
+}
+
+.cart-remove-modal__message {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0 0 22px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.cart-remove-modal__actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.cart-remove-modal__btn {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  border-radius: 0;
+  height: 46px;
+  min-width: 125px;
+  padding: 0 24px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  transition: opacity 0.2s ease;
+  box-sizing: border-box;
+}
+
+.cart-remove-modal__btn--cancel,
+.cart-remove-modal__btn--ok {
+  background-image: url('../../../icons/littlefarms/shape-green-border.svg');
+  color: var(--cart-modal-btn-cancel-color);
+}
+
+.cart-remove-modal__btn--cancel:hover,
+.cart-remove-modal__btn--ok:hover {
+  background-color: transparent;
+  background-image: url('../../../icons/littlefarms/shape-green.svg');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  color: var(--color-neutral-50);
+  opacity: 1;
+}
+
+body.cart-remove-modal-open {
+  overflow: hidden;
+}
+
+@keyframes cart-modal-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

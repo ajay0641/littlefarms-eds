@@ -407,6 +407,83 @@ button.button.secondary:focus-visible {
   color: var(--color-brand-600);
 }
 
+/* Little Farms organic outline buttons — small / normal / large */
+.lf-button,
+a.lf-button,
+button.lf-button {
+  appearance: none;
+  align-items: center;
+  background-color: transparent;
+  background-image: url('../icons/littlefarms/shape-green-border.svg');
+  background-position: 0 0;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: var(--color-brand-300);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--type-base-font-family), sans-serif;
+  font-style: normal;
+  font-weight: 700;
+  justify-content: center;
+  letter-spacing: normal;
+  margin: 0;
+  max-width: 100%;
+  text-align: center;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.lf-button:hover,
+.lf-button:focus-visible,
+a.lf-button:hover,
+a.lf-button:focus-visible,
+button.lf-button:hover,
+button.lf-button:focus-visible {
+  background-image: url('../icons/littlefarms/shape-green.svg');
+  color: var(--color-neutral-50);
+  outline: none;
+  text-decoration: none;
+}
+
+.lf-button:disabled,
+.lf-button[aria-disabled='true'],
+button.lf-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.lf-button--small {
+  font-size: 14px;
+  line-height: 16px;
+  min-height: 36px;
+  min-width: 96px;
+  padding: 8px 18px;
+}
+
+.lf-button--normal,
+.lf-button:not(.lf-button--small):not(.lf-button--large) {
+  font-size: 16px;
+  line-height: 18px;
+  min-height: 42px;
+  min-width: 110px;
+  padding: 12px 22px;
+}
+
+.lf-button--large {
+  font-size: 18px;
+  line-height: 18px;
+  min-height: 46px;
+  min-width: 125px;
+  padding: 16px 24px 14px;
+}
+
 
 main input:hover {
   border: var(--shape-border-width-1) solid var(--color-neutral-700);
@@ -1191,7 +1268,6 @@ main[hidden] {
   border-bottom: 1px solid #ebebeb;
   border-radius: 0;
   box-sizing: border-box;
-  color: var(--color-neutral-800);
   font-family: var(--product-item-font-family);
   font-size: 14px;
   font-weight: 700;

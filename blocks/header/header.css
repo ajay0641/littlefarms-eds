@@ -6,6 +6,17 @@
   --desktop-panel-max-height: 600px;
 }
 
+header {
+  --header-category-link-color: #285227;
+  --header-badge-alert-bg: #f40606;
+  --header-nav-cart-icon-color: #004e36;
+  --header-badge-promo-bg: #b9314f;
+  --header-auth-theme-color: #198572;
+  --header-border-subtle: #ebebeb;
+  --header-search-result-shadow: rgb(202 202 202);
+  --header-search-btn-bg: rgb(244 244 244);
+}
+
 /* header and nav layout */
 header .nav-wrapper {
   background-color: var(--background-color);
@@ -143,7 +154,7 @@ header nav[aria-expanded='true'] .nav-hamburger-icon::after {
 .notification .carousel .carousel-slides {
     height: 50px;
     text-align: center;
-    color: #fff;
+    color: var(--color-neutral-50);
     font-weight: 700;
 }
 
@@ -160,7 +171,7 @@ header nav[aria-expanded='true'] .nav-hamburger-icon::after {
 }
 
 .notification .carousel .carousel-slides-container a {
-    color: #fff;
+    color: var(--color-neutral-50);
     text-decoration: underline;
 }
 
@@ -229,7 +240,7 @@ header .nav-bottom-row .nav-static-links a {
   text-decoration: none;
   white-space: nowrap;
   font-weight: bold;
-  color: #285227;
+  color: var(--header-category-link-color);
 }
 
 /* bottom row: menu (nav-sections) + static links, below the logo/search/tools row */
@@ -374,10 +385,6 @@ header .nav-search-panel .search-bar-result a:hover {
 }
 
 header nav .nav-tools button.nav-cart-button {
-  background-image: url('../../icons/cart.svg');
-  background-size: 22px;
-  background-repeat: no-repeat;
-  background-position: center;
   position: relative;
 }
 
@@ -394,7 +401,7 @@ header nav .nav-tools button.nav-cart-button[data-count]::after {
   position: absolute;
   top: 0;
   right: -2px;
-  background-color: #f40606;
+  background-color: var(--header-badge-alert-bg);
   color: var(--color-neutral-100);
   border-radius: 50%;
   width: 1.9rem;
@@ -403,6 +410,185 @@ header nav .nav-tools button.nav-cart-button[data-count]::after {
   align-items: center;
   font-size: 0.8em;
   justify-content: center;
+}
+
+@media (min-width: 768px) {
+  header nav .nav-tools button.nav-cart-button {
+    background-image: url('../../icons/littlefarms/shape-green-border.svg');
+    background-size: 100% 100%;
+    width: 140px;
+    height: 50px;
+    margin-top: -5px;
+    margin-bottom: -5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: .5;
+    gap: 12px;
+  }
+
+  header nav .nav-tools button.nav-cart-button[aria-expanded="true"] {
+    background-image: url('../../icons/littlefarms/shape-green.svg');
+  }
+
+  header nav .nav-tools button.nav-cart-button[data-count]::after {
+    display: none;
+  }
+
+  header nav .nav-tools button.nav-cart-button .nav-cart-icon {
+    display: block;
+    width: 22px;
+    height: 20px;
+    position: relative;
+    flex-shrink: 0;
+    overflow: visible;
+    color: var(--header-nav-cart-icon-color);
+  }
+
+  header nav .nav-tools button.nav-cart-button .nav-cart-icon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  header nav .nav-tools button.nav-cart-button[aria-expanded="true"] .nav-cart-icon {
+    color: var(--color-neutral-50);
+  }
+
+  header nav .nav-tools button.nav-cart-button .nav-cart-icon[data-count]::after {
+    content: attr(data-count);
+    background: var(--header-badge-promo-bg);
+    color: var(--color-neutral-50);
+    height: 17px;
+    line-height: 17px;
+    border-radius: 50%;
+    display: block;
+    min-width: 17px;
+    overflow: hidden;
+    text-align: center;
+    white-space: normal;
+    position: absolute;
+    font-size: 10px;
+    top: -5px;
+    right: -7px;
+  }
+
+  header nav .nav-tools button.nav-cart-button .nav-cart-total {
+    display: block;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-neutral-800);
+    margin-top: 4px;
+  }
+
+  header nav .nav-tools button.nav-cart-button[aria-expanded="true"] .nav-cart-total {
+    color: var(--color-neutral-50);
+  }
+
+  header nav .minicart-panel {
+    position: fixed;
+    top: var(--nav-header-top-offset, 114px);
+    right: 0;
+    bottom: 0;
+    width: 550px;
+    height: calc(100vh - var(--nav-header-top-offset, 114px));
+    max-height: calc(100vh - var(--nav-header-top-offset, 114px));
+    background-color: var(--color-neutral-50);
+    z-index: 10001;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(105%);
+    transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    border-radius: 0;
+    overflow: hidden;
+    margin: 0;
+  }
+
+  header nav .minicart-panel.nav-tools-panel--show {
+    transform: translateX(0);
+    display: flex;
+  }
+
+  header nav .minicart-panel .commerce-mini-cart-container,
+  header nav .minicart-panel .commerce-mini-cart-wrapper {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .minicart-backdrop {
+    position: fixed;
+    inset: 0;
+    background-color: var(--color-neutral-800);
+    z-index: 10000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .minicart-backdrop.minicart-backdrop--show {
+    opacity: .7;
+    pointer-events: auto;
+  }
+
+  body.minicart-drawer-open {
+    overflow: hidden;
+  }
+
+  body.minicart-drawer-open header .nav-wrapper {
+    z-index: 10002;
+  }
+
+  header nav {
+    position: relative;
+    z-index: 20;
+  }
+
+  header .nav-bottom-row {
+    position: relative;
+    z-index: 1;
+  }
+
+  body.minicart-drawer-open header .nav-bottom-row {
+    pointer-events: none;
+  }
+
+  header nav .nav-tools button.nav-cart-button:not([data-count]) .nav-cart-total {
+    display: none;
+  }
+}
+
+@media (min-width: 1025px) {
+  header nav .nav-tools button.nav-cart-button {
+    width: 180px;
+  }
+}
+
+@media (max-width: 767px) {
+  .account-wrapper {
+    padding: 0 6px;
+  }
+
+  header nav {
+    padding-left: 12px;
+    padding-right: 12px;
+    gap: 0 8px;
+  }
+
+  header nav .minicart-panel,
+  .minicart-backdrop {
+    display: none !important;
+  }
+
+  header nav .nav-tools button.nav-cart-button .nav-cart-total {
+    display: none;
+  }
+
+  header nav .nav-tools button.nav-cart-button .nav-cart-icon {
+    display: none;
+  }
 }
 
 header nav .nav-tools .nav-cart-status {
@@ -450,9 +636,9 @@ header .nav-search-panel .search-bar-result {
     width: 100%;
     position: absolute;
     top: 100%;
-    background: #fff;
+    background: var(--color-neutral-50);
     z-index: 99;
-    box-shadow: rgb(202 202 202) 0 0 6px 0;
+    box-shadow: var(--header-search-result-shadow) 0 0 6px 0;
 }
 
 header .nav-search-panel .search-bar-result .product-discovery-product-list__grid {
@@ -462,7 +648,7 @@ header .nav-search-panel .search-bar-result .product-discovery-product-list__gri
 }
 
 header .nav-search-panel .search-bar-result .dropin-button {
-    background-color: rgb(244 244 244);
+    background-color: var(--header-search-btn-bg);
     border-radius: 0;
     border: 0;
 }
@@ -488,29 +674,8 @@ header .nav-search-panel .search-bar-result .product-discovery-product-list__foo
   width: 100%;
 }
 
-/* Mini Cart  */
-
-.cart-mini-cart:not(:has(.cart-empty-cart)) {
-  max-height: 760px;
-  min-height: 360px;
-  text-align: left;
-}
-
-.cart-mini-cart:has(.cart-empty-cart) {
-  max-height: 760px;
-  overflow-y: auto;
-}
-
-/* If viewport height is below max, set max height to 90% of viewport */
+/* If viewport height is below max, set search max height */
 @media (max-height: 819px) {
-  .cart-mini-cart:not(:has(.cart-empty-cart)) {
-    max-height: calc(100vh - var(--nav-height));
-  }
-
-  .cart-mini-cart:has(.cart-empty-cart) {
-    max-height: calc(100vh - var(--nav-height));
-  }
-
   header .nav-search-panel {
     max-height: calc(100vh - var(--nav-height));
   }
@@ -521,17 +686,12 @@ header .nav-search-input .search_autocomplete .popover-container {
 }
 
 @media (min-width: 1024px) {
-  header nav .nav-tools-wrapper {
+  header nav .nav-tools-wrapper:not(.minicart-wrapper) {
     position: relative;
   }
 
-  header nav .nav-tools-panel {
+  header nav .nav-tools-panel:not(.minicart-panel) {
     top: calc(var(--nav-height) - 2.5rem);
-  }
-
-  header nav .minicart-panel {
-    width: 398px;
-    position: absolute;
   }
 
   header nav .nav-search-panel {
@@ -558,7 +718,7 @@ header .nav-search-input .search_autocomplete .popover-container {
 }
 
 .account-wrapper #auth-combine-wrapper {
-  background-color: white;
+  background-color: var(--color-neutral-50);
   width: calc(100% - 58px);
   max-width: 360px;
   margin-top: 18px;
@@ -572,7 +732,7 @@ header .nav-search-input .search_autocomplete .popover-container {
   margin: 18px 20px 8px;
   border-radius: 14px;
   padding: 13px 20px;
-  background-color: #198572;
+  background-color: var(--header-auth-theme-color);
   color: var(--color-neutral-50);
   font: var(--type-body-1-strong-font);
   text-align: center;
@@ -615,7 +775,7 @@ header .nav-search-input .search_autocomplete .popover-container {
   box-sizing: border-box;
   width: 100%;
   min-height: 46px;
-  border: 1px solid #198572;
+  border: 1px solid var(--header-auth-theme-color);
   border-radius: 2px;
   padding: 12px 14px;
   background: var(--color-neutral-50);
@@ -723,7 +883,7 @@ header .nav-search-input .search_autocomplete .popover-container {
 }
 
 .account-wrapper.nav-tools-wrapper .nav-auth-menu-panel .authenticated-user-menu li>a:hover {
-  background-color: lightgray;
+  background-color: var(--color-neutral-200);
 }
 
 .account-wrapper.nav-tools-wrapper .nav-auth-menu-panel .authenticated-user-menu li button {
@@ -744,7 +904,7 @@ header .nav-search-input .search_autocomplete .popover-container {
 }
 
 .account-wrapper.nav-tools-wrapper .nav-auth-menu-panel .authenticated-user-menu li button:hover {
-  background-color: lightgray !important;
+  background-color: var(--color-neutral-200) !important;
   border-radius: 0 !important;
 }
 
@@ -829,8 +989,8 @@ html.modal-active .modal-overlay {
 }
 
 .product-discovery--search-bar-results__outer-container .product-discovery--search-bar-results__grid {
-  box-shadow: 2px 2px 2px lightgray;
-  border: 1px solid lightgray;
+  box-shadow: 2px 2px 2px var(--color-neutral-300);
+  border: 1px solid var(--color-neutral-300);
 }
 
 .product-discovery--product-item {
@@ -934,23 +1094,19 @@ body:has(.seller-assisted-buying-banner) {
 
 @media (min-width: 769px), print {
   .minicart-wrapper {
-      background: url("../../icons/littlefarms/shape-green-border.svg") no-repeat;
-      background-size: 100% 100%;
-      width: 180px;
-      height: 50px;
-      margin-top: -5px;
-      margin-bottom: -5px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: .5;
+    width: auto;
+    height: auto;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 
 /* ---- Minimal header (checkout) ---- */
 header .nav-wrapper-minimal {
-  border-bottom: 1px solid #ebebeb;
-  background: var(--color-neutral-50, #fff);
+  border-bottom: 1px solid var(--header-border-subtle);
+  background: var(--color-neutral-50);
 }
 
 header nav.nav-minimal {
