@@ -32,7 +32,6 @@ import SignUp from '@dropins/storefront-auth/containers/SignUp.js';
 import {
   fetchPlaceholders,
   rootLink,
-  SUPPORT_PATH,
   authPrivacyPolicyConsentSlot,
 } from '../../scripts/commerce.js';
 
@@ -47,9 +46,21 @@ import { loadCSS } from '../../scripts/aem.js';
 // Local selectors and fragments (order confirmation only)
 // ----------------------------------------------------------------------------
 
+/**
+ * Order confirmation copy. Authors can override either string from
+ * placeholders/order.json using the keys below; these are the defaults.
+ */
+const COPY = Object.freeze({
+  title: 'Thanks for shopping with us!',
+  emailNotice: "We'll send you an order confirmation email with your details and tracking info soon",
+  printReceipt: 'Print receipt',
+});
+
 const selectors = Object.freeze({
   orderConfirmation: {
     header: '.order-confirmation__header',
+    emailNotice: '.order-confirmation__email-notice',
+    print: '.order-confirmation__print',
     orderStatus: '.order-confirmation__order-status',
     shippingStatus: '.order-confirmation__shipping-status',
     customerDetails: '.order-confirmation__customer-details',
@@ -64,8 +75,17 @@ const selectors = Object.freeze({
 function createOrderConfirmationFragment() {
   return createFragment(`
     <div class="order-confirmation">
-      <div class="order-confirmation__main">
+      <div class="order-confirmation__greeting">
+        <button
+          type="button"
+          class="order-confirmation__print"
+          data-testid="order-confirmation__print"
+        >Print receipt</button>
         <div class="order-confirmation__header order-confirmation__block"></div>
+        <p class="order-confirmation__email-notice" data-testid="order-confirmation__email-notice"></p>
+        <div class="order-confirmation__footer order-confirmation__block"></div>
+      </div>
+      <div class="order-confirmation__main">
         <div class="order-confirmation__order-status order-confirmation__block"></div>
         <div class="order-confirmation__shipping-status order-confirmation__block"></div>
         <div class="order-confirmation__customer-details order-confirmation__block"></div>
@@ -74,28 +94,14 @@ function createOrderConfirmationFragment() {
         <div class="order-confirmation__order-cost-summary order-confirmation__block"></div>
         <div class="order-confirmation__gift-options order-confirmation__block"></div>
         <div class="order-confirmation__order-product-list order-confirmation__block"></div>
-        <div class="order-confirmation__footer order-confirmation__block"></div>
       </div>
     </div>
   `);
 }
 
-function createOrderConfirmationFooter(supportPath) {
+function createOrderConfirmationFooter() {
   return `
     <div class="order-confirmation-footer__continue-button"></div>
-    <div class="order-confirmation-footer__contact-support">
-      <p>
-        Need help?
-        <a
-          href="${supportPath}"
-          rel="noreferrer"
-          class="order-confirmation-footer__contact-support-link"
-          data-testid="order-confirmation-footer__contact-support-link"
-        >
-          Contact us
-        </a>
-      </p>
-    </div>
   `;
 }
 
@@ -210,11 +216,12 @@ async function renderOrderGiftOptions(container) {
 
 async function renderOrderConfirmationFooterButton(container) {
   return UI.render(Button, {
-    children: 'Continue shopping',
+    children: 'Continue Shopping',
     'data-testid': 'order-confirmation-footer__continue-button',
-    className: 'order-confirmation-footer__continue-button',
+    // Global organic outline button that fills on hover (see styles.css .lf-button)
+    className: 'order-confirmation-footer__continue-button lf-button lf-button--normal',
     size: 'medium',
-    variant: 'primary',
+    variant: 'secondary',
     type: 'submit',
     href: rootLink('/'),
   })(container);
@@ -235,6 +242,8 @@ async function renderCheckoutSuccessContent(container, { orderData } = {}) {
 
   // Query all required elements using local selectors
   const $orderConfirmationHeader = getOrderElement(selectors.orderConfirmation.header);
+  const $emailNotice = getOrderElement(selectors.orderConfirmation.emailNotice);
+  const $print = getOrderElement(selectors.orderConfirmation.print);
   const $orderStatus = getOrderElement(selectors.orderConfirmation.orderStatus);
   const $shippingStatus = getOrderElement(selectors.orderConfirmation.shippingStatus);
   const $customerDetails = getOrderElement(selectors.orderConfirmation.customerDetails);
@@ -247,9 +256,31 @@ async function renderCheckoutSuccessContent(container, { orderData } = {}) {
 
   // Mount order drop-in with localized placeholders (and optional order data)
   const labels = await fetchPlaceholders();
-  const langDefinitions = { default: { ...labels } };
+  const authored = labels.Order?.OrderConfirmation ?? {};
+  const title = authored.title || COPY.title;
+
+  // OrderHeader has no slot for extra copy, so the title is supplied through the
+  // drop-in's own translations. Both keys are set to the same string: the greeting
+  // is the same whether or not we know the customer's name.
+  const langDefinitions = {
+    default: {
+      ...labels,
+      Order: {
+        ...labels.Order,
+        OrderHeader: {
+          ...labels.Order?.OrderHeader,
+          title,
+          defaultTitle: title,
+        },
+      },
+    },
+  };
   const initOptions = orderData ? { langDefinitions, orderData } : { langDefinitions };
   await initializers.mountImmediately(orderApi.initialize, initOptions);
+
+  $emailNotice.textContent = authored.emailNotice || COPY.emailNotice;
+  $print.textContent = authored.printReceipt || COPY.printReceipt;
+  $print.addEventListener('click', () => window.print());
 
   // Render all order confirmation containers using local renderers
   await Promise.all([
@@ -263,7 +294,7 @@ async function renderCheckoutSuccessContent(container, { orderData } = {}) {
   ]);
 
   // Footer content and continue button
-  $orderConfirmationFooter.innerHTML = createOrderConfirmationFooter(rootLink(SUPPORT_PATH));
+  $orderConfirmationFooter.innerHTML = createOrderConfirmationFooter();
   const $continueBtn = $orderConfirmationFooter.querySelector(
     selectors.orderConfirmation.continueButton,
   );

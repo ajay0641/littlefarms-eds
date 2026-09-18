@@ -1218,7 +1218,8 @@ main:has(.commerce-checkout-container),
 }
 
 .checkout__content--error .checkout__place-order,
-.checkout__content--error .checkout__coupons {
+.checkout__content--error .checkout__coupons,
+.checkout__content--error .checkout__reward-points {
   display: none;
 }
 
@@ -1367,6 +1368,25 @@ main:has(.commerce-checkout-container),
   white-space: nowrap;
 }
 
+.checkout__order-summary .cart-order-summary__discount {
+  padding: 8px 0;
+}
+
+.checkout__order-summary .cart-order-summary__coupon__code {
+  color: var(--checkout-text);
+  display: block;
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.35;
+  margin-top: 2px;
+}
+
+.checkout__order-summary .cart-order-summary__discount .dropin-price--sale,
+.checkout__order-summary .cart-order-summary__loyalty .dropin-price--sale {
+  color: var(--checkout-text);
+}
+
 .checkout__order-summary .cart-order-summary__total {
   margin: 6px 0 0;
   padding: 14px 0;
@@ -1422,9 +1442,9 @@ main:has(.commerce-checkout-container),
 }
 
 .checkout-discount__title {
-  color: var(--checkout-brand);
+  color: var(--checkout-text);
   font-family: var(--type-base-font-family), sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
   line-height: 1.25;
 }
@@ -1553,6 +1573,162 @@ main:has(.commerce-checkout-container),
 
 .checkout-discount--busy .checkout-discount__action {
   pointer-events: none;
+}
+
+/* Loyalty points — authenticated customers only */
+.checkout-reward-points {
+  border-bottom: 1px solid var(--checkout-border);
+  width: 100%;
+}
+
+.checkout-reward-points__toggle {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: var(--checkout-brand);
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  justify-content: space-between;
+  padding: 16px 0;
+  text-align: left;
+  width: 100%;
+}
+
+.checkout-reward-points__title {
+  color: var(--checkout-text);
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.checkout-reward-points__chevron {
+  background: url('../../icons/littlefarms/chevron.svg') no-repeat center / 12px 7px;
+  display: block;
+  flex-shrink: 0;
+  height: 24px;
+  transform: rotate(180deg);
+  transition: transform 0.2s ease;
+  width: 24px;
+}
+
+.checkout-reward-points--collapsed .checkout-reward-points__chevron {
+  transform: rotate(0deg);
+}
+
+.checkout-reward-points__panel {
+  padding: 0 0 16px;
+}
+
+.checkout-reward-points--collapsed .checkout-reward-points__panel {
+  display: none;
+}
+
+.checkout-reward-points__balance {
+  color: var(--checkout-text);
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 14px;
+  margin: 0 0 8px;
+}
+
+.checkout-reward-points__error {
+  color: #c00;
+  font-size: 13px;
+  margin: 0 0 8px;
+}
+
+.checkout-reward-points__hint {
+  color: var(--checkout-text);
+  font-size: 13px;
+  margin: 0 0 8px;
+}
+
+.checkout-reward-points__form {
+  display: grid;
+  gap: 16px;
+}
+
+.checkout-reward-points__label {
+  border: 0;
+  clip-path: inset(50%);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.checkout-reward-points__input {
+  background-color: #fff;
+  border: 1px solid var(--checkout-brand);
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: var(--checkout-text);
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 14px;
+  height: 48px;
+  outline: none;
+  padding: 0 20px;
+  width: 100%;
+}
+
+.checkout-reward-points__input::placeholder {
+  color: #8c8c8c;
+  opacity: 1;
+}
+
+.checkout-reward-points__input:disabled,
+.checkout-reward-points__input[readonly] {
+  color: var(--checkout-text);
+  cursor: default;
+  opacity: 1;
+}
+
+.checkout-reward-points__input[aria-invalid='true'] {
+  border-color: #c00;
+}
+
+.checkout-reward-points__action {
+  place-self: end;
+}
+
+.checkout-reward-points__action,
+.checkout-reward-points__action:focus {
+  align-items: center;
+  background-color: transparent;
+  background-image: url('../../icons/littlefarms/shape-green-border.svg');
+  background-position: 0 0;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  border: 0;
+  border-radius: 0;
+  color: var(--checkout-brand);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  justify-content: center;
+  line-height: 18px;
+  min-height: 46px;
+  min-width: 125px;
+  padding: 14px 24px 12px;
+  text-transform: none;
+}
+
+.checkout-reward-points--busy .checkout-reward-points__action {
+  cursor: wait;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.checkout-reward-points__action:hover:not(:disabled) {
+  background-image: url('../../icons/littlefarms/shape-green.svg');
+  color: #fff;
 }
 
 .checkout__block .cart-cart-summary-list {

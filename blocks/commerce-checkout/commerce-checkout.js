@@ -40,6 +40,7 @@ import {
   renderCartSummaryList,
   renderShipSummary,
   renderCheckoutCoupons,
+  renderCheckoutRewardPoints,
   renderCheckoutHeader,
   renderCustomerBillingAddresses,
   renderCustomerShippingAddresses,
@@ -137,6 +138,7 @@ export default async function decorate(block) {
   const $shipSummary = getElement(selectors.checkout.shipSummary);
   const $placeOrder = getElement(selectors.checkout.placeOrder);
   const $coupons = getElement(selectors.checkout.coupons);
+  const $rewardPoints = getElement(selectors.checkout.rewardPoints);
   const $giftOptions = getElement(selectors.checkout.giftOptions);
   const $termsAndConditions = getElement(selectors.checkout.termsAndConditions);
 
@@ -241,6 +243,7 @@ export default async function decorate(block) {
     _termsAndConditions,
     _giftOptions,
     _coupons,
+    _rewardPoints,
   ] = await Promise.all([
     renderMergedCartBanner($mergedCartBanner),
 
@@ -273,6 +276,8 @@ export default async function decorate(block) {
     renderGiftOptions($giftOptions),
 
     renderCheckoutCoupons($coupons),
+
+    renderCheckoutRewardPoints($rewardPoints),
   ]);
 
   async function initializeCheckout(data) {

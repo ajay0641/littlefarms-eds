@@ -21,7 +21,7 @@ import {
 import { getCategoryAncestors } from '../../scripts/menu-data.js';
 import { PLP_IMAGE_DIMENSIONS, withProductImageFallback } from '../../scripts/product-image.js';
 import { fetchCategoryDetails } from './category-details.js';
-import { fetchCatalogGridPagination } from './catalog-pagination.js';
+import { getCatalogGridPagination } from './catalog-pagination.js';
 import {
   createAddToCartButton,
   createProductBadges,
@@ -40,20 +40,28 @@ import {
   showWishlistSuccessToast,
 } from '../../scripts/components/tfs-wishlist-toast/tfs-wishlist-toast.js';
 
-// Initializers
+// Search drop-in must be ready before decorate; cart/wishlist load in parallel with search
 import '../../scripts/initializers/search.js';
-import '../../scripts/initializers/wishlist.js';
-import '../../scripts/initializers/cart.js';
 
 export default async function decorate(block) {
-  const labels = await fetchPlaceholders();
+  // Start cart off the productSearch critical path (its storeConfig call is ~600ms)
+  const cartReady = import('../../scripts/initializers/cart.js');
+
+  // Guests get a plain "shopping list" button, not the wishlist drop-in, so skip its
+  // initialization (and its STORE_CONFIG_QUERY) until a customer is actually signed in.
+  const loadWishlist = () => import('../../scripts/initializers/wishlist.js');
+  const wishlistReady = checkIsAuthenticated() ? loadWishlist() : Promise.resolve();
+  events.on('authenticated', (authenticated) => {
+    if (authenticated) loadWishlist();
+  });
 
   const config = readBlockConfig(block);
   const categoryMeta = getCategoryFromUrl();
 
-  // Magento admin: Stores → Configuration → Catalog → Catalog → Storefront
-  // (grid_per_page / grid_per_page_values). Authored block pageSize overrides when set.
-  const { gridPerPage, gridPerPageValues } = await fetchCatalogGridPagination();
+  // Magento admin: Catalog → Storefront (grid_per_page). Resolved from storage, never
+  // awaited, because productSearch cannot start until the page size is known.
+  const labels = await fetchPlaceholders();
+  const { gridPerPage, gridPerPageValues } = getCatalogGridPagination();
   const authoredPageSize = parseInt(config.pagesize, 10);
   const pageSize = (Number.isFinite(authoredPageSize) && authoredPageSize > 0)
     ? authoredPageSize
@@ -346,6 +354,9 @@ export default async function decorate(block) {
       console.error('Error searching for products', e);
     });
   }
+
+  // Hearts / ATC need these drop-ins; wait only after productSearch has started/finished
+  await Promise.all([cartReady, wishlistReady]);
 
   const requiresPdpConfiguration = (product) => product.typename === 'ComplexProductView'
     || product.attributes?.some((attr) => attr.name === 'ac_giftcard');

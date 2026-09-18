@@ -408,6 +408,8 @@ button.button.secondary:focus-visible {
 }
 
 /* Little Farms organic outline buttons — small / normal / large */
+button[type="submit"],
+button.dropin-button.dropin-button--primary,
 .lf-button,
 a.lf-button,
 button.lf-button {
@@ -439,18 +441,44 @@ button.lf-button {
   white-space: nowrap;
 }
 
+button[type="submit"]:hover,
+button[type="submit"]:hover:active,
+button[type="submit"]:focus,
+button[type="submit"]:focus:hover,
+button[type="submit"]:active,
+button.dropin-button.dropin-button--primary:hover,
+button.dropin-button.dropin-button--primary:hover:active,
+button.dropin-button.dropin-button--primary:focus,
+button.dropin-button.dropin-button--primary:focus:hover,
+button.dropin-button.dropin-button--primary:active,
 .lf-button:hover,
-.lf-button:focus-visible,
+.lf-button:hover:active,
+.lf-button:focus,
+.lf-button:focus:hover,
+.lf-button:active,
 a.lf-button:hover,
-a.lf-button:focus-visible,
+a.lf-button:hover:active,
+a.lf-button:focus,
+a.lf-button:focus:hover,
+a.lf-button:active,
 button.lf-button:hover,
-button.lf-button:focus-visible {
-  background-image: url('../icons/littlefarms/shape-green.svg');
+button.lf-button:hover:active,
+button.lf-button:focus,
+button.lf-button:focus:hover,
+button.lf-button:active,
+a.lf-button:active,
+button.lf-button:active {
+  background: url('../icons/littlefarms/shape-green.svg') no-repeat 0 0 / 100% 100%;
   color: var(--color-neutral-50);
   outline: none;
   text-decoration: none;
+  border: 0;
 }
 
+button[type="submit"]:disabled,
+button[aria-disabled='true'],
+button.dropin-button.dropin-button--primary:disabled,
+button.dropin-button.dropin-button--primary[aria-disabled='true'],
 .lf-button:disabled,
 .lf-button[aria-disabled='true'],
 button.lf-button:disabled {
@@ -459,6 +487,7 @@ button.lf-button:disabled {
   pointer-events: none;
 }
 
+button[type="submit"].small,
 .lf-button--small {
   font-size: 14px;
   line-height: 16px;
@@ -467,6 +496,7 @@ button.lf-button:disabled {
   padding: 8px 18px;
 }
 
+button[type="submit"].normal,
 .lf-button--normal,
 .lf-button:not(.lf-button--small):not(.lf-button--large) {
   font-size: 16px;
@@ -476,6 +506,7 @@ button.lf-button:disabled {
   padding: 12px 22px;
 }
 
+button[type="submit"].large,
 .lf-button--large {
   font-size: 18px;
   line-height: 18px;

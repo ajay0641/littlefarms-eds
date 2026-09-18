@@ -34,6 +34,7 @@ import CartSummaryList from '@dropins/storefront-cart/containers/CartSummaryList
 import GiftCards from '@dropins/storefront-cart/containers/GiftCards.js';
 import GiftOptions from '@dropins/storefront-cart/containers/GiftOptions.js';
 import OrderSummary from '@dropins/storefront-cart/containers/OrderSummary.js';
+import OrderSummaryLine from '@dropins/storefront-cart/containers/OrderSummaryLine.js';
 import { render as CartProvider } from '@dropins/storefront-cart/render.js';
 
 // Payment Services Dropin
@@ -44,9 +45,11 @@ import { render as PaymentServices } from '@dropins/storefront-payment-services/
 // Tools
 import {
   Header,
+  Price,
   provider as UI,
 } from '@dropins/tools/components.js';
 import { events } from '@dropins/tools/event-bus.js';
+import { h } from '@dropins/tools/preact.js';
 import { debounce } from '@dropins/tools/lib.js';
 import { tryRenderAemAssetsImage } from '@dropins/tools/lib/aem/assets.js';
 
@@ -58,14 +61,27 @@ import {
   transformCartAddressToFormValues,
 } from '@dropins/storefront-checkout/lib/utils.js';
 
-import { getCartAddressDisplayContent, getCheckoutAddressesSlots, showModal, swatchImageSlot } from './utils.js';
+import {
+  getCartAddressDisplayContent,
+  getCheckoutAddressesSlots,
+  showModal,
+  swatchImageSlot,
+} from './utils.js';
 
 // External dependencies
 import {
   authPrivacyPolicyConsentSlot,
+  checkIsAuthenticated,
   fetchPlaceholders,
   rootLink,
 } from '../../scripts/commerce.js';
+import {
+  applyRewardPoints,
+  getAppliedRewardPoints,
+  getCheckoutRewardPoints,
+  removeRewardPoints,
+  setAppliedRewardPoints,
+} from './reward-points.js';
 
 // Constants
 import {
@@ -112,6 +128,7 @@ export const CONTAINERS = Object.freeze({
   // Slot/Sub-containers (nested within other containers)
   ESTIMATE_SHIPPING: 'estimateShipping',
   CART_COUPONS: 'cartCoupons',
+  REWARD_POINTS: 'rewardPoints',
   GIFT_CARDS: 'giftCards',
   CART_GIFT_OPTIONS: 'cartGiftOptions',
 });
@@ -550,6 +567,56 @@ const getAppliedCouponCode = (cart) => {
 };
 
 /**
+ * Re-emits cached cart data so Order Summary re-runs updateLineItems after loyalty changes.
+ * The cart drop-in fragment does not include applied_reward_points.
+ * @returns {void}
+ */
+const refreshOrderSummaryLoyalty = () => {
+  const cart = cartApi.getCartDataFromCache()
+    || events.lastPayload('cart/data')
+    || events.lastPayload('cart/initialized');
+  if (cart) events.emit('cart/data', cart);
+};
+
+/**
+ * Inserts a voucher-style Loyalty Points row after Magento discount lines.
+ * @param {Array} lineItems
+ * @returns {Array}
+ */
+const addLoyaltyPointsSummaryLine = (lineItems) => {
+  const applied = getAppliedRewardPoints();
+  const points = Number(applied?.points || 0);
+  const amount = Number(applied?.money?.value);
+  if (points <= 0 || Number.isNaN(amount) || amount <= 0) {
+    return (lineItems || []).filter((item) => item?.key !== 'loyaltyPoints');
+  }
+
+  const currency = applied.money?.currency || 'SGD';
+  const withoutLoyalty = (lineItems || []).filter((item) => item?.key !== 'loyaltyPoints');
+
+  return [
+    ...withoutLoyalty,
+    {
+      key: 'loyaltyPoints',
+      title: 'Loyalty Points',
+      className: 'cart-order-summary__discount',
+      sortOrder: 650,
+      content: h(OrderSummaryLine, {
+        label: 'Loyalty Points',
+        price: h(Price, {
+          className: 'cart-order-summary__price',
+          amount: -amount,
+          currency,
+          sale: true,
+        }),
+        classSuffixes: ['discount', 'loyalty'],
+        testId: 'summary-loyalty-points',
+      }, h('span', { className: 'cart-order-summary__coupon__code' }, `${points} points`)),
+    },
+  ];
+};
+
+/**
  * Renders Magento-style Apply Discount Code accordion under Place Order.
  * Shows the applied code in the input and a Cancel Discount action; blocks a second coupon.
  * @param {HTMLElement} container - DOM element to render coupons in
@@ -733,6 +800,263 @@ export const renderCheckoutCoupons = async (container) => renderContainer(
 );
 
 /**
+ * Renders reward-points redemption for signed-in customers.
+ * Adobe Commerce's mutation applies the maximum eligible points; the input is for
+ * shopper intent and client-side validation, not a partial-redemption amount.
+ * @param {HTMLElement} container - DOM element to render reward points in
+ * @returns {Promise<Object>} API with remove()
+ */
+export const renderCheckoutRewardPoints = async (container) => renderContainer(
+  CONTAINERS.REWARD_POINTS,
+  async () => {
+    if (!container || !checkIsAuthenticated()) {
+      container?.replaceChildren();
+      return { remove: () => container?.replaceChildren() };
+    }
+
+    const root = document.createElement('div');
+    root.className = 'checkout-reward-points';
+    root.dataset.testid = 'checkout-reward-points';
+    root.hidden = true;
+    root.innerHTML = `
+      <button
+        type="button"
+        class="checkout-reward-points__toggle"
+        aria-expanded="true"
+        aria-controls="checkout-reward-points-panel"
+      >
+        <span class="checkout-reward-points__title">Apply Loyalty Points</span>
+        <span class="checkout-reward-points__chevron" aria-hidden="true"></span>
+      </button>
+      <div
+        id="checkout-reward-points-panel"
+        class="checkout-reward-points__panel"
+        role="region"
+        aria-label="Apply Loyalty Points"
+      >
+        <p class="checkout-reward-points__balance" id="checkout-reward-points-balance" aria-live="polite"></p>
+        <p class="checkout-reward-points__error" id="checkout-reward-points-error" role="alert" hidden></p>
+        <p class="checkout-reward-points__hint" id="checkout-reward-points-hint" aria-live="polite" hidden></p>
+        <form class="checkout-reward-points__form" novalidate>
+          <label class="checkout-reward-points__label" for="checkout-reward-points-value">
+            Points to redeem
+          </label>
+          <input
+            id="checkout-reward-points-value"
+            class="checkout-reward-points__input"
+            type="text"
+            inputmode="numeric"
+            autocomplete="off"
+            maxlength="9"
+            placeholder="Enter points to redeem"
+            aria-describedby="checkout-reward-points-balance checkout-reward-points-error checkout-reward-points-hint"
+          />
+          <button type="submit" class="checkout-reward-points__action">
+            Redeem
+          </button>
+        </form>
+      </div>
+    `;
+    container.replaceChildren(root);
+
+    const toggle = root.querySelector('.checkout-reward-points__toggle');
+    const form = root.querySelector('.checkout-reward-points__form');
+    const balanceEl = root.querySelector('.checkout-reward-points__balance');
+    const errorEl = root.querySelector('.checkout-reward-points__error');
+    const hintEl = root.querySelector('.checkout-reward-points__hint');
+    const input = root.querySelector('.checkout-reward-points__input');
+    const action = root.querySelector('.checkout-reward-points__action');
+
+    let cartId = '';
+    let balance = null;
+    let applied = null;
+    let busy = false;
+    let pendingLoad = null;
+
+    const formatMoney = (money) => {
+      if (money?.value == null || !money.currency) return '';
+      try {
+        return new Intl.NumberFormat('en-SG', {
+          style: 'currency',
+          currency: money.currency,
+        }).format(Number(money.value));
+      } catch {
+        return `${money.currency} ${Number(money.value).toFixed(2)}`;
+      }
+    };
+
+    const setError = (message = '') => {
+      errorEl.textContent = message;
+      errorEl.hidden = !message;
+      input.setAttribute('aria-invalid', String(Boolean(message)));
+    };
+
+    const setHint = (message = '') => {
+      hintEl.textContent = message;
+      hintEl.hidden = !message;
+    };
+
+    const publishAppliedPoints = (nextApplied) => {
+      applied = nextApplied;
+      setAppliedRewardPoints(nextApplied);
+      refreshOrderSummaryLoyalty();
+    };
+
+    const syncUi = () => {
+      const availablePoints = Number(balance?.points || 0);
+      const appliedPoints = Number(applied?.points || 0);
+      const hasAppliedPoints = appliedPoints > 0;
+      const money = formatMoney(balance?.money);
+
+      root.hidden = false;
+      root.classList.toggle('checkout-reward-points--applied', hasAppliedPoints);
+      root.classList.toggle('checkout-reward-points--busy', busy);
+
+      balanceEl.textContent = `You have ${availablePoints} loyalty points.${money ? ` That's ${money}!` : ''}`;
+      action.textContent = hasAppliedPoints ? 'Cancel Loyalty Points' : 'Redeem';
+      input.readOnly = hasAppliedPoints;
+
+      if (hasAppliedPoints) {
+        input.value = String(appliedPoints);
+        return;
+      }
+
+      // Keep the field empty so Magento's placeholder is visible — never "0".
+      if (!input.dataset.userEdited) input.value = '';
+    };
+
+    const validatePoints = () => {
+      const availablePoints = Number(balance?.points || 0);
+      const raw = input.value.trim();
+
+      if (!raw) {
+        return { error: 'Enter points to redeem.' };
+      }
+      if (!/^\d+$/.test(raw)) {
+        return { error: 'Enter loyalty points as a whole number.' };
+      }
+
+      const points = Number(raw);
+      if (points <= 0) {
+        return { error: 'Enter at least 1 loyalty point.' };
+      }
+      if (availablePoints <= 0) {
+        return { error: 'You do not have any loyalty points to redeem yet.' };
+      }
+      if (points > availablePoints) {
+        return { error: `You only have ${availablePoints} loyalty points available.` };
+      }
+
+      return { points };
+    };
+
+    const loadState = async () => {
+      const cart = cartApi.getCartDataFromCache()
+        || events.lastPayload('cart/data')
+        || events.lastPayload('cart/initialized');
+      cartId = cart?.id || cartId;
+      if (!cartId || pendingLoad) return pendingLoad;
+
+      pendingLoad = getCheckoutRewardPoints(cartId)
+        .then((state) => {
+          ({ balance } = state);
+          if (!balance) {
+            root.hidden = true;
+            publishAppliedPoints(null);
+            return;
+          }
+          publishAppliedPoints(state.applied);
+          setError('');
+          if (!Number(state.applied?.points || 0)) setHint('');
+          syncUi();
+        })
+        .catch((error) => {
+          // A store without the Reward module should not lose the rest of checkout.
+          console.warn('Checkout reward points are unavailable:', error);
+          root.hidden = true;
+        })
+        .finally(() => {
+          pendingLoad = null;
+        });
+      return pendingLoad;
+    };
+
+    toggle.addEventListener('click', () => {
+      const expanded = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', String(!expanded));
+      root.classList.toggle('checkout-reward-points--collapsed', expanded);
+    });
+
+    input.addEventListener('input', () => {
+      input.dataset.userEdited = 'true';
+      if (!errorEl.hidden) setError('');
+    });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (busy || !cartId) return;
+
+      const hasAppliedPoints = Number(applied?.points || 0) > 0;
+
+      let requestedPoints = 0;
+      if (!hasAppliedPoints) {
+        const { error, points } = validatePoints();
+        if (error) {
+          setError(error);
+          input.focus();
+          return;
+        }
+        requestedPoints = points;
+      }
+
+      busy = true;
+      setError('');
+      setHint('');
+      syncUi();
+
+      try {
+        const updatedCart = hasAppliedPoints
+          ? await removeRewardPoints(cartId)
+          : await applyRewardPoints(cartId);
+        if (!updatedCart) throw new Error('Unable to update loyalty points.');
+
+        publishAppliedPoints(updatedCart.applied_reward_points ?? null);
+        if (!applied?.points) {
+          delete input.dataset.userEdited;
+          setHint('');
+        } else if (requestedPoints && requestedPoints !== Number(applied.points)) {
+          // Magento GraphQL applies the maximum eligible points, not a partial amount.
+          setHint(`The maximum eligible ${applied.points} loyalty points were applied to this order.`);
+        }
+        syncUi();
+
+        try {
+          await cartApi.refreshCart();
+        } catch (refreshError) {
+          // The mutation succeeded, so keep its state visible even if refreshing the
+          // other checkout containers fails. Their next cart event will resynchronize.
+          console.warn('Unable to refresh checkout totals:', refreshError);
+        }
+      } catch (error) {
+        console.warn('Checkout reward points error:', error);
+        setError(error?.message || 'Unable to update loyalty points. Please try again.');
+      } finally {
+        busy = false;
+        syncUi();
+      }
+    });
+
+    events.on('cart/initialized', loadState, { eager: true });
+    events.on('cart/updated', loadState);
+    loadState();
+
+    return {
+      remove: () => container.replaceChildren(),
+    };
+  },
+);
+
+/**
  * Renders gift options for cart summary list footer slot
  * @param {HTMLElement} ctx - The slot context element
  * @returns {void}
@@ -770,6 +1094,7 @@ export const renderOrderSummary = async (container) => renderContainer(
   CONTAINERS.ORDER_SUMMARY,
   async () => CartProvider.render(OrderSummary, {
     enableCoupons: false,
+    updateLineItems: addLoyaltyPointsSummaryLine,
     slots: {
       EstimateShipping: renderEstimateShipping,
       GiftCards: renderGiftCards,
