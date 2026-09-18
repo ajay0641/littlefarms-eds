@@ -21,6 +21,7 @@ import {
 import { getCategoryAncestors } from '../../scripts/menu-data.js';
 import { PLP_IMAGE_DIMENSIONS, withProductImageFallback } from '../../scripts/product-image.js';
 import { fetchCategoryDetails } from './category-details.js';
+import { fetchCatalogGridPagination } from './catalog-pagination.js';
 import {
   createAddToCartButton,
   createProductBadges,
@@ -49,7 +50,16 @@ export default async function decorate(block) {
 
   const config = readBlockConfig(block);
   const categoryMeta = getCategoryFromUrl();
-  const pageSize = parseInt(config.pagesize, 10) || 9;
+
+  // Magento admin: Stores → Configuration → Catalog → Catalog → Storefront
+  // (grid_per_page / grid_per_page_values). Authored block pageSize overrides when set.
+  const { gridPerPage, gridPerPageValues } = await fetchCatalogGridPagination();
+  const authoredPageSize = parseInt(config.pagesize, 10);
+  const pageSize = (Number.isFinite(authoredPageSize) && authoredPageSize > 0)
+    ? authoredPageSize
+    : gridPerPage;
+  block.dataset.gridPerPage = String(pageSize);
+  block.dataset.gridPerPageValues = gridPerPageValues.join(',');
 
   // Override authored urlpath with the category from the live URL (folder mapping /
   // menu redirect via /categories/default + sessionStorage / ?cp=).

@@ -31,7 +31,6 @@ import { render as AccountProvider } from '@dropins/storefront-account/render.js
 // Cart Dropin
 import * as cartApi from '@dropins/storefront-cart/api.js';
 import CartSummaryList from '@dropins/storefront-cart/containers/CartSummaryList.js';
-import Coupons from '@dropins/storefront-cart/containers/Coupons.js';
 import GiftCards from '@dropins/storefront-cart/containers/GiftCards.js';
 import GiftOptions from '@dropins/storefront-cart/containers/GiftOptions.js';
 import OrderSummary from '@dropins/storefront-cart/containers/OrderSummary.js';
@@ -59,7 +58,7 @@ import {
   transformCartAddressToFormValues,
 } from '@dropins/storefront-checkout/lib/utils.js';
 
-import { showModal, swatchImageSlot } from './utils.js';
+import { getCartAddressDisplayContent, getCheckoutAddressesSlots, showModal, swatchImageSlot } from './utils.js';
 
 // External dependencies
 import {
@@ -99,6 +98,7 @@ export const CONTAINERS = Object.freeze({
   BILLING_ADDRESS_FORM_SKELETON: 'billingAddressFormSkeleton',
   ORDER_SUMMARY: 'orderSummary',
   CART_SUMMARY_LIST: 'cartSummaryList',
+  SHIP_SUMMARY: 'shipSummary',
   TERMS_AND_CONDITIONS: 'termsAndConditions',
   PLACE_ORDER_BUTTON: 'placeOrderButton',
   GIFT_OPTIONS: 'giftOptions',
@@ -528,17 +528,6 @@ export const renderEstimateShipping = (ctx) => {
 };
 
 /**
- * Renders cart coupons for order summary slot
- * @param {HTMLElement} ctx - The slot context element
- * @returns {void}
- */
-export const renderCartCoupons = (ctx) => {
-  const coupons = document.createElement('div');
-  CartProvider.render(Coupons)(coupons);
-  ctx.appendChild(coupons);
-};
-
-/**
  * Renders gift cards for order summary slot
  * @param {HTMLElement} ctx - The slot context element
  * @returns {void}
@@ -548,6 +537,200 @@ export const renderGiftCards = (ctx) => {
   CartProvider.render(GiftCards)(giftCards);
   ctx.appendChild(giftCards);
 };
+
+/**
+ * Reads the first applied coupon code from cart data (Magento allows one at checkout).
+ * @param {Object|null|undefined} cart
+ * @returns {string}
+ */
+const getAppliedCouponCode = (cart) => {
+  const coupons = cart?.appliedCoupons;
+  if (!Array.isArray(coupons) || coupons.length === 0) return '';
+  return String(coupons[0]?.code || '').trim();
+};
+
+/**
+ * Renders Magento-style Apply Discount Code accordion under Place Order.
+ * Shows the applied code in the input and a Cancel Discount action; blocks a second coupon.
+ * @param {HTMLElement} container - DOM element to render coupons in
+ * @returns {Promise<Object>} - API with remove()
+ */
+export const renderCheckoutCoupons = async (container) => renderContainer(
+  CONTAINERS.CART_COUPONS,
+  async () => {
+    if (!container) return null;
+
+    const root = document.createElement('div');
+    root.className = 'checkout-discount';
+    root.dataset.testid = 'checkout-discount';
+    root.innerHTML = `
+      <button
+        type="button"
+        class="checkout-discount__toggle"
+        aria-expanded="true"
+        aria-controls="checkout-discount-panel"
+      >
+        <span class="checkout-discount__title">Apply Discount Code</span>
+        <span class="checkout-discount__chevron" aria-hidden="true"></span>
+      </button>
+      <div
+        id="checkout-discount-panel"
+        class="checkout-discount__panel"
+        role="region"
+        aria-label="Apply Discount Code"
+      >
+        <p class="checkout-discount__error" hidden></p>
+        <form class="checkout-discount__form" novalidate>
+          <label class="checkout-discount__label" for="checkout-discount-code">
+            Discount code
+          </label>
+          <input
+            id="checkout-discount-code"
+            class="checkout-discount__input"
+            type="text"
+            name="discount_code"
+            maxlength="50"
+            autocomplete="off"
+            placeholder="Enter discount code"
+            aria-label="Enter discount code"
+          />
+          <button type="submit" class="checkout-discount__action">
+            Apply Discount
+          </button>
+        </form>
+      </div>
+    `;
+
+    container.replaceChildren(root);
+
+    const toggle = root.querySelector('.checkout-discount__toggle');
+    const panel = root.querySelector('.checkout-discount__panel');
+    const form = root.querySelector('.checkout-discount__form');
+    const input = root.querySelector('.checkout-discount__input');
+    const action = root.querySelector('.checkout-discount__action');
+    const errorEl = root.querySelector('.checkout-discount__error');
+
+    let appliedCode = '';
+    let busy = false;
+
+    const setError = (message = '') => {
+      if (!message) {
+        errorEl.hidden = true;
+        errorEl.textContent = '';
+        input?.removeAttribute('aria-invalid');
+        return;
+      }
+      errorEl.hidden = false;
+      errorEl.textContent = message;
+      input?.setAttribute('aria-invalid', 'true');
+    };
+
+    const setBusy = (isBusy) => {
+      busy = isBusy;
+      input.readOnly = Boolean(appliedCode);
+      input.disabled = isBusy;
+      action.disabled = isBusy;
+      root.classList.toggle('checkout-discount--busy', isBusy);
+    };
+
+    const syncUi = (code = '') => {
+      appliedCode = String(code || '').trim();
+      const hasCoupon = Boolean(appliedCode);
+
+      root.classList.toggle('checkout-discount--applied', hasCoupon);
+
+      if (hasCoupon) {
+        input.value = appliedCode;
+        delete input.dataset.userEdited;
+      } else if (!input.dataset.userEdited) {
+        input.value = '';
+      }
+
+      input.readOnly = hasCoupon;
+      if (!busy) input.disabled = false;
+
+      action.textContent = hasCoupon ? 'Cancel Discount' : 'Apply Discount';
+      action.setAttribute(
+        'aria-label',
+        hasCoupon ? 'Cancel discount code' : 'Apply discount code',
+      );
+    };
+
+    const syncFromCart = (cart) => {
+      const code = getAppliedCouponCode(cart);
+      if (!code) delete input.dataset.userEdited;
+      syncUi(code);
+      if (code) setError('');
+    };
+
+    toggle.addEventListener('click', () => {
+      const expanded = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', String(!expanded));
+      root.classList.toggle('checkout-discount--collapsed', expanded);
+    });
+
+    input.addEventListener('input', () => {
+      if (appliedCode) return;
+      input.dataset.userEdited = 'true';
+      setError('');
+    });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (busy) return;
+
+      setError('');
+      setBusy(true);
+
+      try {
+        if (appliedCode) {
+          const result = await cartApi.applyCouponsToCart(
+            [],
+            cartApi.ApplyCouponsStrategy.REPLACE,
+          );
+          if (result === null) throw new Error('Unable to cancel discount code');
+          delete input.dataset.userEdited;
+          input.value = '';
+          syncUi('');
+          return;
+        }
+
+        const code = input.value.trim();
+        if (!code) {
+          setError('Please enter a discount code.');
+          return;
+        }
+
+        // Magento checkout: only one coupon — REPLACE keeps a single code on the cart
+        const result = await cartApi.applyCouponsToCart(
+          [code],
+          cartApi.ApplyCouponsStrategy.REPLACE,
+        );
+        if (result === null) throw new Error('Unable to apply discount code');
+
+        const nextCode = getAppliedCouponCode(result) || code;
+        syncUi(nextCode);
+      } catch (error) {
+        console.warn('Checkout discount error:', error);
+        setError(error?.message || 'Unable to update discount code. Please try again.');
+        syncFromCart(cartApi.getCartDataFromCache() || events.lastPayload('cart/data'));
+      } finally {
+        setBusy(false);
+      }
+    });
+
+    const onCartData = (cart) => syncFromCart(cart);
+    events.on('cart/data', onCartData, { eager: true });
+    events.on('cart/updated', onCartData, { eager: true });
+    syncFromCart(cartApi.getCartDataFromCache() || events.lastPayload('cart/data'));
+
+    return {
+      remove: () => {
+        container.replaceChildren();
+      },
+    };
+  },
+);
 
 /**
  * Renders gift options for cart summary list footer slot
@@ -578,16 +761,17 @@ export const renderCartGiftOptions = (ctx) => {
 // ============================================================================
 
 /**
- * Renders order summary with estimate shipping, coupons, and gift cards slots
+ * Renders order summary with estimate shipping and gift cards slots.
+ * Coupons live under Place Order (see renderCheckoutCoupons), matching Magento.
  * @param {HTMLElement} container - DOM element to render order summary in
  * @returns {Promise<Object>} - The rendered order summary component
  */
 export const renderOrderSummary = async (container) => renderContainer(
   CONTAINERS.ORDER_SUMMARY,
   async () => CartProvider.render(OrderSummary, {
+    enableCoupons: false,
     slots: {
       EstimateShipping: renderEstimateShipping,
-      Coupons: renderCartCoupons,
       GiftCards: renderGiftCards,
     },
   })(container),
@@ -677,6 +861,168 @@ export const renderCartSummaryList = async (container) => renderContainer(
 );
 
 /**
+ * Creates Magento-style edit control that scrolls to a checkout section.
+ * @param {string} targetSelector
+ * @param {string} label
+ * @returns {HTMLButtonElement}
+ */
+const createShipSummaryEditButton = (targetSelector, label) => {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'checkout-ship-summary__edit';
+  button.setAttribute('aria-label', label);
+  button.innerHTML = '<span class="icon icon-edit" aria-hidden="true"></span>';
+  button.addEventListener('click', () => {
+    const target = document.querySelector(targetSelector);
+    target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  return button;
+};
+
+/**
+ * Renders Magento LF "Ship to" + "Shipping method" blocks under Items in Cart.
+ * @param {HTMLElement} container
+ * @returns {Promise<Object|null>}
+ */
+export const renderShipSummary = async (container) => renderContainer(
+  CONTAINERS.SHIP_SUMMARY,
+  async () => {
+    if (!container) return null;
+
+    const root = document.createElement('div');
+    root.className = 'checkout-ship-summary';
+    root.hidden = true;
+    root.innerHTML = `
+      <div class="checkout-ship-summary__block checkout-ship-summary__ship-to" hidden>
+        <div class="checkout-ship-summary__header">
+          <h3 class="checkout-ship-summary__title">Ship to:</h3>
+        </div>
+        <div class="checkout-ship-summary__body checkout-ship-summary__address"></div>
+      </div>
+      <div class="checkout-ship-summary__block checkout-ship-summary__method" hidden>
+        <div class="checkout-ship-summary__header">
+          <h3 class="checkout-ship-summary__title">Shipping method:</h3>
+        </div>
+        <div class="checkout-ship-summary__body">
+          <p class="checkout-ship-summary__method-label"></p>
+        </div>
+      </div>
+    `;
+
+    const shipToBlock = root.querySelector('.checkout-ship-summary__ship-to');
+    const methodBlock = root.querySelector('.checkout-ship-summary__method');
+    const addressEl = root.querySelector('.checkout-ship-summary__address');
+    const methodLabelEl = root.querySelector('.checkout-ship-summary__method-label');
+    const shipToHeader = shipToBlock.querySelector('.checkout-ship-summary__header');
+    const methodHeader = methodBlock.querySelector('.checkout-ship-summary__header');
+
+    shipToHeader.appendChild(
+      createShipSummaryEditButton('.checkout__section--delivery', 'Edit shipping address'),
+    );
+    methodHeader.appendChild(
+      createShipSummaryEditButton('.checkout__section--shipping', 'Edit shipping method'),
+    );
+
+    // Load edit icons (AEM icon convention)
+    const { decorateIcons } = await import('../../scripts/aem.js');
+    decorateIcons(root);
+
+    let lastCheckoutPayload = null;
+    let lastEstimatePayload = null;
+
+    const resolveMethod = (payload) => {
+      if (!payload) return null;
+      const selected = payload.shippingAddresses?.[0]?.selectedShippingMethod
+        || payload.addresses?.shipping?.selectedShippingMethod;
+      if (selected) return selected;
+
+      if (payload.shippingMethod || payload.availableShippingMethods) {
+        const estimated = payload.shippingMethod;
+        const match = payload.availableShippingMethods?.find((method) => (
+          method.code === estimated?.methodCode
+          || method.carrier?.code === estimated?.carrierCode
+          || method.value === `${estimated?.carrierCode} - ${estimated?.methodCode}`
+        )) || payload.availableShippingMethods?.[0];
+
+        if (!match && !estimated) return null;
+        return {
+          carrier: match?.carrier || { title: estimated?.carrierCode || '' },
+          title: match?.title || estimated?.methodCode || '',
+        };
+      }
+      return null;
+    };
+
+    const refresh = () => {
+      const address = getCartAddress(lastCheckoutPayload, 'shipping')
+        || lastCheckoutPayload?.shippingAddresses?.[0]
+        || null;
+      const { lines, telephone } = getCartAddressDisplayContent(address);
+
+      addressEl.innerHTML = '';
+      if (lines.length || telephone) {
+        lines.forEach((line, index) => {
+          const row = document.createElement('p');
+          row.className = index === 0
+            ? 'checkout-ship-summary__line checkout-ship-summary__name'
+            : 'checkout-ship-summary__line';
+          row.textContent = line;
+          addressEl.appendChild(row);
+        });
+
+        if (telephone) {
+          const phone = document.createElement('a');
+          phone.className = 'checkout-ship-summary__line checkout-ship-summary__phone';
+          phone.href = `tel:${telephone.replace(/\s+/g, '')}`;
+          phone.textContent = telephone;
+          addressEl.appendChild(phone);
+        }
+
+        shipToBlock.hidden = false;
+      } else {
+        shipToBlock.hidden = true;
+      }
+
+      const method = resolveMethod(lastCheckoutPayload) || resolveMethod(lastEstimatePayload);
+      const carrierTitle = method?.carrier?.title || '';
+      const methodTitle = method?.title || '';
+      const methodLabel = [carrierTitle, methodTitle].filter(Boolean).join(' - ');
+      if (methodLabel) {
+        methodLabelEl.textContent = methodLabel;
+        methodBlock.hidden = false;
+      } else {
+        methodBlock.hidden = true;
+      }
+
+      root.hidden = shipToBlock.hidden && methodBlock.hidden;
+    };
+
+    const onCheckoutData = (payload) => {
+      if (!payload) return;
+      lastCheckoutPayload = payload;
+      refresh();
+    };
+
+    const onEstimate = (payload) => {
+      if (!payload) return;
+      lastEstimatePayload = payload;
+      refresh();
+    };
+
+    events.on('checkout/updated', onCheckoutData, { eager: true });
+    events.on('checkout/initialized', onCheckoutData, { eager: true });
+    events.on('cart/data', onCheckoutData, { eager: true });
+    events.on('shipping/estimate', onEstimate, { eager: true });
+
+    onCheckoutData(events.lastPayload('checkout/updated') || events.lastPayload('checkout/initialized'));
+    onEstimate(events.lastPayload('shipping/estimate'));
+
+    container.replaceChildren(root);
+    return { remove: () => root.remove() };
+  },
+);
+
+/**
  * Renders place order button with handler functions - follows multi-step pattern
  * @param {HTMLElement} container - DOM element to render the place order button in
  * @param {Object} options - Configuration object with handler functions
@@ -746,6 +1092,7 @@ export const renderCustomerShippingAddresses = async (container, formRef, data) 
       fieldIdPrefix: 'shipping',
       formName: SHIPPING_FORM_NAME,
       forwardFormRef: formRef,
+      hideActionFormButtons: false,
       inputsDefaultValueSet,
       minifiedView: false,
       onAddressData: (values) => {
@@ -760,6 +1107,10 @@ export const renderCustomerShippingAddresses = async (container, formRef, data) 
       showBillingCheckBox: false,
       showSaveCheckBox: true,
       showShippingCheckBox: false,
+      slots: getCheckoutAddressesSlots(),
+      // Magento checkout: select an address; edit/remove stays on account pages
+      withActionsInFullSizeView: false,
+      withActionsInMinifiedView: false,
       title: placeholders?.Checkout?.Addresses?.shippingAddressTitle,
     })(container);
   },
@@ -814,6 +1165,7 @@ export const renderCustomerBillingAddresses = async (container, formRef, data) =
       defaultSelectAddressId: billingAddressId,
       formName: BILLING_FORM_NAME,
       forwardFormRef: formRef,
+      hideActionFormButtons: false,
       inputsDefaultValueSet,
       minifiedView: false,
       onAddressData: (values) => {
@@ -827,6 +1179,9 @@ export const renderCustomerBillingAddresses = async (container, formRef, data) =
       showBillingCheckBox: false,
       showSaveCheckBox: true,
       showShippingCheckBox: false,
+      slots: getCheckoutAddressesSlots(),
+      withActionsInFullSizeView: false,
+      withActionsInMinifiedView: false,
       title: placeholders?.Checkout?.Addresses?.billingAddressTitle,
     })(container);
   },

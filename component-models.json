@@ -470,8 +470,7 @@
         "component": "number",
         "name": "pageSize",
         "label": "Page Size",
-        "value": 9,
-        "description": "Number of products per page (default: 9)"
+        "description": "Optional override. When empty, uses Magento storeConfig.grid_per_page (Catalog → Storefront)."
       }
     ]
   },

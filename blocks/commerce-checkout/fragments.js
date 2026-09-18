@@ -22,12 +22,13 @@ export const selectors = Object.freeze({
     delivery: '.checkout__delivery',
     deliveryComment: '.checkout__delivery-comment',
     deliveryCommentInput: '.checkout__delivery-comment-input',
-    deliveryNextButton: '.checkout__delivery-next-button',
     paymentMethods: '.checkout__payment-methods',
     billingForm: '.checkout__billing-form',
     orderSummary: '.checkout__order-summary',
     cartSummary: '.checkout__cart-summary',
+    shipSummary: '.checkout__ship-summary',
     placeOrder: '.checkout__place-order',
+    coupons: '.checkout__coupons',
     giftOptions: '.checkout__gift-options',
     termsAndConditions: '.checkout__terms-and-conditions',
     main: '.checkout__main',
@@ -74,9 +75,6 @@ export function createCheckoutFragment() {
                 class="checkout__delivery-comment-input"
                 rows="3"
               ></textarea>
-              <div class="checkout__delivery-actions">
-                <button type="button" class="checkout__delivery-next-button">Next</button>
-              </div>
             </div>
           </section>
 
@@ -87,6 +85,7 @@ export function createCheckoutFragment() {
             <div class="checkout__billing-form ${CHECKOUT_BLOCK}"></div>
             <div class="checkout__terms-and-conditions ${CHECKOUT_BLOCK}"></div>
             <div class="checkout__place-order ${CHECKOUT_BLOCK}"></div>
+            <div class="checkout__coupons ${CHECKOUT_BLOCK}"></div>
           </section>
         </div>
         <aside class="checkout__aside">
@@ -95,6 +94,7 @@ export function createCheckoutFragment() {
             <div class="checkout__order-summary ${CHECKOUT_BLOCK}"></div>
             <div class="checkout__gift-options ${CHECKOUT_BLOCK}"></div>
             <div class="checkout__cart-summary ${CHECKOUT_BLOCK}"></div>
+            <div class="checkout__ship-summary ${CHECKOUT_BLOCK}"></div>
           </section>
         </aside>
       </div>
