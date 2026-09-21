@@ -34,6 +34,8 @@ function ph(placeholders, path, fallback) {
  * @param {Element} block The commerce-login block element
  */
 export default async function decorate(block) {
+  document.body.classList.add('customer-login', 'customer', 'login');
+
   if (checkIsAuthenticated()) {
     window.location.href = rootLink(CUSTOMER_ACCOUNT_PATH);
     return;

@@ -1,41 +1,48 @@
-main .commerce-login-container {
-  max-width: 1200px;
+:root {
+  --commerce-login-border: #ebebeb;
+  --commerce-login-input-bg: #eaf1fd;
+  --commerce-login-brand: #407466;
+  --commerce-login-focus-shadow: rgb(64 116 102 / 20%);
+}
+
+body.customer-login {
+  background-color: var(--color-neutral-200);
+}
+
+.customer-login .commerce-login-wrapper {
+  max-width: 1270px;
   margin: 0 auto;
-  padding: 40px 20px 60px;
+  padding: 30px 20px;
   width: 100%;
 }
 
 .commerce-login__title {
   text-align: center;
   font-family: AppleJuice, sans-serif;
-  font-weight: 400;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  font-size: 34px;
-  margin: 0 0 32px;
-  color: var(--color-neutral-800, #3a3a3a);
+  font-size: 30px;
+  line-height: 36px;
+  margin: 0 0 15px;
 }
 
 .commerce-login__grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 24px;
+  gap: 30px;
 }
 
 /* Both columns are white cards on the beige page */
 .commerce-login__col {
   box-sizing: border-box;
-  background: #fff;
-  padding: 32px;
+  background: var(--color-neutral-50);
+  padding: 20px;
 }
 
 .commerce-login__col-title {
-  font-size: 20px;
+  font-size: 1.8rem;
+  border-bottom: 1px solid var(--commerce-login-border);
+  margin: 0 0 15px;
   font-weight: 700;
-  margin: 0 0 16px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid #e5e5e5;
-  color: var(--color-neutral-800, #3a3a3a);
+  padding-bottom: 2px;
 }
 
 /* Registered column */
@@ -45,14 +52,91 @@ main .commerce-login-container {
 
 .commerce-login__intro-lead,
 .commerce-login__intro-note {
-  margin: 0 0 14px;
+  margin: 0 0 20px;
   font-size: 14px;
-  line-height: 1.6;
-  color: rgb(58 58 58);
+}
+
+.commerce-login__form .auth-sign-in-form {
+  padding: 0;
+}
+
+.customer-login .commerce-login__form .dropin-input-container {
+  height: auto;
+  min-height: unset;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  overflow: visible;
+}
+
+.customer-login .commerce-login__form .dropin-input-label-container {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+}
+
+.customer-login .commerce-login__form .dropin-input__label--floating,
+.customer-login .commerce-login__form .dropin-input-container--floating .dropin-input__label--floating,
+.customer-login .commerce-login__form .dropin-input--floating ~ .dropin-input__label--floating,
+.customer-login .commerce-login__form .dropin-input--floating:not(:placeholder-shown) ~ .dropin-input__label--floating,
+.customer-login .commerce-login__form .dropin-input-container--floating:focus-within .dropin-input__label--floating {
+  position: static;
+  order: -1;
+  transform: none;
+  display: block;
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-neutral-800);
+  margin-bottom: 8px;
+  padding: 0;
+  line-height: 1.2;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.customer-login .commerce-login__form .dropin-input__field-icon--left,
+.customer-login .commerce-login__form .dropin-input-password__eye-icon {
+  display: none;
+}
+
+.customer-login .commerce-login__form input.dropin-input,
+.customer-login .commerce-login__form input.dropin-input--icon-left {
+  width: 100%;
+  height: 46px;
+  background-color: var(--commerce-login-input-bg);
+  border: 1.5px solid var(--commerce-login-brand);
+  border-radius: 6px;
+  padding: 0 14px;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color-neutral-800);
+  box-sizing: border-box;
+  outline: none;
+}
+
+.customer-login .commerce-login__form input.dropin-input::placeholder {
+  color: transparent;
+}
+
+.customer-login .commerce-login__form input.dropin-input:focus {
+  background-color: var(--commerce-login-input-bg);
+  border-color: var(--color-brand-500);
+  box-shadow: 0 0 0 2px var(--commerce-login-focus-shadow);
+}
+
+.customer-login .commerce-login__form .auth-sign-in-form__form__field--email {
+  margin-bottom: 20px;
+}
+
+.customer-login .commerce-login__form .auth-sign-in-form__form__password {
+  margin-bottom: 0;
 }
 
 .commerce-login__intro-lead a {
-  color: var(--color-brand-300, #4d7f71);
+  color: var(--color-brand-300);
   text-decoration: none;
 }
 
@@ -64,26 +148,46 @@ main .commerce-login-container {
 .commerce-login__new-text {
   font-size: 14px;
   line-height: 1.6;
-  color: rgb(58 58 58);
+  color: var(--color-neutral-800);
   margin: 0 0 24px;
 }
 
-.commerce-login__create-btn {
-  display: inline-block;
-  padding: 12px 24px;
-  border: 1px solid var(--color-brand-500, #2f6f5e);
-  border-radius: 6px;
-  background: #fff;
-  color: var(--color-brand-500, #2f6f5e);
+.customer-login .commerce-login__create-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 100%;
+  height: 46px;
+  min-height: 46px;
+  box-sizing: border-box;
+  background-color: transparent;
+  background-image: url('../../icons/littlefarms/shape-green-border.svg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--commerce-login-brand);
+  font-family: var(--type-base-font-family), sans-serif;
   font-size: 14px;
   font-weight: 700;
   text-decoration: none;
-  transition: background 0.2s ease, color 0.2s ease;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.15s ease;
 }
 
-.commerce-login__create-btn:hover {
-  background: var(--color-brand-500, #2f6f5e);
-  color: #fff;
+.customer-login .commerce-login__create-btn:hover,
+.customer-login .commerce-login__create-btn:focus {
+  background-image: url('../../icons/littlefarms/shape-green.svg');
+  background-color: transparent;
+  color: var(--color-neutral-50);
+  text-decoration: none;
+}
+
+.customer-login .commerce-login__create-btn:active {
+  transform: scale(0.99);
 }
 
 /* ---- Drop-in Sign In form overrides ---- */
@@ -93,41 +197,139 @@ main .commerce-login-container {
   display: none;
 }
 
-/* Outlined green Sign In button (matches reference) */
-.commerce-login__form .auth-sign-in-form__form__buttons button[type="submit"],
-.commerce-login__form .auth-sign-in-form__form__buttons .dropin-button--primary {
-  background: #fff;
-  color: var(--color-brand-500, #2f6f5e);
-  border: 1px solid var(--color-brand-500, #2f6f5e);
-  border-radius: 6px;
+/* Sign In button and Forgot Password links */
+.customer-login .commerce-login__form .auth-sign-in-form__form__buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 14px;
+  padding: 0;
 }
 
-.commerce-login__form .auth-sign-in-form__form__buttons button[type="submit"]:hover,
-.commerce-login__form .auth-sign-in-form__form__buttons .dropin-button--primary:hover {
-  background: var(--color-brand-500, #2f6f5e);
-  color: #fff;
+.customer-login .commerce-login__form .auth-sign-in-form__button--submit,
+.customer-login .commerce-login__form .auth-sign-in-form__form__buttons .dropin-button--primary {
+  order: 1;
+  width: 100%;
+  max-width: 100%;
+  height: 46px;
+  min-height: 46px;
+  background-color: transparent;
+  background-image: url('../../icons/littlefarms/shape-green-border.svg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--commerce-login-brand);
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s ease, transform 0.15s ease;
 }
 
-/* Forgot password link — brand green text */
-.commerce-login__form .auth-sign-in-form__form__buttons .dropin-button--tertiary {
-  color: var(--color-brand-300, #4d7f71);
+.customer-login .commerce-login__form .auth-sign-in-form__button--submit:hover,
+.customer-login .commerce-login__form .auth-sign-in-form__form__buttons .dropin-button--primary:hover {
+  background-image: url('../../icons/littlefarms/shape-green.svg');
+  background-color: transparent;
+  color: var(--color-neutral-50);
+}
+
+.customer-login .commerce-login__form .auth-sign-in-form__button--submit:active {
+  transform: scale(0.99);
+}
+
+.customer-login .commerce-login__form .auth-sign-in-form__button--submit .auth-button__text {
+  text-transform: capitalize;
+}
+
+.customer-login .commerce-login__form .auth-sign-in-form__form__buttons__combine {
+  order: 2;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+}
+
+.customer-login .commerce-login__form .auth-sign-in-form__button--forgot,
+.customer-login .commerce-login__form .auth-sign-in-form__form__buttons .dropin-button--tertiary {
+  background: transparent;
+  border: 0;
+  color: var(--commerce-login-brand);
+  font-family: var(--type-base-font-family), sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
+  text-decoration: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.customer-login .commerce-login__form .auth-sign-in-form__button--forgot:hover,
+.customer-login .commerce-login__form .auth-sign-in-form__form__buttons .dropin-button--tertiary:hover {
+  text-decoration: underline;
 }
 
 .commerce-login__required {
-  margin: 20px 0 0;
-  font-size: 13px;
-  color: rgb(58 58 58);
+  margin: 35px 0 15px;
+  font-size: 12px;
+  color: var(--color-neutral-800);
+  text-align: center;
 }
 
 /* ---- Desktop: two columns ---- */
-@media (min-width: 900px) {
+@media (min-width: 768px) {
   .commerce-login__grid {
-    grid-template-columns: 1.4fr 1fr;
-    gap: 48px;
+    grid-template-columns: 1fr 1fr;
     align-items: start;
   }
 
+  .commerce-login__title {
+    font-size: 40px;
+    line-height: 46px;
+    margin-bottom: 20px;
+  }
+
   .commerce-login__col {
-    padding: 40px;
+    padding: 20px 30px;
+    height: 100%;
+  }
+
+  .customer-login .commerce-login__create-btn {
+    width: auto;
+    display: inline-flex;
+    padding: 0 20px;
+  }
+
+  .customer-login .commerce-login__form .auth-sign-in-form__form__buttons {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 30px;
+    margin-top: 5px;
+  }
+
+  .customer-login .commerce-login__form .auth-sign-in-form__button--submit,
+  .customer-login .commerce-login__form .auth-sign-in-form__form__buttons .dropin-button--primary {
+    width: auto;
+    min-width: 125px;
+  }
+
+  .customer-login .commerce-login__form .auth-sign-in-form__form__buttons__combine {
+    width: auto;
+    text-align: left;
+    display: inline-flex;
+    justify-content: flex-start;
+  }
+
+  .commerce-login__required {
+    text-align: left;
+    margin: 30px 0 10px;
   }
 }
