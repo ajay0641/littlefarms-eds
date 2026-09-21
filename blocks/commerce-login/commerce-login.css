@@ -1,5 +1,87 @@
 main .commerce-login-container {
-    max-width: 700px;
-    margin: 40px auto;
-    width: 100%;
+  max-width: 1200px;
+  margin: 40px auto;
+  width: 100%;
+}
+
+.commerce-login__title {
+  text-align: center;
+  font-size: 28px;
+  margin: 0 0 32px;
+  color: var(--color-brand-700, #2f6f5e);
+}
+
+.commerce-login__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+}
+
+.commerce-login__col {
+  box-sizing: border-box;
+}
+
+.commerce-login__col-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+/* Registered column */
+.commerce-login__intro {
+  margin: 0 0 20px;
+}
+
+.commerce-login__intro-lead,
+.commerce-login__intro-note {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgb(58 58 58);
+}
+
+.commerce-login__intro-lead a {
+  color: var(--color-brand-700, #2f6f5e);
+  text-decoration: underline;
+}
+
+/* New customers column */
+.commerce-login__new {
+  background: #f6f4f2;
+  border-radius: 8px;
+  padding: 24px;
+  align-self: start;
+}
+
+.commerce-login__new-text {
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgb(58 58 58);
+  margin: 0 0 20px;
+}
+
+.commerce-login__create-btn {
+  display: inline-block;
+  padding: 12px 28px;
+  border-radius: 24px;
+  background: var(--color-brand-700, #2f6f5e);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.commerce-login__create-btn:hover {
+  opacity: 0.9;
+}
+
+/* ---- Desktop: two columns ---- */
+@media (min-width: 900px) {
+  .commerce-login__grid {
+    grid-template-columns: 1.5fr 1fr;
+    gap: 48px;
+    align-items: start;
+  }
 }
