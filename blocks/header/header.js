@@ -12,7 +12,7 @@ import { renderAuthDropdown } from './renderAuthDropdown.js';
 import renderSellerAssistedBuyingBanner from './renderSellerAssistedBuyingBanner.js';
 
 // media query match that indicates mobile/tablet width
-const isDesktop = window.matchMedia('(min-width: 900px)');
+const isDesktop = window.matchMedia('(min-width: 768px)');
 
 const labels = await fetchPlaceholders();
 
@@ -194,12 +194,13 @@ export default async function decorate(block) {
 
   /** Search */
   const searchFragment = document.createRange().createContextualFragment(`
-  <div class="search-wrapper nav-tools-wrapper">
-    <button type="button" class="nav-search-button">Search</button>
-    <div class="nav-search-input nav-search-panel nav-tools-panel">
+  <div class="search-wrapper">
+    <button type="button" class="nav-search-button" aria-label="Search"></button>
+    <div class="nav-search-input nav-search-panel">
       <form id="search-bar-form"></form>
       <div class="search-bar-result" style="display: none;"></div>
     </div>
+    <button type="button" class="nav-search-clear" aria-label="Clear search"></button>
   </div>
   `);
 
@@ -228,128 +229,200 @@ export default async function decorate(block) {
 
   navTools.append(customerMenuFragment);
 
+  const searchWrapper = nav.querySelector('.search-wrapper');
   const searchPanel = nav.querySelector('.nav-search-panel');
   const searchButton = nav.querySelector('.nav-search-button');
+  const searchClearButton = searchWrapper.querySelector('.nav-search-clear');
   const searchForm = searchPanel.querySelector('#search-bar-form');
   const searchResult = searchPanel.querySelector('.search-bar-result');
 
-  async function toggleSearch(state) {
+  async function toggleSearch() {
     const pageSize = 4;
 
-    if (state) {
-      await withLoadingState(searchPanel, searchButton, async () => {
-        await import('../../scripts/initializers/search.js');
+    await withLoadingState(searchPanel, searchButton, async () => {
+      await import('../../scripts/initializers/search.js');
 
-        // Load search components in parallel
-        const [
-          { search },
-          { render },
-          { SearchResults },
-          { provider: UI, Input, Button },
-        ] = await Promise.all([
-          import('@dropins/storefront-product-discovery/api.js'),
-          import('@dropins/storefront-product-discovery/render.js'),
-          import('@dropins/storefront-product-discovery/containers/SearchResults.js'),
-          import('@dropins/tools/components.js'),
-          import('@dropins/tools/lib.js'),
-        ]);
+      // Load search components in parallel
+      const [
+        { search },
+        { render },
+        { SearchResults },
+        { provider: UI, Input, Button },
+      ] = await Promise.all([
+        import('@dropins/storefront-product-discovery/api.js'),
+        import('@dropins/storefront-product-discovery/render.js'),
+        import('@dropins/storefront-product-discovery/containers/SearchResults.js'),
+        import('@dropins/tools/components.js'),
+        import('@dropins/tools/lib.js'),
+      ]);
 
-        render.render(SearchResults, {
-          skeletonCount: pageSize,
-          scope: 'popover',
-          routeProduct: ({ urlKey, sku }) => getProductLink(urlKey, sku),
-          onSearchResult: (results) => {
-            searchResult.style.display = results.length > 0 ? 'block' : 'none';
+      render.render(SearchResults, {
+        skeletonCount: pageSize,
+        scope: 'popover',
+        routeProduct: ({ urlKey, sku }) => getProductLink(urlKey, sku),
+        onSearchResult: (results) => {
+          searchResult.style.display = results.length > 0 ? 'block' : 'none';
+        },
+        slots: {
+          ProductImage: (ctx) => {
+            const { product, defaultImageProps } = ctx;
+            const width = Number(defaultImageProps?.width) || PLP_IMAGE_DIMENSIONS.width;
+            const height = Number(defaultImageProps?.height) || PLP_IMAGE_DIMENSIONS.height;
+            const anchorWrapper = document.createElement('a');
+            anchorWrapper.href = getProductLink(product.urlKey, product.sku);
+
+            const imageProps = withProductImageFallback(defaultImageProps, product);
+
+            tryRenderAemAssetsImage(ctx, {
+              alias: product.sku,
+              imageProps: {
+                ...imageProps,
+                width,
+                height,
+                params: { ...imageProps.params, width, height },
+              },
+              wrapper: anchorWrapper,
+              params: { width, height },
+            });
           },
-          slots: {
-            ProductImage: (ctx) => {
-              const { product, defaultImageProps } = ctx;
-              const width = Number(defaultImageProps?.width) || PLP_IMAGE_DIMENSIONS.width;
-              const height = Number(defaultImageProps?.height) || PLP_IMAGE_DIMENSIONS.height;
-              const anchorWrapper = document.createElement('a');
-              anchorWrapper.href = getProductLink(product.urlKey, product.sku);
+          Footer: async (ctx) => {
+            // View all results button
+            const viewAllResultsWrapper = document.createElement('div');
 
-              const imageProps = withProductImageFallback(defaultImageProps, product);
+            const viewAllResultsButton = await UI.render(Button, {
+              children: labels.Global?.SearchViewAll,
+              variant: 'secondary',
+              href: rootLink('/search'),
+            })(viewAllResultsWrapper);
 
-              tryRenderAemAssetsImage(ctx, {
-                alias: product.sku,
-                imageProps: {
-                  ...imageProps,
-                  width,
-                  height,
-                  params: { ...imageProps.params, width, height },
-                },
-                wrapper: anchorWrapper,
-                params: { width, height },
-              });
-            },
-            Footer: async (ctx) => {
-              // View all results button
-              const viewAllResultsWrapper = document.createElement('div');
+            ctx.appendChild(viewAllResultsWrapper);
 
-              const viewAllResultsButton = await UI.render(Button, {
-                children: labels.Global?.SearchViewAll,
-                variant: 'secondary',
-                href: rootLink('/search'),
-              })(viewAllResultsWrapper);
-
-              ctx.appendChild(viewAllResultsWrapper);
-
-              ctx.onChange((next) => {
-                viewAllResultsButton?.setProps((prev) => ({
-                  ...prev,
-                  href: `${rootLink('/search')}?q=${encodeURIComponent(next.variables?.phrase || '')}`,
-                }));
-              });
-            },
+            ctx.onChange((next) => {
+              viewAllResultsButton?.setProps((prev) => ({
+                ...prev,
+                href: `${rootLink('/search')}?q=${encodeURIComponent(next.variables?.phrase || '')}`,
+              }));
+            });
           },
-        })(searchResult);
+        },
+      })(searchResult);
 
-        searchForm.addEventListener('submit', (e) => {
-          e.preventDefault();
-          const query = e.target.search.value;
-          if (query.length) {
-            window.location.href = `${rootLink('/search')}?q=${encodeURIComponent(query)}`;
-          }
-        });
-
-        UI.render(Input, {
-          name: 'search',
-          placeholder: labels.Global?.Search,
-          onValue: (phrase) => {
-            if (!phrase) {
-              search(null, { scope: 'popover' });
-              return;
-            }
-
-            if (phrase.length < 3) {
-              return;
-            }
-
-            search({
-              phrase,
-              pageSize,
-              filter: [
-                { attribute: 'visibility', in: ['Search', 'Catalog, Search'] },
-              ],
-            }, { scope: 'popover' });
-          },
-        })(searchForm);
+      searchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const input = searchForm.querySelector('input');
+        const query = input?.value?.trim() || '';
+        if (query.length) {
+          window.location.href = `${rootLink('/search')}?q=${encodeURIComponent(query)}`;
+        }
       });
-    }
 
-    togglePanel(searchPanel, state);
-    if (state) searchForm?.querySelector('input')?.focus();
+      searchForm.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          searchResult.style.display = 'none';
+        }
+      });
+
+      const getSearchPlaceholder = () => (isDesktop.matches
+        ? (labels.Global?.SearchPlaceholder)
+        : (labels.Global?.SearchPlaceholderMobile));
+
+      const syncClearButton = (val) => {
+        const text = typeof val === 'string' ? val : (searchForm.querySelector('input')?.value || '');
+        if (text.length > 0) {
+          searchClearButton?.classList.add('nav-search-clear--show');
+        } else {
+          searchClearButton?.classList.remove('nav-search-clear--show');
+        }
+      };
+
+      searchForm.addEventListener('input', (e) => {
+        syncClearButton(e.target?.value);
+      });
+
+      searchClearButton?.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const inputElem = searchForm.querySelector('input');
+        if (inputElem) {
+          inputElem.value = '';
+          inputElem.dispatchEvent(new Event('input', { bubbles: true }));
+          inputElem.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        syncClearButton('');
+        search(null, { scope: 'popover' });
+        searchResult.style.display = 'none';
+        if (inputElem) {
+          inputElem.focus();
+        }
+      });
+
+      await UI.render(Input, {
+        name: 'search',
+        placeholder: getSearchPlaceholder(),
+        onValue: (phrase) => {
+          syncClearButton(phrase);
+
+          if (!phrase) {
+            search(null, { scope: 'popover' });
+            searchResult.style.display = 'none';
+            return;
+          }
+
+          if (phrase.length < 3) {
+            searchResult.style.display = 'none';
+            return;
+          }
+
+          search({
+            phrase,
+            pageSize,
+            filter: [
+              { attribute: 'visibility', in: ['Search', 'Catalog, Search'] },
+            ],
+          }, { scope: 'popover' });
+        },
+      })(searchForm);
+
+      // Pre-fill query if currently on /search?q=...
+      const currentQuery = new URLSearchParams(window.location.search).get('q');
+      if (currentQuery) {
+        const inputElem = searchForm.querySelector('input');
+        if (inputElem) {
+          inputElem.value = currentQuery;
+          syncClearButton(currentQuery);
+        }
+      }
+    });
   }
 
-  toggleSearch(!searchPanel.classList.contains('nav-tools-panel--show'));
+  // Preload search dropin in the background
+  toggleSearch();
 
-  // navTools.querySelector('.nav-search-button').addEventListener('click', () => {
+  const updatePlaceholder = () => {
+    const input = searchForm.querySelector('input');
+    if (input && !input.value) {
+      input.placeholder = isDesktop.matches
+        ? (labels.Global?.SearchPlaceholder)
+        : (labels.Global?.SearchPlaceholderMobile);
+    }
+  };
+  isDesktop.addEventListener('change', updatePlaceholder);
+
+  searchButton.addEventListener('click', (e) => {
+    e.preventDefault();
+    const input = searchForm.querySelector('input');
+    const query = input?.value?.trim();
+    if (query && query.length > 0) {
+      window.location.href = `${rootLink('/search')}?q=${encodeURIComponent(query)}`;
+    } else {
+      input?.focus();
+    }
+  });
+
   if (isDesktop.matches) {
     toggleAllNavSections(navSections);
     overlay.classList.remove('show');
   }
-  // });
 
   /** Mini Cart */
   const excludeMiniCartFromPaths = ['/checkout'];
@@ -413,8 +486,8 @@ export default async function decorate(block) {
       toggleMiniCart(false);
     }
 
-    if (!searchPanel.contains(e.target) && !searchButton.contains(e.target)) {
-      toggleSearch(false);
+    if (!searchWrapper.contains(e.target)) {
+      searchResult.style.display = 'none';
     }
   });
 

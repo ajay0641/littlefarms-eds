@@ -55,12 +55,7 @@ header nav[aria-expanded='true'] {
   min-height: 100dvh;
 }
 
-.account-wrapper {
-  position: relative;
-  padding: 0 2rem;
-}
-
-@media (min-width: 900px) {
+@media (min-width: 768px) {
   header .nav-wrapper {
     position: relative;
   }
@@ -69,6 +64,10 @@ header nav[aria-expanded='true'] {
     min-height: 8rem;
     overflow: visible;
   }
+}
+
+header nav .nav-tools button.nav-cart-button .nav-cart-icon svg {
+  fill: #3a3a3a;
 }
 
 header nav p {
@@ -193,7 +192,7 @@ header nav[aria-expanded='true'] .nav-hamburger-icon::after {
     transform: rotate(-90deg);
 }
 
-@media (min-width: 900px) {
+@media (min-width: 768px) {
   header nav .nav-hamburger {
     display: none;
     visibility: hidden;
@@ -227,7 +226,7 @@ header nav .nav-brand img {
   height: auto;
 }
 
-@media (min-width: 900px) {
+@media (min-width: 768px) {
   header .nav-drop {
     align-self: center;
   }
@@ -309,13 +308,13 @@ header nav .nav-sections .dropdown-menu {
   z-index: 40;
 }
 
-@media (min-width: 900px) {
+@media (min-width: 768px) {
   header .nav-bottom-row {
     border-top: 1px solid var(--color-neutral-300);
   }
 }
 
-@media (max-width: 899px) {
+@media (max-width: 767px) {
   /* On mobile the menu keeps its own slide-out behavior and static links
      stay hidden (see below), so let nav-sections + nav-static-links behave
      as if they were direct children of .nav-wrapper again. */
@@ -359,11 +358,11 @@ header nav .nav-tools {
 
 header nav .nav-tools-wrapper>button {
   background: transparent;
-  padding: 10px;
   border: unset;
   cursor: pointer;
   height: 24px;
   width: 24px;
+  padding: 0;
 }
 
 /* static links (On Promo, Housebrand, Store Locations, Restaurants, Recipes) */
@@ -378,7 +377,7 @@ header .nav-search-panel .search-bar-result a:hover {
   text-decoration: none;
 }
 
-@media (min-width: 900px) {
+@media (min-width: 768px) {
   header .nav-bottom-row .nav-static-links {
     display: flex;
   }
@@ -390,7 +389,7 @@ header nav .nav-tools button.nav-cart-button {
 
 header nav .nav-tools button.nav-account-button {
   background-image: url('../../icons/account.svg');
-  background-size: 22px;
+  background-size: 20px;
   background-repeat: no-repeat;
   background-position: center;
   position: relative;
@@ -567,10 +566,6 @@ header nav .nav-tools button.nav-cart-button[data-count]::after {
 }
 
 @media (max-width: 767px) {
-  .account-wrapper {
-    padding: 0 6px;
-  }
-
   header nav {
     padding-left: 12px;
     padding-right: 12px;
@@ -583,10 +578,6 @@ header nav .nav-tools button.nav-cart-button[data-count]::after {
   }
 
   header nav .nav-tools button.nav-cart-button .nav-cart-total {
-    display: none;
-  }
-
-  header nav .nav-tools button.nav-cart-button .nav-cart-icon {
     display: none;
   }
 }
@@ -603,42 +594,135 @@ header nav .nav-tools .nav-cart-status {
   border: 0;
 }
 
-.search-wrapper {
-    display: flex;
-    align-items: center;
-    background: url("../../icons/littlefarms/shape-search.svg") no-repeat;
-    background-size: 100% 100%;
-    padding-left: 1.5rem;
-    margin-left: 3rem;
+header nav .search-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+  flex: 1;
+  max-width: 570px;
+  height: 40px;
+  margin-left: 2%;
+  background-image: url("../../icons/littlefarms/shape-search.svg");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  box-sizing: border-box;
+  padding: 0 15px 0 18px;
+  gap: 2px;
 }
 
 header nav button.nav-search-button {
-    font-size: 0;
-    background-image: url("../../icons/search.svg");
-    background-repeat: no-repeat;
-    background-position: center;
-    height: 100%;
-    width: 4rem;
-}
-
-.nav-search-input input {
+  font-size: 0;
+  background-color: transparent;
+  background-image: url("../../icons/search.svg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 20px 20px;
+  height: 24px;
+  width: 24px;
+  min-width: 24px;
+  padding: 0;
+  margin: 0;
   border: 0;
-  padding: 1rem 1rem 1rem 0;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  flex-shrink: 0;
 }
 
+header nav button.nav-search-button:hover {
+  opacity: 1;
+}
 
+header nav .nav-search-input {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  background: transparent;
+}
 
-header .nav-search-panel .dropin-input-container {
+header nav .nav-search-input #search-bar-form {
   width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  background: transparent;
+}
+
+header nav .nav-search-panel .dropin-input-container {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+}
+
+header nav .nav-search-input .dropin-input-label-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+header nav .nav-search-input input {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  padding: 0 10px 0 6px;
+  color: #000;
+}
+
+header nav .nav-search-input input::placeholder {
+  color: #8c8c8c;
+}
+
+header nav .search-wrapper .nav-search-clear {
+  display: none;
+  background-color: transparent;
+  background-image: url("../../icons/clear.svg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 20px 20px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  cursor: pointer;
+  flex-shrink: 0;
+  border-radius: 50%;
+  transition: opacity 0.2s ease, transform 0.15s ease;
+}
+
+header nav .search-wrapper .nav-search-clear:hover {
+  opacity: 0.8;
+}
+
+header nav .search-wrapper .nav-search-clear:active {
+  transform: scale(0.92);
+}
+
+header nav .search-wrapper .nav-search-clear.nav-search-clear--show {
+  display: block;
 }
 
 header .nav-search-panel .search-bar-result {
-    width: 100%;
-    position: absolute;
-    top: 100%;
-    background: var(--color-neutral-50);
-    z-index: 99;
-    box-shadow: var(--header-search-result-shadow) 0 0 6px 0;
+  width: 100%;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--color-neutral-50);
+  z-index: 99;
+  box-shadow: var(--header-search-result-shadow) 0 8px 24px 0;
+  border-radius: 12px;
+  border: 1px solid var(--color-neutral-200, #e8e8e8);
+  max-height: 460px;
+  overflow-y: auto;
 }
 
 header .nav-search-panel .search-bar-result .product-discovery-product-list__grid {
@@ -648,12 +732,10 @@ header .nav-search-panel .search-bar-result .product-discovery-product-list__gri
 }
 
 header .nav-search-panel .search-bar-result .dropin-button {
-    background-color: var(--header-search-btn-bg);
-    border-radius: 0;
-    border: 0;
+  background-color: var(--header-search-btn-bg);
+  border-radius: 0;
+  border: 0;
 }
-
-
 
 /* Popover List */
 header .nav-search-panel .search-bar-result .dropin-product-item-card {
@@ -692,10 +774,6 @@ header .nav-search-input .search_autocomplete .popover-container {
 
   header nav .nav-tools-panel:not(.minicart-panel) {
     top: calc(var(--nav-height) - 2.5rem);
-  }
-
-  header nav .nav-search-panel {
-    width: 528px;
   }
 }
 
@@ -937,7 +1015,7 @@ html.modal-active .modal-overlay {
   display: block;
 }
 
-@media (max-width: 899px) {
+@media (max-width: 767px) {
   header {
     position: relative;
   }
@@ -955,7 +1033,105 @@ html.modal-active .modal-overlay {
   }
 
   header nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    height: auto;
+    min-height: unset;
+    padding: 10px 16px 12px;
+    row-gap: 10px;
     position: relative;
+    z-index: 105;
+  }
+
+  header nav .nav-hamburger {
+    order: 1;
+    display: flex;
+    align-items: center;
+  }
+
+  header nav .nav-brand {
+    order: 2;
+    margin: 0 auto;
+    text-align: center;
+    min-width: 0;
+  }
+
+  header nav .nav-brand a {
+    display: block;
+    margin: 0 auto;
+  }
+
+  header nav .nav-tools {
+    order: 3;
+    margin-left: 0;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  header nav .search-wrapper {
+    order: 4;
+    width: 100%;
+    flex: 0 0 100%;
+    max-width: 100%;
+    height: 42px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    position: relative;
+    background-color: #f6f4f2;
+    background-image: url("../../icons/littlefarms/shape-search.svg");
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    border-radius: 9999px;
+    box-sizing: border-box;
+    padding: 0 14px 0 12px;
+  }
+
+  header nav .search-wrapper button.nav-search-button {
+    font-size: 0;
+    background-color: transparent;
+    background-image: url("../../icons/search.svg");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 18px 18px;
+    height: 24px;
+    width: 24px;
+    min-width: 24px;
+    padding: 0;
+    margin: 0 4px 0 0;
+    border: 0;
+    cursor: pointer;
+    opacity: 0.65;
+    flex-shrink: 0;
+  }
+
+  header nav .search-wrapper .nav-search-panel {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    position: static;
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+    border-radius: 0;
+  }
+
+  header nav .search-wrapper .search-bar-result {
+    width: 100%;
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: var(--color-neutral-50);
+    z-index: 110;
+    box-shadow: var(--header-search-result-shadow) 0 8px 24px 0;
+    border-radius: 12px;
+    border: 1px solid var(--color-neutral-200, #e8e8e8);
+    max-height: 460px;
+    overflow-y: auto;
   }
 
   header nav[aria-expanded='true'] {
@@ -1065,7 +1241,7 @@ body:has(.seller-assisted-buying-banner) {
   cursor: not-allowed;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 768px) {
   .seller-assisted-buying-banner {
     gap: var(--spacing-xsmall);
     padding: var(--spacing-small) var(--spacing-medium);
