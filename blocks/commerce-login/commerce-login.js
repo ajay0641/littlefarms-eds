@@ -74,7 +74,11 @@ export default async function decorate(block) {
   const signInMount = document.createElement('div');
   signInMount.className = 'commerce-login__form';
 
-  registered.append(regHeading, regIntro, signInMount);
+  const requiredNote = document.createElement('p');
+  requiredNote.className = 'commerce-login__required';
+  requiredNote.textContent = ph(placeholders, 'Login.registered.requiredFields', '* Required Fields');
+
+  registered.append(regHeading, regIntro, signInMount, requiredNote);
 
   // --- Right column: New Customers ---
   const newCustomer = document.createElement('div');

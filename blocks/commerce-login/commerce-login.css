@@ -1,32 +1,41 @@
 main .commerce-login-container {
   max-width: 1200px;
-  margin: 40px auto;
+  margin: 0 auto;
+  padding: 40px 20px 60px;
   width: 100%;
 }
 
 .commerce-login__title {
   text-align: center;
-  font-size: 28px;
+  font-family: AppleJuice, sans-serif;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 34px;
   margin: 0 0 32px;
-  color: var(--color-brand-700, #2f6f5e);
+  color: var(--color-neutral-800, #3a3a3a);
 }
 
 .commerce-login__grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 32px;
+  gap: 24px;
 }
 
+/* Both columns are white cards on the beige page */
 .commerce-login__col {
   box-sizing: border-box;
+  background: #fff;
+  padding: 32px;
 }
 
 .commerce-login__col-title {
   font-size: 20px;
   font-weight: 700;
   margin: 0 0 16px;
-  padding-bottom: 12px;
+  padding-bottom: 14px;
   border-bottom: 1px solid #e5e5e5;
+  color: var(--color-neutral-800, #3a3a3a);
 }
 
 /* Registered column */
@@ -36,52 +45,89 @@ main .commerce-login-container {
 
 .commerce-login__intro-lead,
 .commerce-login__intro-note {
-  margin: 0 0 12px;
+  margin: 0 0 14px;
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.6;
   color: rgb(58 58 58);
 }
 
 .commerce-login__intro-lead a {
-  color: var(--color-brand-700, #2f6f5e);
+  color: var(--color-brand-300, #4d7f71);
+  text-decoration: none;
+}
+
+.commerce-login__intro-lead a:hover {
   text-decoration: underline;
 }
 
 /* New customers column */
-.commerce-login__new {
-  background: #f6f4f2;
-  border-radius: 8px;
-  padding: 24px;
-  align-self: start;
-}
-
 .commerce-login__new-text {
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.6;
   color: rgb(58 58 58);
-  margin: 0 0 20px;
+  margin: 0 0 24px;
 }
 
 .commerce-login__create-btn {
   display: inline-block;
-  padding: 12px 28px;
-  border-radius: 24px;
-  background: var(--color-brand-700, #2f6f5e);
-  color: #fff;
+  padding: 12px 24px;
+  border: 1px solid var(--color-brand-500, #2f6f5e);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--color-brand-500, #2f6f5e);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: none;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .commerce-login__create-btn:hover {
-  opacity: 0.9;
+  background: var(--color-brand-500, #2f6f5e);
+  color: #fff;
+}
+
+/* ---- Drop-in Sign In form overrides ---- */
+
+/* Hide the drop-in's own "Sign in" title (redundant with column heading) */
+.commerce-login__form .auth-sign-in-form__title {
+  display: none;
+}
+
+/* Outlined green Sign In button (matches reference) */
+.commerce-login__form .auth-sign-in-form__form__buttons button[type="submit"],
+.commerce-login__form .auth-sign-in-form__form__buttons .dropin-button--primary {
+  background: #fff;
+  color: var(--color-brand-500, #2f6f5e);
+  border: 1px solid var(--color-brand-500, #2f6f5e);
+  border-radius: 6px;
+}
+
+.commerce-login__form .auth-sign-in-form__form__buttons button[type="submit"]:hover,
+.commerce-login__form .auth-sign-in-form__form__buttons .dropin-button--primary:hover {
+  background: var(--color-brand-500, #2f6f5e);
+  color: #fff;
+}
+
+/* Forgot password link — brand green text */
+.commerce-login__form .auth-sign-in-form__form__buttons .dropin-button--tertiary {
+  color: var(--color-brand-300, #4d7f71);
+}
+
+.commerce-login__required {
+  margin: 20px 0 0;
+  font-size: 13px;
+  color: rgb(58 58 58);
 }
 
 /* ---- Desktop: two columns ---- */
 @media (min-width: 900px) {
   .commerce-login__grid {
-    grid-template-columns: 1.5fr 1fr;
+    grid-template-columns: 1.4fr 1fr;
     gap: 48px;
     align-items: start;
+  }
+
+  .commerce-login__col {
+    padding: 40px;
   }
 }
